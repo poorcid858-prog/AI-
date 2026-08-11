@@ -1,0 +1,17 @@
+node_modules/
+npm-debug.log*
+
+# 运行时数据不入库（由 deploy/reset-data.js 从 mock-data 重建）
+data/*.json
+!data/.gitkeep
+
+# 本地环境变量（含真实大模型 API Key，绝不能提交）
+.env
+.env.local
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

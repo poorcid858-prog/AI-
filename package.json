@@ -1,0 +1,26 @@
+{
+  "name": "ai-assistant",
+  "version": "1.0.0",
+  "description": "企业AI辅助工具 —— RAG + 提示词工程 + 工作流编排，为产品/测试/前端/客服四岗位生成交付物",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test \"test/**/*.test.js\"",
+    "reset": "node deploy/reset-data.js"
+  },
+  "keywords": [
+    "RAG",
+    "prompt-engineering",
+    "workflow",
+    "LLM"
+  ],
+  "author": "PM",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
