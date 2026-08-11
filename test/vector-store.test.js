@@ -253,6 +253,23 @@ test('buildIndex 保留 chunk 的元数据（id/content/heading/keywords/source�
   assert.strictEqual(index.vectors[0].source, 'r.md');
 });
 
+test('buildIndex 保留权限判据字段（bizLine/securityLevel/status/docId）', () => {
+  // rag-engine.permissionFilter 直接过滤 index.vectors，
+  // 这四个字段少带任何一个，对应那层过滤就会静默失效 ——
+  // 尤其 status：缺字段被当作"合法旧数据"放行，未审核文档会被检索到。
+  const chunks = [
+    {
+      id: 'a', content: '退款流程说明正文', docId: 'doc_1',
+      bizLine: 'trade', securityLevel: 'confidential', status: 'pending',
+    },
+  ];
+  const v = vs.buildIndex(chunks).vectors[0];
+  assert.strictEqual(v.bizLine, 'trade');
+  assert.strictEqual(v.securityLevel, 'confidential');
+  assert.strictEqual(v.status, 'pending', 'status 必须穿过索引，否则状态过滤形同虚设');
+  assert.strictEqual(v.docId, 'doc_1', 'docId 必须保留，否则命中结果无法回溯到文档');
+});
+
 test('buildIndex 对空 chunks 数组也能工作（不崩）', () => {
   const index = vs.buildIndex([]);
   assert.deepStrictEqual(index.vectors, []);
