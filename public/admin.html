@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>管理后台</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="page" id="page" style="display:none">
+  <div class="page-head">
+    <h1>管理后台</h1>
+    <p>上传文档、管理用户。所有写操作在后端校验，guest 账号会被拦截。</p>
+  </div>
+
+  <div id="notices"></div>
+
+  <div class="grid grid-4" id="stats" style="margin-bottom:18px"></div>
+
+  <div class="card" style="margin-bottom:18px">
+    <h3>上传新文档</h3>
+    <p class="card-sub">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
+    <form id="upForm" style="display:grid;gap:12px;max-width:760px">
+      <div><label>文档标题</label><input id="title" placeholder="如：售后政策 v1.0" style="width:100%"></div>
+      <div><label>Markdown 内容（含 frontmatter）</label>
+        <textarea id="content" rows="10" placeholder="---
+docId: CS-POLICY-002
+bizLine: all
+securityLevel: public
+tags: [售后, 退换]
+---
+
+# 售后政策 ..."></textarea>
+      </div>
+      <div class="grid grid-3" style="gap:10px">
+        <div><label>业务线</label>
+          <select id="bizLine"><option value="trade">交易线</option><option value="membership">会员线</option><option value="all">全业务线</option></select>
+        </div>
+        <div><label>安全分级</label>
+          <select id="sec">
+            <option value="public">public 对外</option>
+            <option value="internal" selected>internal 内部</option>
+            <option value="confidential">confidential 机密</option>
+            <option value="secret">secret 绝密</option>
+          </select>
+        </div>
+        <div><label>标签（逗号分隔）</label><input id="tags" placeholder="退款,售后"></div>
+      </div>
+      <div><button class="btn btn-primary" style="background:var(--accent);border-color:var(--accent);color:#fff" id="upBtn">上传并预处理</button></div>
+    </form>
+  </div>
+
+  <div class="card">
+    <h3>文档库（全部）</h3>
+    <p class="card-sub">按状态过滤；状态切换会同步影响 RAG 检索可见性</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-sm on" data-status="">全部</button>
+      <button class="btn btn-sm" data-status="pending">待审核</button>
+      <button class="btn btn-sm" data-status="approved">已通过</button>
+      <button class="btn btn-sm" data-status="rejected">已驳回</button>
+    </div>
+    <div id="docList" class="muted">加载中…</div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('admin');
+  document.getElementById('page').style.display = 'block';
+
+  if (App.user.readonly) {
+    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，上传、删除等写操作会被后端拦截。</div>';
+    document.getElementById('upForm').style.opacity = '0.4';
+    document.getElementById('upBtn').disabled = true;
+  }
+
+  // 统计
+  App.api('/api/admin/stats').then((d) => {
+    const s = d.stats;
+    document.getElementById('stats').innerHTML = `
+      <div class="card stat"><div class="stat-num">${s.users}</div><div class="stat-label">账号</div></div>
+      <div class="card stat"><div class="stat-num">${s.documents}</div><div class="stat-label">文档</div></div>
+      <div class="card stat"><div class="stat-num" style="color:var(--warning)">${s.documentsPending}</div><div class="stat-label">待审核</div></div>
+      <div class="card stat"><div class="stat-num">${s.totalChunks}</div><div class="stat-label">知识切片</div></div>`;
+  });
+
+  // 文档列表
+  let curStatus = '';
+  function loadList() {
+    App.api('/api/documents' + (curStatus ? '?status=' + curStatus : '')).then((d) => {
+      const box = document.getElementById('docList');
+      if (d.documents.length === 0) {
+        box.innerHTML = '<div class="muted">暂无文档</div>';
+        return;
+      }
+      box.innerHTML = '<table class="tbl">' +
+        '<tr><th>ID</th><th>标题</th><th>业务线</th><th>密级</th><th>切片</th><th>状态</th><th>上传者</th><th>操作</th></tr>' +
+        d.documents.map((x) => {
+          const statusColor = x.status === 'approved' ? 'var(--success)' : x.status === 'rejected' ? 'var(--danger)' : 'var(--warning)';
+          return `<tr>
+            <td class="mono">${x.id}</td>
+            <td>${App.esc(x.title)}</td>
+            <td><span class="tag ${x.bizLine}">${x.bizLine}</span></td>
+            <td><span class="tag">${x.securityLevel}</span></td>
+            <td class="mono">${x.chunkCount||0}</td>
+            <td style="color:${statusColor}">${x.status}</td>
+            <td class="mono">${x.uploadedBy||'-'}</td>
+            <td>${x.status==='pending' && (App.user.role==='reviewer'||App.user.role==='admin') ? `<a href="/review.html?id=${x.id}">审核</a>` : '-'}</td>
+          </tr>`;
+        }).join('') + '</table>';
+    });
+  }
+  loadList();
+
+  document.querySelectorAll('[data-status]').forEach((b) => {
+    b.onclick = () => {
+      document.querySelectorAll('[data-status]').forEach((x) => x.classList.remove('on'));
+      b.classList.add('on');
+      curStatus = b.dataset.status;
+      loadList();
+    };
+  });
+
+  // 上传
+  document.getElementById('upForm').onsubmit = async (ev) => {
+    ev.preventDefault();
+    const btn = document.getElementById('upBtn');
+    btn.disabled = true; btn.textContent = '预处理中…';
+    try {
+      const body = {
+        title: document.getElementById('title').value,
+        fileName: document.getElementById('title').value + '.md',
+        content: document.getElementById('content').value,
+        bizLine: document.getElementById('bizLine').value,
+        securityLevel: document.getElementById('sec').value,
+        tags: document.getElementById('tags').value.split(',').map((x) => x.trim()).filter(Boolean),
+      };
+      const d = await App.api('/api/documents/upload', { method: 'POST', body: JSON.stringify(body) });
+      App.toast('已上传并预处理：' + d.document.chunkCount + ' 个切片，等待审核', 'success');
+      document.getElementById('content').value = '';
+      loadList();
+    } catch (e) {
+      App.toast(e.message, 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = '上传并预处理';
+    }
+  };
+}
+</script>
+<style>
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.tbl th{color:var(--text-dim);font-weight:500;font-size:12px;background:var(--bg-panel-2)}
+.tbl tr:hover td{background:var(--bg-panel-2)}
+select,textarea,input[type=text]{width:100%;padding:8px 10px;background:var(--bg-input);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:inherit}
+textarea{font-family:var(--mono);font-size:12.5px;resize:vertical}
+label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:5px}
+.btn-sm{font-size:12px;padding:4px 11px}
+.btn-sm.on{background:var(--accent-dim);border-color:var(--accent);color:#7cb2ff}
+</style>
+</body>
+</html>

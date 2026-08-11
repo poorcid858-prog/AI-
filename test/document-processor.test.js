@@ -228,10 +228,10 @@ test('语义不同的段落不得被误删', () => {
 test('跨文档去重：processDocument 可传入已有指纹集合', () => {
   const text = '退款到账时效为一到七个工作日，取决于发卡银行的处理速度快慢。';
   const seen = new Set();
-  const first = dp.process(text, { seen });
-  const second = dp.process(text, { seen });
-  assert.strictEqual(first.length, 1);
-  assert.strictEqual(second.length, 0, '跨文档重复内容未被拦截');
+  const first = dp.processDocument(text, { seen });
+  const second = dp.processDocument(text, { seen });
+  assert.strictEqual(first.chunks.length, 1);
+  assert.strictEqual(second.chunks.length, 0, '跨文档重复内容未被拦截');
 });
 
 // ============================================================

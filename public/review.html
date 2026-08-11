@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>文档审核</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="page" id="page" style="display:none">
+  <div class="page-head">
+    <h1>文档审核</h1>
+    <p>安全分级、是否含敏感字段、是否纳入 RAG 库——你（审核员）说了算。</p>
+  </div>
+  <div id="content"></div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('review');
+  document.getElementById('page').style.display = 'block';
+
+  const params = new URLSearchParams(location.search);
+  const idParam = params.get('id');
+
+  function loadList() {
+    App.api('/api/documents/pending').then((d) => {
+      const box = document.getElementById('content');
+      if (d.documents.length === 0) {
+        box.innerHTML = '<div class="card"><div class="muted">当前无待审核文档</div></div>';
+        return;
+      }
+      const items = d.documents.map((x) => `
+        <div class="card" style="margin-bottom:12px">
+          <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
+            <div>
+              <div style="font-size:15px;font-weight:500;margin-bottom:4px">${App.esc(x.title)}</div>
+              <div class="muted" style="font-size:12px">
+                <span class="mono">${x.id}</span> ·
+                <span class="tag ${x.bizLine}">${x.bizLine}</span> ·
+                <span class="tag">${x.securityLevel}</span> ·
+                ${x.chunkCount||0} 切片 ·
+                上传者 <span class="mono">${x.uploadedBy}</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-sm" onclick="location.href='?id=${x.id}'">展开</button>
+            </div>
+          </div>
+        </div>`).join('');
+      box.innerHTML = (idParam ? '' : '<div class="card-sub" style="margin-bottom:10px">共 ' + d.documents.length + ' 份待审核</div>') + items;
+    });
+  }
+
+  function loadDetail() {
+    App.api('/api/documents/' + idParam).then((d) => {
+      const doc = d.document;
+      const box = document.getElementById('content');
+      const isPending = doc.status === 'pending';
+      const canReview = (App.user.role === 'reviewer' || App.user.role === 'admin') && isPending;
+      const samples = (doc.chunks || []).slice(0, 3);
+      box.innerHTML = `
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+            <div>
+              <div style="font-size:18px;font-weight:500;margin-bottom:4px">${App.esc(doc.title)}</div>
+              <div class="muted">
+                <span class="mono">${doc.id}</span> ·
+                上传者 <span class="mono">${doc.uploadedBy}</span> · ${new Date(doc.createdAt).toLocaleString()}
+              </div>
+            </div>
+            <a href="/review.html" class="btn btn-sm">返回列表</a>
+          </div>
+          <div style="margin:10px 0">
+            <span class="tag ${doc.bizLine}">${doc.bizLine}</span>
+            <span class="tag">${doc.securityLevel}</span>
+            <span class="tag">${doc.chunkCount||0} 切片</span>
+            <span class="tag" style="border-color:${doc.status==='approved'?'var(--success)':doc.status==='rejected'?'var(--danger)':'var(--warning)'};color:${doc.status==='approved'?'var(--success)':doc.status==='rejected'?'var(--danger)':'var(--warning)'}">${doc.status}</span>
+          </div>
+          ${doc.tags && doc.tags.length ? '<div style="margin-bottom:8px">' + doc.tags.map((t) => `<span class="tag">${App.esc(t)}</span>`).join('') + '</div>' : ''}
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <h3>前 3 个知识片段（预处理结果预览）</h3>
+          ${samples.length === 0 ? '<div class="muted">该文档没有产生可用的知识片段（可能全部内容被识别为噪音）</div>' : samples.map((c, i) => `
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
+              <div class="muted" style="font-size:11px;margin-bottom:4px">
+                <span class="mono">#${i+1}</span> ${c.heading ? '· ' + App.esc(c.heading) : ''} · 关键词 ${c.keywords.slice(0,5).map((k)=>'#'+App.esc(k)).join(' ')}
+              </div>
+              <div style="font-size:13px;line-height:1.6">${App.esc(c.content)}</div>
+            </div>
+          `).join('')}
+        </div>
+
+        <div class="card">
+          <h3>审核决定</h3>
+          ${canReview ? `
+            <textarea id="note" placeholder="审核备注（可选）" rows="3"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button class="btn" id="approveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过并纳入 RAG 库</button>
+              <button class="btn" id="rejectBtn" style="background:var(--danger);border-color:var(--danger);color:#fff">驳回</button>
+            </div>
+          ` : `<div class="muted">${!isPending ? '该文档已审核' : App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>`}
+        </div>
+      `;
+
+      if (canReview) {
+        document.getElementById('approveBtn').onclick = () => decide('approved');
+        document.getElementById('rejectBtn').onclick = () => decide('rejected');
+      }
+    });
+  }
+
+  function decide(decision) {
+    App.api('/api/documents/' + idParam + '/review', {
+      method: 'POST',
+      body: JSON.stringify({ decision, note: document.getElementById('note').value }),
+    }).then(() => {
+      App.toast(decision === 'approved' ? '已通过，文档进入 RAG 库' : '已驳回', 'success');
+      setTimeout(() => location.href = '/review.html', 800);
+    }).catch((e) => App.toast(e.message, 'error'));
+  }
+
+  if (idParam) loadDetail(); else loadList();
+}
+</script>
+</body>
+</html>
