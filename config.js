@@ -93,6 +93,48 @@ module.exports = {
     all: '全业务线',
   },
 
+  // ---------- 知识类型白名单（四层模型第一层 raw.knowledgeType）----------
+  /**
+   * 上传时必须归类，决定了复审周期与提示词模板的选择。
+   * 不在白名单内的类型一律拒绝 —— 避免前端随手传个新值就悄悄绕过分类统计。
+   */
+  knowledgeTypes: {
+    requirement: '需求文档',
+    api: '接口文档',
+    test_spec: '测试规范',
+    business_rule: '业务规则',
+    faq: '常见问题',
+    other: '其他',
+  },
+
+  // ---------- 文档加工默认参数（四层模型第二层 std.params 的默认值）----------
+  /**
+   * 每次加工都会把这套参数**快照**进 std.params，
+   * 这样"这个版本是用什么参数加工的"永远可查，也才能做新旧参数对比。
+   * 改这里只影响之后新建的版本，不会篡改历史版本的快照。
+   */
+  processing: {
+    /** 切分粒度：section 按章节 / paragraph 按段落 / fixed 按固定字数 */
+    splitMode: 'section',
+    /** splitMode=fixed 时的每片字数 */
+    fixedSize: 400,
+    /** 固定字数模式下相邻片段的重叠字数，避免把一句话切断 */
+    overlap: 50,
+    minChunkLength: 30,
+    maxChunkLength: 600,
+    /** 表格转 Markdown 而非拉平成一行，保住行列对应关系 */
+    keepTableStructure: true,
+    /** 把章节标题拼进片段正文 —— 对命中率影响最大的一个开关 */
+    prependHeading: true,
+    cleanLevel: {
+      stripHeaderFooter: true,
+      stripRevision: true,
+      mergeShortParagraphs: false,
+    },
+    /** 1.0 = 内容完全相同才算重复 */
+    dedupThreshold: 1.0,
+  },
+
   // ---------- 角色 ----------
   roles: {
     admin: { label: '系统管理员', canWrite: true, canReview: false, canUse: true },
