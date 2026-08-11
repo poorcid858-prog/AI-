@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>企业 AI 辅助工具</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="login-wrap">
+
+  <!-- 左侧：产品定位 -->
+  <section class="login-intro">
+    <h1>企业 AI 辅助工具</h1>
+    <p class="tagline">RAG 知识库 · 提示词工程 · 工作流编排</p>
+
+    <div class="pain">
+      企业研发的痛点不是<strong>「AI 不会写文档」</strong>，<br>
+      而是<strong>通用大模型不知道企业自己的业务规则</strong>。<br>
+      本系统先检索企业内部知识，再基于真实业务规则生成。
+    </div>
+
+    <ul class="cap-list">
+      <li><span class="idx">1</span><div><b>文档安全分级与审核</b><br>上传 → 分级 → 审核 → 入库，四级密级管控</div></li>
+      <li><span class="idx">2</span><div><b>RAG 知识库</b><br>段落切分、清洗去噪、归一化、去重 → 向量化 → 检索重排</div></li>
+      <li><span class="idx">3</span><div><b>提示词工程</b><br>角色设定、Few-shot、格式约束、拒绝编造、输出校验</div></li>
+      <li><span class="idx">4</span><div><b>业务线隔离</b><br>交易线人员检索不到会员线文档，权限在后端过滤</div></li>
+      <li><span class="idx">5</span><div><b>工作流编排</b><br>意图识别 → 路由 → Skill → 检索 → 组装 → 生成 → 质检</div></li>
+      <li><span class="idx">6</span><div><b>双向反馈</b><br>优秀问答对沉淀实例库，优秀内容反哺知识库</div></li>
+      <li><span class="idx">7</span><div><b>AI 客服分支</b><br>仅检索对外知识，含拒答规则与转人工兜底</div></li>
+    </ul>
+  </section>
+
+  <!-- 右侧：登录 -->
+  <section class="login-panel">
+    <h2>登录</h2>
+    <p class="sub">选择一个演示账号，或手动输入账号密码</p>
+
+    <div id="err" class="err" style="display:none"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="username">账号</label>
+        <input type="text" id="username" name="username" autocomplete="username" placeholder="如 zhangsan">
+      </div>
+      <div class="field">
+        <label for="password">密码</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" placeholder="演示环境统一 123456">
+      </div>
+      <button type="submit" class="btn btn-primary" id="submitBtn">登 录</button>
+    </form>
+
+    <div class="accounts-head">
+      <h3>演示账号</h3>
+      <span>统一密码 123456</span>
+    </div>
+    <div id="accounts" class="accounts"><div class="loading">加载中…</div></div>
+  </section>
+
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const errBox = $('#err');
+
+function showErr(msg) {
+  errBox.textContent = msg;
+  errBox.style.display = msg ? 'block' : 'none';
+}
+
+// ---- 加载演示账号 ----
+fetch('/api/auth/demo-accounts')
+  .then((r) => r.json())
+  .then((d) => {
+    if (!d.ok) throw new Error(d.error || '加载失败');
+    const box = $('#accounts');
+    box.innerHTML = '';
+    for (const a of d.accounts) {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'acct';
+      el.dataset.username = a.username;
+      el.innerHTML = `
+        <div class="acct-top">
+          <div class="avatar ${a.role}">${a.avatar || a.name[0]}</div>
+          <div>
+            <div class="acct-name">${a.name}</div>
+            <div class="acct-meta">${a.username}</div>
+          </div>
+        </div>
+        <div>
+          <span class="tag">${a.roleLabel}</span>
+          <span class="tag ${a.bizLine}">${a.bizLineLabel}</span>
+          ${a.readonly ? '<span class="tag ro">只读</span>' : ''}
+        </div>`;
+      el.onclick = () => {
+        document.querySelectorAll('.acct').forEach((x) => x.classList.remove('on'));
+        el.classList.add('on');
+        $('#username').value = a.username;
+        $('#password').value = '123456';
+        showErr('');
+      };
+      box.appendChild(el);
+    }
+  })
+  .catch((e) => { $('#accounts').innerHTML = `<div class="loading">账号列表加载失败：${e.message}</div>`; });
+
+// ---- 提交登录 ----
+$('#loginForm').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  showErr('');
+  const btn = $('#submitBtn');
+  btn.disabled = true;
+  btn.textContent = '登录中…';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('#username').value.trim(), password: $('#password').value }),
+    });
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || '登录失败');
+    localStorage.setItem('token', d.token);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    localStorage.setItem('permissions', JSON.stringify(d.permissions));
+    location.href = '/dashboard.html';
+  } catch (e) {
+    showErr(e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '登 录';
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>首页 · 企业 AI 辅助工具</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="page" id="page" style="display:none">
+
+  <!-- 身份卡：让你一眼确认"我是谁、系统给了我什么权限" -->
+  <div class="identity">
+    <div class="avatar" id="avatar"></div>
+    <div>
+      <div class="identity-name" id="uname"></div>
+      <div class="identity-meta" id="umeta"></div>
+    </div>
+    <div class="identity-tags" id="utags"></div>
+  </div>
+
+  <div id="notices"></div>
+
+  <div class="page-head">
+    <h1>快捷入口</h1>
+    <p>企业产品不应只有对话框。按岗位提供提问模板入口，用户点进来就知道能问什么。</p>
+  </div>
+
+  <div class="grid grid-4" id="entries"></div>
+
+  <div class="page-head" style="margin-top:32px">
+    <h1>你的权限范围</h1>
+    <p>这不是展示用的标签 —— 它决定了你提问时，系统实际会去检索哪些知识。</p>
+  </div>
+
+  <div class="grid grid-2">
+    <div class="card">
+      <h3>可检索的业务线</h3>
+      <p class="card-sub">RAG 检索前会按此过滤，跨线知识检索不到</p>
+      <div id="bizLines"></div>
+    </div>
+    <div class="card">
+      <h3>可访问的知识密级</h3>
+      <p class="card-sub">超出密级的知识片段不会进入你的提示词</p>
+      <div id="secLevel"></div>
+    </div>
+  </div>
+
+  <div class="page-head" style="margin-top:32px">
+    <h1>一次提问会经过的 13 个环节</h1>
+    <p>在工作台提交需求后，你可以看到每一环节的真实输入与输出。</p>
+  </div>
+
+  <div class="card">
+    <div class="flow-strip" id="flowStrip"></div>
+  </div>
+
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  const u = App.user;
+  const p = App.permissions;
+
+  App.renderHeader('dashboard');
+  document.getElementById('page').style.display = 'block';
+
+  // ---- 身份卡 ----
+  const av = document.getElementById('avatar');
+  av.className = 'avatar ' + u.role;
+  av.textContent = u.avatar || u.name[0];
+  document.getElementById('uname').textContent = u.name;
+  document.getElementById('umeta').textContent = `${u.roleLabel || u.role} · ${u.department || ''} · 账号 ${u.username}`;
+
+  const tags = [`<span class="tag ${u.bizLine}">${u.bizLineLabel || u.bizLine}</span>`];
+  if (p.canWrite) tags.push('<span class="tag">可上传知识</span>');
+  if (p.canReview) tags.push('<span class="tag">可审核</span>');
+  if (u.readonly) tags.push('<span class="tag ro">只读演示账号</span>');
+  document.getElementById('utags').innerHTML = tags.join('');
+
+  // ---- 提示条 ----
+  const notices = [];
+  if (u.readonly) {
+    notices.push('<div class="notice warn">你正在使用<b>只读演示账号</b>。可以完整体验提问、检索、生成、质检全流程，但上传、审核、删除等写操作会被后端拦截。</div>');
+  }
+  if (u.role === 'cs') {
+    notices.push('<div class="notice info">你是<b>客服岗</b>。客服分支只检索对外公开知识，问到内部规则时系统会拒答并建议转人工 —— 这是刻意的安全设计。</div>');
+  }
+  document.getElementById('notices').innerHTML = notices.join('');
+
+  // ---- 快捷入口：按岗位给出提问模板 ----
+  const ENTRIES = [
+    { icon: '📋', title: '产品助手', desc: '写 PRD、分析需求、梳理流程、输出验收标准', roles: ['product', 'admin', 'guest', 'reviewer'], q: '我需要一个基于订单管理模块的退款需求的PRD' },
+    { icon: '🧪', title: '测试助手', desc: '分析测试点、生成测试用例、查历史 Bug', roles: ['test', 'admin', 'guest', 'reviewer'], q: '帮我生成退款功能的测试用例' },
+    { icon: '🧩', title: '前端助手', desc: '页面开发辅助、组件使用、API 调用', roles: ['frontend', 'admin', 'guest', 'reviewer'], q: '帮我写一个退款申请表单组件' },
+    { icon: '🎧', title: 'AI 客服', desc: '面向客户答疑，仅使用对外公开知识', roles: ['cs', 'admin', 'guest', 'reviewer'], q: '我的退款什么时候能到账？' },
+  ];
+
+  document.getElementById('entries').innerHTML = ENTRIES.map((e) => {
+    const allowed = e.roles.includes(u.role);
+    return `<button class="entry ${allowed ? '' : 'locked'}" ${allowed ? `onclick="location.href='/workspace.html?q=${encodeURIComponent(e.q)}'"` : 'disabled'}>
+      <div class="entry-icon">${e.icon}</div>
+      <div class="entry-title">${e.title}</div>
+      <div class="entry-desc">${allowed ? e.desc : '你的角色无此入口'}</div>
+    </button>`;
+  }).join('');
+
+  // ---- 权限范围 ----
+  const ALL_LINES = [{ k: 'trade', n: '交易线', d: '订单 · 退款 · 支付 · 对账' }, { k: 'membership', n: '会员线', d: '会员 · 等级 · 积分 · 优惠券' }];
+  document.getElementById('bizLines').innerHTML = ALL_LINES.map((l) => {
+    const on = (p.accessibleBizLines || []).includes(l.k);
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;${on ? '' : 'opacity:.4'}">
+      <span style="font-family:var(--mono);color:${on ? 'var(--success)' : 'var(--text-faint)'}">${on ? '✓' : '✕'}</span>
+      <div><div style="font-size:13.5px">${l.n}</div><div class="muted">${l.d}</div></div>
+    </div>`;
+  }).join('');
+
+  const LEVELS = [
+    { k: 0, n: 'public 对外公开', d: '客服知识库、对外政策' },
+    { k: 1, n: 'internal 内部', d: '一般内部文档' },
+    { k: 2, n: 'confidential 机密', d: 'PRD、接口文档、测试用例' },
+    { k: 3, n: 'secret 绝密', d: '需单独授权' },
+  ];
+  document.getElementById('secLevel').innerHTML = LEVELS.map((l) => {
+    const on = l.k <= (p.maxSecurityLevel != null ? p.maxSecurityLevel : -1);
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;${on ? '' : 'opacity:.4'}">
+      <span style="font-family:var(--mono);color:${on ? 'var(--success)' : 'var(--text-faint)'}">${on ? '✓' : '✕'}</span>
+      <div><div style="font-size:13.5px" class="mono">${l.n}</div><div class="muted">${l.d}</div></div>
+    </div>`;
+  }).join('');
+
+  // ---- 13 环节 ----
+  const FLOW = ['用户输入', '采集用户信息', '任务识别', '工作流路由', '加载 Skill', '权限过滤', 'RAG 检索',
+                '结果重排序', 'Prompt 组装', '大模型生成', '质量检查', '用户反馈', '知识沉淀'];
+  document.getElementById('flowStrip').innerHTML = FLOW.map((s, i) =>
+    `<div class="flow-node"><span class="n">${i + 1}</span>${s}</div>`).join('');
+}
+</script>
+</body>
+</html>

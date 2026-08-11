@@ -1,0 +1,101 @@
+[
+  {
+    "id": "u_001",
+    "username": "admin",
+    "password": "123456",
+    "name": "系统管理员",
+    "role": "admin",
+    "bizLine": "all",
+    "department": "技术中台",
+    "avatar": "管",
+    "readonly": false
+  },
+  {
+    "id": "u_002",
+    "username": "reviewer",
+    "password": "123456",
+    "name": "审核专员",
+    "role": "reviewer",
+    "bizLine": "all",
+    "department": "信息安全部",
+    "avatar": "审",
+    "readonly": false
+  },
+  {
+    "id": "u_003",
+    "username": "zhangsan",
+    "password": "123456",
+    "name": "张三",
+    "role": "product",
+    "bizLine": "trade",
+    "department": "交易产品组",
+    "avatar": "张",
+    "readonly": false
+  },
+  {
+    "id": "u_004",
+    "username": "lisi",
+    "password": "123456",
+    "name": "李四",
+    "role": "product",
+    "bizLine": "membership",
+    "department": "会员产品组",
+    "avatar": "李",
+    "readonly": false
+  },
+  {
+    "id": "u_005",
+    "username": "wangwu",
+    "password": "123456",
+    "name": "王五",
+    "role": "test",
+    "bizLine": "trade",
+    "department": "交易测试组",
+    "avatar": "王",
+    "readonly": false
+  },
+  {
+    "id": "u_006",
+    "username": "zhaoliu",
+    "password": "123456",
+    "name": "赵六",
+    "role": "frontend",
+    "bizLine": "trade",
+    "department": "交易前端组",
+    "avatar": "赵",
+    "readonly": false
+  },
+  {
+    "id": "u_007",
+    "username": "cs_agent",
+    "password": "123456",
+    "name": "客服小云",
+    "role": "cs",
+    "bizLine": "all",
+    "department": "客户服务中心",
+    "avatar": "客",
+    "readonly": false
+  },
+  {
+    "id": "u_008",
+    "username": "qianqi",
+    "password": "123456",
+    "name": "钱七",
+    "role": "product",
+    "bizLine": "all",
+    "department": "产品中台",
+    "avatar": "钱",
+    "readonly": false
+  },
+  {
+    "id": "u_009",
+    "username": "guest",
+    "password": "123456",
+    "name": "演示访客",
+    "role": "guest",
+    "bizLine": "all",
+    "department": "访客",
+    "avatar": "访",
+    "readonly": true
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ex_001",
+    "taskType": "prd",
+    "bizLine": "trade",
+    "question": "我需要一个订单批量导出功能的PRD",
+    "answerSummary": "【需求背景】客服与商家运营每日需导出订单做对账与售后追溯，现只能单笔复制，日均耗时 3 小时。【业务目标】导出耗时从 3 小时降至 5 分钟；单次最大导出 10 万单；导出成功率 ≥99.9%。【功能范围】本期包含按时间/订单状态/支付渠道筛选导出、异步任务生成、导出记录列表、文件 7 天有效期；不包含定时自动导出与第三方推送。【业务流程】选择筛选条件 → 校验导出条数上限 → 生成异步导出任务（返回任务 ID）→ 后台分页拉取订单并写 Excel → 上传对象存储 → 站内消息通知下载。【字段说明】导出字段含 order_no（订单号）、user_id、pay_amount（应付金额）、paid_amount（实付金额）、discount_amount（优惠金额）、status（订单状态码，10 待付款/20 已付款/40 已发货/50 已完成/60 已取消/80 已退款）、pay_channel、pay_trade_no（支付流水号，用于对账）、create_time、pay_time；收货人姓名手机号按脱敏规则导出，敏感字段导出需二次审批。【异常流程】导出条数超过 10 万返回 EXP_LIMIT_EXCEEDED 并提示缩小时间范围；任务执行失败自动重试 2 次，仍失败置为失败态并可一键重跑；导出中途服务重启由任务表续跑。【验收标准】10 万单导出耗时 ≤5 分钟；导出金额合计与订单库统计值差异为 0；敏感字段默认脱敏且导出行为留操作日志。",
+    "keywords": ["订单", "导出", "对账", "PRD"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-15T10:00:00Z"
+  },
+  {
+    "id": "ex_002",
+    "taskType": "prd",
+    "bizLine": "trade",
+    "question": "帮我写一个退款自动审核规则优化的PRD",
+    "answerSummary": "【需求背景】当前退款自动审核阈值固定为 500 元，人工工单占退款单量 34%，客服人力紧张且平均审核时长 9 小时。【业务目标】自动审核占比从 66% 提升至 88%；人工工单量下降 60%；恶意退款漏放率不高于 0.3%。【功能范围】本期包含分层阈值配置、用户退款信用分模型接入、自动审核规则可视化配置；不包含退货质检环节自动化。【业务流程】买家提交退款申请 → 硬性条件校验（订单状态、售后时效、可退金额）→ 计算用户退款信用分 → 命中自动通过则直接进入退款执行；否则按金额分层进入客服一线或售后主管工单池。【字段说明】新增 refund_credit_score（0-100 信用分）、auto_approve_threshold（自动通过金额阈值，按信用分分层：高信用 2000 元、中信用 500 元、低信用 0 元）、refund_rate_90d（近 90 天退款率）、refund_count_30d（近 30 天退款单数）；退款单沿用状态机 100 待审核/200 审核通过/300 退款中/400 退款成功/600 已拒绝。【异常流程】信用分服务超时降级为原固定 500 元阈值并打降级日志；阈值配置变更需实时生效（配置中心 30 秒本地缓存）；自动通过后发现风控命中则冻结退款并转人工。【验收标准】自动审核占比 ≥88%；配置改动 1 分钟内生效；信用分服务不可用时退款链路可用性不下降。",
+    "keywords": ["退款", "自动审核", "风控", "PRD"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-16T09:30:00Z"
+  },
+  {
+    "id": "ex_003",
+    "taskType": "prd",
+    "bizLine": "membership",
+    "question": "写一份会员成长值任务中心的PRD",
+    "answerSummary": "【需求背景】会员成长值获取途径分散在签到、评价、分享等多个入口，会员感知不到「还差多少升级」，非消费类成长值获取率仅 11%。【业务目标】非消费类成长值获取率提升至 40%；任务中心月访问 UV 达 150 万；银卡升金卡转化率提升 8 个百分点。【功能范围】本期包含日常任务、成长任务、限时任务三类任务的展示与领取，成长值进度条与升级预测，任务完成推送；不包含积分商城与实物奖励发货。【业务流程】会员进入任务中心 → 拉取任务列表与完成进度 → 会员完成任务（签到/评价/完善资料/邀请好友）→ 任务服务校验幂等与周期上限 → 发放成长值并写成长值流水 → 判定是否达到升级阈值 → 达到则实时升级并弹出升级动效与等级礼包。【字段说明】任务表含 task_code、task_type（DAILY/GROWTH/LIMITED）、growth_reward（成长值奖励）、period_limit（周期上限）、level_limit（可参与等级）；会员账户沿用 total_growth（累计成长值，永不清零）、period_growth（本周期成长值，周期结算清零）、level（L1 普通/L2 银卡/L3 金卡/L4 钻石）、level_expire_time。【异常流程】任务重复提交以 task_code + member_id + 周期日期 幂等，不重复发放成长值；成长值发放失败进重试队列并保证最终一致；违规行为（刷单、虚假评价）扣回对应成长值，账户允许为负。【验收标准】四类升级路径（升级/保级/宽限期/降级）不受任务中心影响；成长值流水与账户余额日对账差异为 0；任务上限拦截准确率 100%。",
+    "keywords": ["会员", "成长值", "任务中心", "等级", "PRD"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-17T14:20:00Z"
+  },
+  {
+    "id": "ex_004",
+    "taskType": "testcase",
+    "bizLine": "trade",
+    "question": "给订单取消功能设计一批测试用例",
+    "answerSummary": "覆盖正常流、边界值、并发、幂等、异常降级五类，输出标准用例表格（用例ID/模块/前置条件/测试步骤/预期结果/优先级）。示例：TC-CAN-001（P0，正常流）前置：存在待付款订单且使用了 1 张满减券、抵扣 500 积分；步骤：点击取消订单并确认；预期：订单状态流转为已取消(60)、cancel_reason=USER_CANCEL、库存预占释放、优惠券解锁退回未使用、冻结积分解冻退回，order_status_log 新增 1 条流水。TC-CAN-002（P0，状态校验）前置：订单已支付；步骤：调用取消接口；预期：返回 ORD_ALREADY_PAID，订单状态不变，引导走退款流程。TC-CAN-003（P0，超时关单边界）前置：订单创建 29 分 30 秒；步骤：等待至第 31 分钟查询；预期：自动关单，cancel_reason=TIMEOUT，误差 ≤60 秒。TC-CAN-004（P0，幂等）步骤：并发 20 次调用取消同一订单；预期：仅 1 次成功流转，库存只释放 1 次，无重复流水。TC-CAN-005（P0，防误关单）前置：渠道已支付但平台订单仍为待付款；步骤：触发关单任务；预期：先查支付单状态，推进为已付款(20)，不执行关单。TC-CAN-006（P1，异常降级）前置：库存服务不可用；步骤：取消订单；预期：订单状态照常流转，库存释放进重试队列，5 次失败后告警。每条用例必须给出可断言的数据校验点（金额、状态码、流水条数），不写「功能正常」这类无法验证的预期。",
+    "keywords": ["测试用例", "取消订单", "幂等", "并发"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-18T11:00:00Z"
+  },
+  {
+    "id": "ex_005",
+    "taskType": "testcase",
+    "bizLine": "membership",
+    "question": "积分抵扣功能要怎么测",
+    "answerSummary": "围绕抵扣上限、步长、冻结解冻、批次 FIFO、回退比例、并发六个风险点设计用例。TC-PT-003（P0，抵扣上限）前置：可用积分 50000，商品金额 1000 元；步骤：结算页选最大抵扣；预期：上限为 min(1000×30%, 200)=200 元=20000 积分，超出不可用。TC-PT-004（P1，步长校验）前置：可用积分 14350；步骤：抵扣 14350；预期：返回 PT_NOT_MULTIPLE；改为 14300（100 整数倍）成功。TC-PT-005（P0，冻结）步骤：下单抵扣 10000 积分后查余额；预期：frozen_point=10000、available_point 相应减少、total_point 不变。TC-PT-006（P0，解冻）步骤：取消该订单；预期：10000 积分全额解冻退回，批次有效期不变。TC-PT-007（P0，FIFO）前置：批次 A 3000 分近期过期、批次 B 5000 分远期过期；步骤：抵扣 4000；预期：先扣尽 A 的 3000 再扣 B 的 1000，流水拆 2 条并各自关联 batch_id。TC-PT-008（P0，按比例回退）前置：抵扣 15000 积分实付 750 元；步骤：退款其中 300 元商品；预期：回退 15000×30%=4500 积分至原批次，同时按比例扣回消费积分 450 分，均向下取整。TC-PT-010（P0，防套利）预期：消费积分只按实付金额计算，抵扣掉的部分不再产生新积分。TC-PT-012（P0，并发）前置：可用积分 1000；步骤：并发 20 请求各抵扣 1000；预期：仅 1 个成功，其余 PT_INSUFFICIENT，余额不为负。每条用例标注优先级，并在预期结果中给出具体数值与错误码。",
+    "keywords": ["测试用例", "积分", "抵扣", "冻结", "批次"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-19T15:40:00Z"
+  },
+  {
+    "id": "ex_006",
+    "taskType": "component",
+    "bizLine": "trade",
+    "question": "做一个订单状态流转时间轴组件",
+    "answerSummary": "组件职责：按订单状态流水渲染纵向时间轴，高亮当前节点，展示每步操作人与时间；只做展示不含业务判断，状态文案由父组件传入。Props：logs（数组，含 toStatus/statusName/operateTime/operator/remark）、currentStatus（数字）、loading（布尔）。Vue 3 骨架：\n\n```vue\n<template>\n  <div class=\"order-timeline\">\n    <div\n      v-for=\"(item, idx) in logs\"\n      :key=\"item.toStatus + '_' + item.operateTime\"\n      class=\"timeline-item\"\n      :class=\"{ active: item.toStatus === currentStatus, done: idx < activeIndex }\"\n    >\n      <span class=\"dot\" />\n      <div class=\"content\">\n        <p class=\"status\">{{ item.statusName }}</p>\n        <p class=\"time\">{{ item.operateTime }} · {{ item.operator }}</p>\n        <p v-if=\"item.remark\" class=\"remark\">{{ item.remark }}</p>\n      </div>\n    </div>\n    <p v-if=\"!loading && !logs.length\" class=\"empty\">暂无状态流水</p>\n  </div>\n</template>\n\n<script setup>\nimport { computed } from 'vue';\nconst props = defineProps({\n  logs: { type: Array, default: () => [] },\n  currentStatus: { type: Number, required: true },\n  loading: { type: Boolean, default: false }\n});\nconst activeIndex = computed(() =>\n  props.logs.findIndex((i) => i.toStatus === props.currentStatus)\n);\n</script>\n```\n\n边界处理：logs 为空展示空态；同一状态多次流转按 operateTime 去重；已取消(60)/已退款(80) 终态节点用灰色样式且不再展示后续占位节点。",
+    "keywords": ["组件", "订单", "时间轴", "Vue"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-20T10:15:00Z"
+  },
+  {
+    "id": "ex_007",
+    "taskType": "component",
+    "bizLine": "membership",
+    "question": "写一个可用优惠券选择列表组件",
+    "answerSummary": "组件职责：展示会员券包中的可用/不可用券，支持单选与同组互斥提示，回传选中券 ID 列表；不可用券置灰并展示原因。Props：coupons（券列表，含 couponId/templateName/thresholdAmount/discountAmount/usable/unusableReason/stackableGroup）、selectedIds、maxSelect（默认 3）。React 骨架：\n\n```jsx\nimport { useCallback } from 'react';\n\nexport default function CouponSelector({ coupons = [], selectedIds = [], maxSelect = 3, onChange }) {\n  const toggle = useCallback((c) => {\n    if (!c.usable) return;\n    const picked = selectedIds.includes(c.couponId);\n    if (picked) {\n      onChange(selectedIds.filter((id) => id !== c.couponId));\n      return;\n    }\n    // 同组互斥：先移除同一 stackableGroup 已选中的券\n    const sameGroup = coupons\n      .filter((x) => x.stackableGroup === c.stackableGroup)\n      .map((x) => x.couponId);\n    const next = selectedIds.filter((id) => !sameGroup.includes(id));\n    if (next.length >= maxSelect) return;\n    onChange([...next, c.couponId]);\n  }, [coupons, selectedIds, maxSelect, onChange]);\n\n  if (!coupons.length) return <p className=\"empty\">暂无可用优惠券</p>;\n\n  return (\n    <ul className=\"coupon-list\">\n      {coupons.map((c) => (\n        <li\n          key={c.couponId}\n          className={`coupon-item ${c.usable ? '' : 'disabled'} ${selectedIds.includes(c.couponId) ? 'selected' : ''}`}\n          onClick={() => toggle(c)}\n        >\n          <span className=\"amount\">¥{c.discountAmount}</span>\n          <div className=\"info\">\n            <p className=\"name\">{c.templateName}</p>\n            <p className=\"threshold\">满 {c.thresholdAmount} 元可用</p>\n            {!c.usable && <p className=\"reason\">{c.unusableReason}</p>}\n          </div>\n        </li>\n      ))}\n    </ul>\n  );\n}\n```\n\n边界处理：券包为空展示空态；达到 maxSelect 上限时其余券点击无响应并提示「单笔最多使用 3 张券」；运费券不计入 3 张上限，由父组件单独维护；不可用原因文案直接取接口返回，前端不自行拼装。",
+    "keywords": ["组件", "优惠券", "选择器", "React", "互斥"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-21T16:50:00Z"
+  },
+  {
+    "id": "ex_008",
+    "taskType": "cs_query",
+    "bizLine": "all",
+    "question": "钱扣了但订单没了怎么办",
+    "answerSummary": "先安抚并明确「钱不会丢」，再给可执行步骤，最后给兜底承诺与人工入口。示例回答：您先别着急，这种情况钱不会丢的，通常是支付成功的通知延迟了，系统正在处理中。请您这样操作：1）先下拉刷新一下「我的订单」页面，稍等 2 到 3 分钟再看一次，多数情况订单会自动恢复为已付款；2）如果订单还是显示已取消，但您的付款账户确实扣了钱，麻烦把订单号和付款截图发给我，我这边马上帮您核实；3）核实确认是重复扣款或异常扣款的，我们会全额退回，一般当天就能处理完，到账时间看付款方式，微信 1 到 3 个工作日、支付宝 1 到 2 个工作日、余额是实时到账。如果您方便的话，也可以拨打客服热线 400-800-1668（每天 8:00 - 22:00）找人工同事加急处理。回答要点：口吻亲切、不使用内部字段名与审核阈值、不承诺无法保证的时效、涉及资金一律给出人工兜底通道；若知识库中没有对应政策，明确告知「这个我需要帮您转接人工同事核实」而不是编造规则。",
+    "keywords": ["支付", "扣款", "订单消失", "客服话术", "退款到账"],
+    "score": 5,
+    "approvedBy": "reviewer",
+    "createdAt": "2026-07-22T09:05:00Z"
+  }
+]
