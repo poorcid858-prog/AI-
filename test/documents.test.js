@@ -1,11 +1,24 @@
 /**
- * 文档管理回归测试 —— 锁定第 5 步代码审查修复的行为
+ * 文档管理回归测试 —— 阶段 9 整体重写
  *
+ * 29 个用例，0 skip，全在 withTempDataDir 内隔离到 os.tmpdir()。
  * 覆盖：
- *   - publicView 脱敏（仅管理员/审核员可见原文 + 切片）
- *   - tags / note 长度限制
- *   - listForUser status 白名单
- *   - 阶段 2：upload() 切到四层链路（4 个新测试）
+ *   A. publicView 脱敏（3）：admin/reviewer 完整 / 内部岗位剥 / user null 剥
+ *   B. publicView 边缘（2）：guest 剥 / 空文档 null
+ *   C. upload 切四层（8）：成功 / content 空 / bizLine 白名单 / securityLevel 白名单 / readonly 403 / tags 数量 / 单 tag 长度 / tags 非数组
+ *   D. review 切四层（6）：通过 / 驳回 / readonly / 404 / 409 / note 长
+ *   E. upload 四层状态（1）：raw.ready + std pending + chunks 继承
+ *   F. listForUser（6）：admin / reviewer / readonly / product-trade / 业务线隔离 / opts.status
+ *   G. remove（2）：admin 级联 / readonly 403
+ *   H. view 形状（1）：返回元素是 view 形状，chunks 投影不带权限判据
+ *
+ * withTempDataDir 必须保持同步执行（finally 块改 config.paths.data）——
+ * 改 async/await 会让 finally 在 promise resolve 前跑，隔离静默失效。
+ * 同步夹具的代价：本文件所有用例串行，~6 秒 vs 并行 ~2 秒，**隔离正确性 > 速度**。
+ *
+ * 阶段 9 审查补回：content 空 / bizLine 白名单 / securityLevel 白名单 这 3 个 400 边界
+ * 是上传链路的权限安全防线（跨线越权 + 机密泄漏），被实施子代理误砍——审查子代理
+ * 阅 lib/documents.js line 159-179 确认无等价覆盖，已补回（C2 / C3 / C4）。
  */
 
 const { test } = require('node:test');
@@ -19,7 +32,7 @@ const store = require('../lib/store');
 const kl = require('../lib/knowledge-layers');
 
 // ============================================================
-// 阶段 2：隔离夹具（仿 test/document-view.test.js:40-53，复用 store 缓存清理）
+// 隔离夹具（同步执行！见文件头警告）
 // ============================================================
 
 function withTempDataDir(fn) {
@@ -38,133 +51,220 @@ function withTempDataDir(fn) {
 }
 
 // ============================================================
-// publicView 脱敏（B1+B2 修复）
+// 夹具工厂（造 raw/std/chunks 的合法链路样本）
 // ============================================================
-//
-// 阶段 4 起，publicView 签名从 publicView(doc, user) 改为 publicView(view, user)，
-// 入参是 getDocumentView() 产出的聚合视图（id/title/.../status/lifecycleStatus/chunks），
-// 而不是旧 documents 表里的原始 doc。旧的 3 个核心断言（admin/reviewer/产品看到什么）
-// 在新视图下语义已变（B1+B2 防的"通过 doc.chunks 字段名泄漏原文"在新链路里不存在
-// —— view.chunks 已经是 {id, seq, heading, keywords, content} 形状，且只有管理员/审核员会拿到）
-// —— 阶段 9 整体重写时统一删旧 + 加新。
-// 保留 2 个边缘用例（guest 同样剥 content+chunks、空文档返回 null），
-// 它们测的不是 admin/reviewer 路径，行为不变，仍绿。
 
-test.skip('publicView：管理员可见完整 content 与 chunks [阶段 9 整体重写]', () => {
-  const doc = {
-    id: 'doc_1', content: '完整原文', chunks: [{ content: '片段 A' }, { content: '片段 B' }],
-    status: 'pending',
-  };
-  const view = docs.publicView(doc, { role: 'admin' });
-  assert.strictEqual(view.content, '完整原文', '管理员看不到原文');
-  assert.ok(Array.isArray(view.chunks) && view.chunks.length === 2, '管理员看不到切片');
+/** 造一个 raw 并发布（DRAFT → PENDING → APPROVED → PUBLISHED） */
+function publishRaw(over = {}) {
+  const r = kl.createRaw({
+    title: over.title || '已发布文档',
+    fileName: over.fileName || 'pub.md',
+    content: '这是一段足够长的内容用于验证四层链路上的列表与视图行为。'.repeat(10),
+    tags: [],
+    uploadedBy: 'admin',
+    bizLine: over.bizLine || 'trade',
+    securityLevel: over.securityLevel || 'internal',
+    ...over,
+  });
+  kl.markReady(r.id);
+  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
+  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
+  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
+  kl.publishStd(s.id);
+  return r;
+}
+
+/** 造一个 raw 卡在 PENDING（送审态） */
+function pendingRaw(over = {}) {
+  const r = kl.createRaw({
+    title: over.title || '待审核文档',
+    fileName: over.fileName || 'pending.md',
+    content: '这是一段足够长的内容用于验证待审核状态的列表行为。'.repeat(10),
+    tags: [],
+    uploadedBy: 'admin',
+    bizLine: over.bizLine || 'trade',
+    securityLevel: over.securityLevel || 'internal',
+    ...over,
+  });
+  kl.markReady(r.id);
+  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
+  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
+  return r;
+}
+
+/** 造一个 raw 只建 std 草稿（不送审） */
+function draftRaw(over = {}) {
+  const r = kl.createRaw({
+    title: over.title || '草稿文档',
+    fileName: over.fileName || 'draft.md',
+    content: '这是一段足够长的内容用于验证草稿状态的列表行为。'.repeat(10),
+    tags: [],
+    uploadedBy: 'admin',
+    bizLine: over.bizLine || 'trade',
+    securityLevel: over.securityLevel || 'internal',
+    ...over,
+  });
+  kl.markReady(r.id);
+  kl.createStdVersion(r.id, { content: '标准化正文' });
+  return r;
+}
+
+/** 造一个 raw 已审未发布（DRAFT → PENDING → APPROVED，关键边界态） */
+function approvedRaw(over = {}) {
+  const r = kl.createRaw({
+    title: over.title || '已审文档',
+    fileName: over.fileName || 'approved.md',
+    content: '这是一段足够长的内容用于验证已审未发布状态的列表行为。'.repeat(10),
+    tags: [],
+    uploadedBy: 'admin',
+    bizLine: over.bizLine || 'trade',
+    securityLevel: over.securityLevel || 'internal',
+    ...over,
+  });
+  kl.markReady(r.id);
+  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
+  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
+  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
+  return r;
+}
+
+/** 造一个 raw 走到 REJECTED */
+function rejectedRaw(over = {}) {
+  const r = kl.createRaw({
+    title: over.title || '驳回文档',
+    fileName: over.fileName || 'rejected.md',
+    content: '这是一段足够长的内容用于验证驳回状态的列表行为。'.repeat(10),
+    tags: [],
+    uploadedBy: 'admin',
+    bizLine: over.bizLine || 'trade',
+    securityLevel: over.securityLevel || 'internal',
+    ...over,
+  });
+  kl.markReady(r.id);
+  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
+  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
+  kl.setStdStatus(s.id, kl.STD_STATUS.REJECTED);
+  return r;
+}
+
+/** 造一个 raw + std + chunks + 发布，返回 view（专给 publicView 测试用） */
+function makeViewWithChunks() {
+  const r = kl.createRaw({
+    title: 'publicView 测试文档',
+    fileName: 'pv.md',
+    content: '这是测试 publicView 的文档正文内容。'.repeat(5),
+    bizLine: 'trade',
+    securityLevel: 'internal',
+    uploadedBy: 'admin',
+  });
+  kl.markReady(r.id);
+  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
+  kl.createChunks(s.id, [{
+    content: '片段内容足够长通过 minChunkLength 检查',
+    heading: '第一章',
+    keywords: ['关键词'],
+    fingerprint: 'fp_1',
+  }]);
+  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
+  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
+  kl.publishStd(s.id);
+  return docs.getDocumentView(r.id);
+}
+
+// ============================================================
+// A. publicView 脱敏（3）
+// ============================================================
+
+test('publicView：admin/reviewer 看到完整 view（含 chunks 与 chunks.content），chunks 投影不带权限判据', () => {
+  withTempDataDir(() => {
+    const view = makeViewWithChunks();
+
+    const adminView = docs.publicView(view, { role: 'admin' });
+    assert.ok(Array.isArray(adminView.chunks), 'admin 应保留 chunks');
+    assert.ok(adminView.chunks.length > 0);
+    assert.strictEqual(typeof adminView.chunks[0].content, 'string', 'admin 应保留 chunks[].content');
+    assert.ok(adminView.chunks[0].id, 'chunks[0].id 应在');
+    assert.strictEqual(typeof adminView.chunks[0].seq, 'number', 'chunks[0].seq 应在');
+    // 元信息都在
+    assert.strictEqual(adminView.id, view.id);
+    assert.strictEqual(adminView.title, view.title);
+    assert.strictEqual(adminView.status, view.status);
+    assert.strictEqual(adminView.lifecycleStatus, view.lifecycleStatus);
+
+    const reviewerView = docs.publicView(view, { role: 'reviewer' });
+    assert.ok(Array.isArray(reviewerView.chunks), 'reviewer 应保留 chunks');
+    assert.ok(reviewerView.chunks.length > 0);
+
+    // 关键安全契约：chunks 投影不带权限判据字段
+    assert.strictEqual(adminView.chunks[0].bizLine, undefined, 'chunks 投影不应带 bizLine');
+    assert.strictEqual(adminView.chunks[0].securityLevel, undefined, 'chunks 投影不应带 securityLevel');
+    assert.strictEqual(adminView.chunks[0].status, undefined, 'chunks 投影不应带 status');
+  });
 });
 
-test.skip('publicView：审核员可见完整 content 与 chunks [阶段 9 整体重写]', () => {
-  const doc = { id: 'doc_1', content: '完整原文', chunks: [{ content: '片段' }], status: 'pending' };
-  const view = docs.publicView(doc, { role: 'reviewer' });
-  assert.strictEqual(view.content, '完整原文');
-  assert.ok(view.chunks);
+test('publicView：内部岗位 product 看到 safe view（剥 content + chunks），元信息全留', () => {
+  withTempDataDir(() => {
+    const view = makeViewWithChunks();
+    const safe = docs.publicView(view, { role: 'product', bizLine: 'trade' });
+
+    // 剥离：content 与 chunks 都不应有
+    assert.strictEqual(safe.content, undefined, '顶层 content 应被剥');
+    assert.strictEqual(safe.chunks, undefined, 'chunks 应被剥（防按段落切好的原文泄漏）');
+
+    // 元信息全留
+    assert.strictEqual(safe.id, view.id);
+    assert.strictEqual(safe.title, view.title);
+    assert.strictEqual(safe.bizLine, view.bizLine);
+    assert.strictEqual(safe.securityLevel, view.securityLevel);
+    assert.strictEqual(safe.status, view.status);
+    assert.strictEqual(safe.lifecycleStatus, view.lifecycleStatus);
+    assert.strictEqual(safe.chunkCount, view.chunkCount);
+  });
 });
 
-test.skip('publicView：普通用户不可见 content 与 chunks（防 B1 复发）[阶段 9 整体重写]', () => {
-  const doc = { id: 'doc_1', content: '完整原文', chunks: [{ content: '片段' }], status: 'approved' };
-  const view = docs.publicView(doc, { role: 'product', bizLine: 'trade' });
-  assert.strictEqual(view.content, undefined, 'content 泄漏给非管理员');
-  assert.strictEqual(view.chunks, undefined, 'chunks 泄漏给非管理员（按段落切好的原文）');
-  assert.strictEqual(view.id, 'doc_1', '元数据应保留');
+test('publicView：user 为 null/undefined 时按"非管理员"处理（剥 content + chunks）', () => {
+  withTempDataDir(() => {
+    const view = makeViewWithChunks();
+
+    const nullUser = docs.publicView(view, null);
+    assert.strictEqual(nullUser.chunks, undefined, 'null user 应剥 chunks');
+    assert.strictEqual(nullUser.content, undefined, 'null user 应剥 content');
+    assert.strictEqual(nullUser.id, view.id, '元信息应保留');
+
+    const undefinedUser = docs.publicView(view, undefined);
+    assert.strictEqual(undefinedUser.chunks, undefined);
+    assert.strictEqual(undefinedUser.content, undefined);
+  });
 });
+
+// ============================================================
+// B. publicView 边缘（2）
+// ============================================================
 
 test('publicView：guest 不可见 content 与 chunks', () => {
-  const doc = { id: 'doc_1', content: '完整原文', chunks: [{ content: '片段' }], status: 'approved' };
-  const view = docs.publicView(doc, { role: 'guest', readonly: true });
-  assert.strictEqual(view.content, undefined);
-  assert.strictEqual(view.chunks, undefined);
+  withTempDataDir(() => {
+    // 即便 view 携带顶层 content + chunks，guest 也要被剥
+    const view = makeViewWithChunks();
+    const polluted = { ...view, content: '顶层 content 演示剥离', chunks: [{ content: 'hijack' }] };
+    const result = docs.publicView(polluted, { role: 'guest', readonly: true });
+    assert.strictEqual(result.content, undefined);
+    assert.strictEqual(result.chunks, undefined);
+  });
 });
 
 test('publicView：空文档返回 null', () => {
-  assert.strictEqual(docs.publicView(null, { role: 'admin' }), null);
+  withTempDataDir(() => {
+    assert.strictEqual(docs.publicView(null, { role: 'admin' }), null);
+  });
 });
 
 // ============================================================
-// tags / note 长度限制（N3+N4 修复）
+// C. upload 切四层（8）
 // ============================================================
-
-test('upload：tags 数量超过 20 被拒绝', () => {
-  const user = { role: 'admin', username: 'admin' };
-  const input = {
-    content: '正文内容长度足够。'.repeat(20),
-    bizLine: 'trade',
-    securityLevel: 'internal',
-    tags: Array.from({ length: 21 }, (_, i) => 'tag' + i),
-  };
-  assert.throws(
-    () => docs.upload(user, input),
-    (e) => e.status === 400 && /标签数量/.test(e.message)
-  );
-});
-
-test('upload：单个 tag 超过 30 字符被拒绝', () => {
-  const user = { role: 'admin', username: 'admin' };
-  const input = {
-    content: '正文内容长度足够。'.repeat(20),
-    bizLine: 'trade',
-    securityLevel: 'internal',
-    tags: ['a'.repeat(31)],
-  };
-  assert.throws(
-    () => docs.upload(user, input),
-    (e) => e.status === 400
-  );
-});
-
-test('upload：tags 必须是数组', () => {
-  const user = { role: 'admin', username: 'admin' };
-  const input = {
-    content: '正文内容长度足够。'.repeat(20),
-    bizLine: 'trade',
-    securityLevel: 'internal',
-    tags: '退款,售后', // 字符串而非数组
-  };
-  assert.throws(
-    () => docs.upload(user, input),
-    (e) => e.status === 400
-  );
-});
-
-test('review：note 超过 500 字符被拒绝', () => {
-  // 构造已存在但仍为 pending 的文档
-  const store = require('../lib/store');
-  const user = { role: 'admin', username: 'admin' };
-  const reviewer = { role: 'reviewer', username: 'reviewer' };
-  const input = {
-    content: '正文内容长度足够。'.repeat(20),
-    bizLine: 'trade',
-    securityLevel: 'internal',
-    tags: [],
-  };
-  const doc = docs.upload(user, input);
-  assert.throws(
-    () => docs.review(reviewer, doc.id, 'approved', 'x'.repeat(501)),
-    (e) => e.status === 400 && /备注/.test(e.message)
-  );
-});
-
-// ============================================================
-// 阶段 2：upload() 切到四层链路（4 个新测试）
-// ============================================================
-//
-// 约束（test/document-view.test.js 顶部有同款警告）：
-//   必须保持同步执行。改 async / 用 await / 开 concurrency 都会让
-//   withTempDataDir 交错，隔离静默失效。
-
-// ----- 测试 1：admin + 完整字段上传成功 -----
 
 test('upload：admin 完整字段上传，返回 view.id 是 raw_ 前缀 + 字段完整', () => {
   withTempDataDir(() => {
     const user = { username: 'admin', role: 'admin', canWrite: true };
-    // 内容必须足够长：minChunkLength=30，每个段落要 > 30 字符才能进 chunk。
-    // 用重复式无换行的长句，触发去重后保留 1 个 chunk，足够验证 chainCount > 0。
     const input = {
       title: '测试上传',
       fileName: 'test.md',
@@ -188,37 +288,19 @@ test('upload：admin 完整字段上传，返回 view.id 是 raw_ 前缀 + 字�
   });
 });
 
-// ----- 测试 2：readonly guest 被 403 拒绝 -----
-
-test('upload：readonly guest 上传抛 403', () => {
-  withTempDataDir(() => {
-    // 参照 mock-data/users.json u_009：readonly=true 一定写不进去
-    const user = { username: 'guest', role: 'guest', readonly: true };
-    const input = {
-      title: '尝试上传',
-      content: '一段足够长的内容用于测试权限拒绝路径。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-    };
-    assert.throws(
-      () => docs.upload(user, input),
-      (e) => e.status === 403
-    );
-  });
-});
-
-// ----- 测试 3：4 种参数错误全部抛 400 -----
-
 test('upload：content 为空字符串抛 400', () => {
   withTempDataDir(() => {
     const user = { username: 'admin', role: 'admin' };
+    // 唯一测 if (!input.content) 这一行；C1 走 happy path 不进 400 分支，
+    // C6 readonly 在 400 之前 return。未来若有人把 line 164 改成 if (!input)
+    // 只挡 null/undefined，空字符串会绕过——这条边界必须显式锁住
     assert.throws(
       () => docs.upload(user, {
         content: '',
         bizLine: 'trade',
         securityLevel: 'internal',
       }),
-      (e) => e.status === 400
+      (e) => e.status === 400 && /请提供文档内容/.test(e.message)
     );
   });
 });
@@ -226,13 +308,14 @@ test('upload：content 为空字符串抛 400', () => {
 test('upload：bizLine 不在白名单抛 400', () => {
   withTempDataDir(() => {
     const user = { username: 'admin', role: 'admin' };
+    // 唯一测 if (!VALID_BIZLINE.includes(input.bizLine))；白名单失效 = 跨线越权
     assert.throws(
       () => docs.upload(user, {
         content: '一段足够长的内容用于测试 bizLine 白名单。'.repeat(20),
         bizLine: 'hacker',
         securityLevel: 'internal',
       }),
-      (e) => e.status === 400
+      (e) => e.status === 400 && /业务线非法/.test(e.message)
     );
   });
 });
@@ -240,55 +323,85 @@ test('upload：bizLine 不在白名单抛 400', () => {
 test('upload：securityLevel 不在白名单抛 400', () => {
   withTempDataDir(() => {
     const user = { username: 'admin', role: 'admin' };
+    // 唯一测 if (!VALID_SECURITY.includes(input.securityLevel))；白名单失效 = 机密泄漏
     assert.throws(
       () => docs.upload(user, {
         content: '一段足够长的内容用于测试 securityLevel 白名单。'.repeat(20),
         bizLine: 'trade',
         securityLevel: 'topsecret',
       }),
-      (e) => e.status === 400
+      (e) => e.status === 400 && /安全分级非法/.test(e.message)
     );
   });
 });
 
-test('upload：tags 数量 21 抛 400', () => {
+test('upload：readonly guest 上传抛 403', () => {
   withTempDataDir(() => {
-    const user = { username: 'admin', role: 'admin' };
+    const user = { username: 'guest', role: 'guest', readonly: true };
+    const input = {
+      title: '尝试上传',
+      content: '一段足够长的内容用于测试权限拒绝路径。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+    };
+    assert.throws(() => docs.upload(user, input), (e) => e.status === 403);
+  });
+});
+
+test('upload：tags 数量超过 20 被拒绝', () => {
+  withTempDataDir(() => {
+    const user = { role: 'admin', username: 'admin' };
+    const input = {
+      content: '正文内容长度足够。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: Array.from({ length: 21 }, (_, i) => 'tag' + i),
+    };
     assert.throws(
-      () => docs.upload(user, {
-        content: '一段足够长的内容用于测试 tags 数量限制。'.repeat(20),
-        bizLine: 'trade',
-        securityLevel: 'internal',
-        tags: Array.from({ length: 21 }, (_, i) => 'tag' + i),
-      }),
-      (e) => e.status === 400
+      () => docs.upload(user, input),
+      (e) => e.status === 400 && /标签数量/.test(e.message)
     );
   });
 });
 
-// ============================================================
-// 阶段 3：review() 切到四层链路（6 个新测试）
-// ============================================================
-//
-// 约束：每个测试都先 admin 上传一个 raw，再让 reviewer 调 review。
-// 阶段 3 不调 publishStd，所以 review 通过后：
-//   - std.status === 'approved'
-//   - std.isCurrent === false
-//   - raw.currentStdId === null（仍）
+test('upload：单个 tag 超过 30 字符被拒绝', () => {
+  withTempDataDir(() => {
+    const user = { role: 'admin', username: 'admin' };
+    const input = {
+      content: '正文内容长度足够。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: ['a'.repeat(31)],
+    };
+    assert.throws(() => docs.upload(user, input), (e) => e.status === 400);
+  });
+});
 
-// ----- 测试 1：review 通过，std 落库到 approved + 审核留痕 -----
+test('upload：tags 必须是数组', () => {
+  withTempDataDir(() => {
+    const user = { role: 'admin', username: 'admin' };
+    const input = {
+      content: '正文内容长度足够。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: '退款,售后', // 字符串而非数组
+    };
+    assert.throws(() => docs.upload(user, input), (e) => e.status === 400);
+  });
+});
+
+// ============================================================
+// D. review 切四层（6）
+// ============================================================
 
 test('review：通过——std.status=approved + reviewedBy/At/Note 写好 + isCurrent 仍 false', () => {
   withTempDataDir(() => {
     const admin = { username: 'admin', role: 'admin' };
     const reviewer = { username: 'reviewer', role: 'reviewer' };
     const view = docs.upload(admin, {
-      title: '测试上传',
-      fileName: 'test.md',
+      title: '测试上传', fileName: 'test.md',
       content: '这是一段足够长的内容用于验证四层链路的状态机流转和字段继承关系。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: [],
+      bizLine: 'trade', securityLevel: 'internal', tags: [],
     });
 
     docs.review(reviewer, view.id, 'approved', '这是审核意见');
@@ -300,24 +413,18 @@ test('review：通过——std.status=approved + reviewedBy/At/Note 写好 + isC
     assert.ok(typeof stds[0].reviewedAt === 'string' && stds[0].reviewedAt.length > 0,
       'reviewedAt 必须是非空 ISO 字符串');
     assert.strictEqual(stds[0].reviewNote, '这是审核意见', 'reviewNote 必须写好');
-    assert.strictEqual(stds[0].isCurrent, false,
-      '本阶段不调 publishStd，isCurrent 必须仍为 false');
+    assert.strictEqual(stds[0].isCurrent, false, '本阶段不调 publishStd，isCurrent 必须仍为 false');
   });
 });
-
-// ----- 测试 2：review 驳回，下游 chunks.status 同步为 rejected -----
 
 test('review：驳回——std.status=rejected + chunks.status 同步为 rejected', () => {
   withTempDataDir(() => {
     const admin = { username: 'admin', role: 'admin' };
     const reviewer = { username: 'reviewer', role: 'reviewer' };
     const view = docs.upload(admin, {
-      title: '驳回测试',
-      fileName: 'reject.md',
+      title: '驳回测试', fileName: 'reject.md',
       content: '这是一段足够长的内容用于验证审核驳回后下游 chunks 状态同步。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: [],
+      bizLine: 'trade', securityLevel: 'internal', tags: [],
     });
 
     docs.review(reviewer, view.id, 'rejected', '驳回原因');
@@ -334,30 +441,19 @@ test('review：驳回——std.status=rejected + chunks.status 同步为 rejecte
   });
 });
 
-// ----- 测试 3：review 抛 403：readonly guest -----
-
 test('review：readonly guest 抛 403', () => {
   withTempDataDir(() => {
     const admin = { username: 'admin', role: 'admin' };
     const view = docs.upload(admin, {
-      title: '权限测试',
-      fileName: 'perm.md',
+      title: '权限测试', fileName: 'perm.md',
       content: '这是一段足够长的内容用于验证 readonly guest 没有审核权限。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: [],
+      bizLine: 'trade', securityLevel: 'internal', tags: [],
     });
 
-    // 参照 mock-data/users.json：readonly=true 是访客的标志
     const guest = { username: 'guest', role: 'guest', readonly: true };
-    assert.throws(
-      () => docs.review(guest, view.id, 'approved', 'note'),
-      (e) => e.status === 403
-    );
+    assert.throws(() => docs.review(guest, view.id, 'approved', 'note'), (e) => e.status === 403);
   });
 });
-
-// ----- 测试 4：review 抛 404：rawId 不存在 -----
 
 test('review：rawId 不存在抛 404', () => {
   withTempDataDir(() => {
@@ -369,77 +465,63 @@ test('review：rawId 不存在抛 404', () => {
   });
 });
 
-// ----- 测试 5：review 抛 409：std 已是 approved，不能重复审 -----
-
 test('review：已 approved 的 std 再次审抛 409', () => {
   withTempDataDir(() => {
     const admin = { username: 'admin', role: 'admin' };
     const reviewer = { username: 'reviewer', role: 'reviewer' };
     const view = docs.upload(admin, {
-      title: '重复审测试',
-      fileName: 'dup.md',
+      title: '重复审测试', fileName: 'dup.md',
       content: '这是一段足够长的内容用于验证已 approved 的 std 不能再审。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: [],
+      bizLine: 'trade', securityLevel: 'internal', tags: [],
     });
 
     docs.review(reviewer, view.id, 'approved', '第一次通过');
     // 第二次通过：TRANSITIONS 里 approved → approved 不在白名单，setStdStatus 会抛 409
-    assert.throws(
-      () => docs.review(reviewer, view.id, 'approved', '第二次'),
-      (e) => e.status === 409
-    );
+    assert.throws(() => docs.review(reviewer, view.id, 'approved', '第二次'), (e) => e.status === 409);
   });
 });
-
-// ----- 测试 6：review 抛 400：note 超过 500 字符 -----
 
 test('review：note 超过 500 字符抛 400', () => {
   withTempDataDir(() => {
     const admin = { username: 'admin', role: 'admin' };
     const reviewer = { username: 'reviewer', role: 'reviewer' };
     const view = docs.upload(admin, {
-      title: '备注过长测试',
-      fileName: 'note.md',
+      title: '备注过长测试', fileName: 'note.md',
       content: '这是一段足够长的内容用于验证审核备注超过 500 字符被拒绝。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: [],
+      bizLine: 'trade', securityLevel: 'internal', tags: [],
     });
 
     assert.throws(
       () => docs.review(reviewer, view.id, 'approved', 'a'.repeat(501)),
-      (e) => e.status === 400
+      (e) => e.status === 400 && /备注/.test(e.message)
     );
   });
 });
 
-// ----- 测试 4：四层状态全部正确（raw.ready / std.pending + chunks 继承）-----
+// ============================================================
+// E. upload 四层状态（1）
+// ============================================================
 
 test('upload：四层状态正确（raw.ready, std pending, chunks pending, 权限判据从 std 继承）', () => {
   withTempDataDir(() => {
     const user = { username: 'admin', role: 'admin' };
     const input = {
-      title: '四层链路测试',
-      fileName: 'layer.md',
+      title: '四层链路测试', fileName: 'layer.md',
       content: '# 四层链路测试\n\n这是一段足够长的内容用于验证四层链路的状态机流转和字段继承关系。'.repeat(20),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      tags: ['链路'],
+      bizLine: 'trade', securityLevel: 'internal', tags: ['链路'],
     };
     const view = docs.upload(user, input);
 
     // 第一层：raw 已 markReady
     const raw = kl.getRaw(view.id);
     assert.ok(raw, 'raw 应存在');
-    assert.strictEqual(raw.status, 'ready', 'upload 后 raw.status 必须是 ready（markReady 调过）');
+    assert.strictEqual(raw.status, 'ready', 'upload 后 raw.status 必须是 ready');
 
     // 第二层：1 个 std 版本、status=pending、isCurrent=false、权限字段继承 raw
     const stds = kl.listStdByRaw(view.id);
     assert.strictEqual(stds.length, 1, '应该只有 1 个 std 版本');
     assert.strictEqual(stds[0].procVersion, 1);
-    assert.strictEqual(stds[0].status, 'pending', 'std.status 必须是 pending（setStdStatus 调过）');
+    assert.strictEqual(stds[0].status, 'pending', 'std.status 必须是 pending');
     assert.strictEqual(stds[0].isCurrent, false, '本阶段不调 publishStd，isCurrent 必须仍为 false');
     assert.strictEqual(stds[0].bizLine, 'trade', 'std.bizLine 必须从 raw 继承（I3）');
     assert.strictEqual(stds[0].securityLevel, 'internal', 'std.securityLevel 必须从 raw 继承（I3）');
@@ -454,122 +536,8 @@ test('upload：四层状态正确（raw.ready, std pending, chunks pending, 权�
 });
 
 // ============================================================
-// 阶段 4：listForUser / remove / publicView 切到四层（12 个新测试）
+// F. listForUser（6）
 // ============================================================
-//
-// 关键决策（plan 阶段 1 决策 2）：
-//   - listForUser 内部岗位过滤用 view.lifecycleStatus === 'published'
-//     而不是 view.status === 'approved'。
-//   - 原因：LIFECYCLE_TO_OLD 把 APPROVED 也映射成 'pending'，只有 PUBLISHED 映射成 'approved'。
-//     用 view.status 过滤会同时把"审核通过但还没生效"的版本也算成"可看"——
-//     那些版本还没法被检索到，对用户不可见。
-//   - readonly 用户看全部（按原契约）—— 但写操作被 auth.canWrite 拦。
-//   - publicView(view, user) 签名接 view，不是 doc；
-//     view.chunks 已经是 {id, seq, heading, keywords, content} 形状。
-//   - remove 切到 kl.deleteRawCascade，自动级联清理 std/chunks/vectors。
-//
-// 约束（同 document-view.test.js 顶部警告）：withTempDataDir 必须保持同步执行。
-
-// ----- 阶段 4 测试夹具 -----
-
-/** 造一个 raw 并发布（走合法路径 DRAFT → PENDING → APPROVED → PUBLISHED） */
-function publishRaw(over = {}) {
-  const r = kl.createRaw({
-    title: over.title || '已发布文档',
-    fileName: over.fileName || 'pub.md',
-    content: '这是一段足够长的内容用于验证四层链路上的列表与视图行为。'.repeat(10),
-    tags: [],
-    uploadedBy: 'admin',
-    bizLine: over.bizLine || 'trade',
-    securityLevel: over.securityLevel || 'internal',
-    ...over,
-  });
-  kl.markReady(r.id);
-  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
-  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
-  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
-  kl.publishStd(s.id);
-  return r;
-}
-
-/** 造一个 raw，走 DRAFT → PENDING（卡在送审状态） */
-function pendingRaw(over = {}) {
-  const r = kl.createRaw({
-    title: over.title || '待审核文档',
-    fileName: over.fileName || 'pending.md',
-    content: '这是一段足够长的内容用于验证待审核状态的列表行为。'.repeat(10),
-    tags: [],
-    uploadedBy: 'admin',
-    bizLine: over.bizLine || 'trade',
-    securityLevel: over.securityLevel || 'internal',
-    ...over,
-  });
-  kl.markReady(r.id);
-  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
-  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
-  return r;
-}
-
-/** 造一个 raw，只建 std 草稿（不送审） */
-function draftRaw(over = {}) {
-  const r = kl.createRaw({
-    title: over.title || '草稿文档',
-    fileName: over.fileName || 'draft.md',
-    content: '这是一段足够长的内容用于验证草稿状态的列表行为。'.repeat(10),
-    tags: [],
-    uploadedBy: 'admin',
-    bizLine: over.bizLine || 'trade',
-    securityLevel: over.securityLevel || 'internal',
-    ...over,
-  });
-  kl.markReady(r.id);
-  kl.createStdVersion(r.id, { content: '标准化正文' });
-  return r;
-}
-
-/** 造一个 raw，走 DRAFT → PENDING → APPROVED（已审未发布 —— 关键边界态） */
-function approvedRaw(over = {}) {
-  const r = kl.createRaw({
-    title: over.title || '已审文档',
-    fileName: over.fileName || 'approved.md',
-    content: '这是一段足够长的内容用于验证已审未发布状态的列表行为。'.repeat(10),
-    tags: [],
-    uploadedBy: 'admin',
-    bizLine: over.bizLine || 'trade',
-    securityLevel: over.securityLevel || 'internal',
-    ...over,
-  });
-  kl.markReady(r.id);
-  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
-  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
-  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
-  return r;
-}
-
-/** 造一个 raw，走 DRAFT → PENDING → REJECTED */
-function rejectedRaw(over = {}) {
-  const r = kl.createRaw({
-    title: over.title || '驳回文档',
-    fileName: over.fileName || 'rejected.md',
-    content: '这是一段足够长的内容用于验证驳回状态的列表行为。'.repeat(10),
-    tags: [],
-    uploadedBy: 'admin',
-    bizLine: over.bizLine || 'trade',
-    securityLevel: over.securityLevel || 'internal',
-    ...over,
-  });
-  kl.markReady(r.id);
-  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
-  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
-  kl.setStdStatus(s.id, kl.STD_STATUS.REJECTED);
-  return r;
-}
-
-// ============================================================
-// 阶段 4.1: listForUser 切到四层（6 个测试）
-// ============================================================
-
-// ----- t1：admin 看全部 -----
 
 test('listForUser：admin 看全部（含 draft/pending/approved/published/rejected）', () => {
   withTempDataDir(() => {
@@ -584,8 +552,6 @@ test('listForUser：admin 看全部（含 draft/pending/approved/published/rejec
   });
 });
 
-// ----- t2：reviewer 看全部 -----
-
 test('listForUser：reviewer 看全部（同 admin）', () => {
   withTempDataDir(() => {
     publishRaw({ title: '已发布' });
@@ -599,8 +565,6 @@ test('listForUser：reviewer 看全部（同 admin）', () => {
   });
 });
 
-// ----- t3：readonly 看全部（关键安全契约：看得全但写被拦） -----
-
 test('listForUser：readonly guest 看全部（写操作另被 auth.canWrite 拦）', () => {
   withTempDataDir(() => {
     publishRaw({ title: '已发布' });
@@ -613,8 +577,6 @@ test('listForUser：readonly guest 看全部（写操作另被 auth.canWrite 拦
     assert.strictEqual(list.length, 3, 'readonly 应看到全部（不按 status 过滤）');
   });
 });
-
-// ----- t4：内部岗位 product/trade 只看 trade + published（关键回归：lifecycleStatus vs status）-----
 
 test('listForUser：product/trade 只看 trade + lifecycleStatus=published（不接 APPROVED）', () => {
   withTempDataDir(() => {
@@ -637,8 +599,6 @@ test('listForUser：product/trade 只看 trade + lifecycleStatus=published（不
   });
 });
 
-// ----- t5：业务线隔离 -----
-
 test('listForUser：product/membership 看不到 trade（业务线隔离）', () => {
   withTempDataDir(() => {
     // 1 个 trade 已发布（product/membership 看不到）
@@ -654,8 +614,6 @@ test('listForUser：product/membership 看不到 trade（业务线隔离）', ()
     assert.ok(!ids.includes(rTrade.id), 'trade 不应出现在 membership 视角');
   });
 });
-
-// ----- t6：status 过滤（opts.status='pending'）-----
 
 test('listForUser：admin + opts.status=pending 只返回 view.status=pending 的', () => {
   withTempDataDir(() => {
@@ -681,29 +639,22 @@ test('listForUser：admin + opts.status=pending 只返回 view.status=pending �
 });
 
 // ============================================================
-// 阶段 4.2: remove 切到 kl.deleteRawCascade（2 个测试）
+// G. remove（2）
 // ============================================================
-
-// ----- t7：admin 删除 → 级联清掉 raw/std/chunks -----
 
 test('remove：admin 删除 raw → 级联清掉 std/chunks（其他层 0 落点）', () => {
   withTempDataDir(() => {
     // 造一个有 std + chunks 的 raw
     const r = kl.createRaw({
-      title: '待删除文档',
-      fileName: 'del.md',
+      title: '待删除文档', fileName: 'del.md',
       content: '这是待删除文档的正文内容足够长以触发切片生成。'.repeat(10),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      uploadedBy: 'admin',
+      bizLine: 'trade', securityLevel: 'internal', uploadedBy: 'admin',
     });
     kl.markReady(r.id);
     const s = kl.createStdVersion(r.id, { content: '标准化正文' });
     kl.createChunks(s.id, [{
       content: '片段内容足够长通过 minChunkLength 检查',
-      heading: '第一章',
-      keywords: ['关键词'],
-      fingerprint: 'fp_1',
+      heading: '第一章', keywords: ['关键词'], fingerprint: 'fp_1',
     }]);
 
     // 删除前确认都存在
@@ -722,17 +673,12 @@ test('remove：admin 删除 raw → 级联清掉 std/chunks（其他层 0 落点
   });
 });
 
-// ----- t8：readonly 不能删（关键安全回归：后端必须拦） -----
-
 test('remove：readonly guest 删 → 403（关键安全回归，不能只靠前端隐藏）', () => {
   withTempDataDir(() => {
     const r = kl.createRaw({
-      title: '尝试删除',
-      fileName: 'try.md',
+      title: '尝试删除', fileName: 'try.md',
       content: '这是尝试删除的文档正文内容足够长。'.repeat(10),
-      bizLine: 'trade',
-      securityLevel: 'internal',
-      uploadedBy: 'admin',
+      bizLine: 'trade', securityLevel: 'internal', uploadedBy: 'admin',
     });
     kl.markReady(r.id);
 
@@ -749,116 +695,8 @@ test('remove：readonly guest 删 → 403（关键安全回归，不能只靠前
 });
 
 // ============================================================
-// 阶段 4.3: publicView 切到 view 形状（3 个测试）
+// H. view 形状（1）
 // ============================================================
-//
-// publicView(view, user) 入参是 getDocumentView 产出的聚合视图：
-//   {id, title, ..., status, lifecycleStatus, chunks: [{id, seq, heading, keywords, content}]}
-// 管理员/审核员返回完整 view；其他角色剥 content 与 chunks。
-// 视图本身在 getDocumentView 已经不带 top-level content（只 chunks[].content），
-// 所以 publicView 的剥离实际就是"剥 chunks"——但 spec 保留 content 解构作为防御。
-
-function makeViewWithChunks() {
-  // 造一个完整链路 raw + std + chunks + 发布，返回 view
-  const r = kl.createRaw({
-    title: 'publicView 测试文档',
-    fileName: 'pv.md',
-    content: '这是测试 publicView 的文档正文内容。'.repeat(5),
-    bizLine: 'trade',
-    securityLevel: 'internal',
-    uploadedBy: 'admin',
-  });
-  kl.markReady(r.id);
-  const s = kl.createStdVersion(r.id, { content: '标准化正文' });
-  kl.createChunks(s.id, [{
-    content: '片段内容足够长通过 minChunkLength 检查',
-    heading: '第一章',
-    keywords: ['关键词'],
-    fingerprint: 'fp_1',
-  }]);
-  kl.setStdStatus(s.id, kl.STD_STATUS.PENDING);
-  kl.setStdStatus(s.id, kl.STD_STATUS.APPROVED);
-  kl.publishStd(s.id);
-  return docs.getDocumentView(r.id);
-}
-
-// ----- t9：admin/reviewer 看到完整 view -----
-
-test('publicView：admin/reviewer 看到完整 view（含 chunks 与 chunks.content）', () => {
-  withTempDataDir(() => {
-    const view = makeViewWithChunks();
-
-    const adminView = docs.publicView(view, { role: 'admin' });
-    assert.ok(Array.isArray(adminView.chunks), 'admin 应保留 chunks');
-    assert.ok(adminView.chunks.length > 0);
-    assert.strictEqual(typeof adminView.chunks[0].content, 'string',
-      'admin 应保留 chunks[].content');
-    assert.ok(adminView.chunks[0].id, 'chunks[0].id 应在');
-    assert.strictEqual(typeof adminView.chunks[0].seq, 'number', 'chunks[0].seq 应在');
-    // 元信息都在
-    assert.strictEqual(adminView.id, view.id);
-    assert.strictEqual(adminView.title, view.title);
-    assert.strictEqual(adminView.status, view.status);
-    assert.strictEqual(adminView.lifecycleStatus, view.lifecycleStatus);
-
-    const reviewerView = docs.publicView(view, { role: 'reviewer' });
-    assert.ok(Array.isArray(reviewerView.chunks), 'reviewer 应保留 chunks');
-    assert.ok(reviewerView.chunks.length > 0);
-
-    // 关键安全契约：chunks 投影不带权限判据字段（阶段 1 决策，阶段 4 显式断言锁住）
-    assert.strictEqual(adminView.chunks[0].bizLine, undefined,
-      'chunks 投影不应带 bizLine（防调用方误读做权限判断）');
-    assert.strictEqual(adminView.chunks[0].securityLevel, undefined,
-      'chunks 投影不应带 securityLevel');
-    assert.strictEqual(adminView.chunks[0].status, undefined,
-      'chunks 投影不应带 status');
-  });
-});
-
-// ----- t10：内部岗位 product 看到 safe view（剥 chunks）-----
-
-test('publicView：内部岗位 product 看到 safe view（剥 content + chunks），元信息全留', () => {
-  withTempDataDir(() => {
-    const view = makeViewWithChunks();
-    const safe = docs.publicView(view, { role: 'product', bizLine: 'trade' });
-
-    // 剥离：content 与 chunks 都不应有
-    assert.strictEqual(safe.content, undefined, '顶层 content 应被剥');
-    assert.strictEqual(safe.chunks, undefined, 'chunks 应被剥（防按段落切好的原文泄漏）');
-
-    // 元信息全留
-    assert.strictEqual(safe.id, view.id);
-    assert.strictEqual(safe.title, view.title);
-    assert.strictEqual(safe.bizLine, view.bizLine);
-    assert.strictEqual(safe.securityLevel, view.securityLevel);
-    assert.strictEqual(safe.status, view.status);
-    assert.strictEqual(safe.lifecycleStatus, view.lifecycleStatus);
-    assert.strictEqual(safe.chunkCount, view.chunkCount);
-  });
-});
-
-// ----- t11：user 为 null/undefined 时按"非管理员"处理 -----
-
-test('publicView：user 为 null/undefined 时按"非管理员"处理（剥 content + chunks）', () => {
-  withTempDataDir(() => {
-    const view = makeViewWithChunks();
-
-    const nullUser = docs.publicView(view, null);
-    assert.strictEqual(nullUser.chunks, undefined, 'null user 应剥 chunks');
-    assert.strictEqual(nullUser.content, undefined, 'null user 应剥 content');
-    assert.strictEqual(nullUser.id, view.id, '元信息应保留');
-
-    const undefinedUser = docs.publicView(view, undefined);
-    assert.strictEqual(undefinedUser.chunks, undefined);
-    assert.strictEqual(undefinedUser.content, undefined);
-  });
-});
-
-// ============================================================
-// 阶段 4.4: listForUser 返回 view 形状（1 个测试）
-// ============================================================
-
-// ----- t12：返回的 view 数组每个元素都是 view 形状 -----
 
 test('listForUser：返回的数组中每个元素都是 view 形状（含 status/lifecycleStatus/chunks，不含顶层 content）', () => {
   withTempDataDir(() => {
@@ -883,7 +721,7 @@ test('listForUser：返回的数组中每个元素都是 view 形状（含 statu
       assert.ok(v.chunks[0].id);
       assert.strictEqual(typeof v.chunks[0].seq, 'number');
       assert.ok(v.chunks[0].content);
-      // 关键安全契约：chunks 投影不带权限判据（与 t9 一起把这条契约锁住）
+      // 关键安全契约：chunks 投影不带权限判据
       assert.strictEqual(v.chunks[0].bizLine, undefined, 'chunks 不带 bizLine');
       assert.strictEqual(v.chunks[0].securityLevel, undefined, 'chunks 不带 securityLevel');
       assert.strictEqual(v.chunks[0].status, undefined, 'chunks 不带 status');
