@@ -20,8 +20,12 @@
  *   3. 状态一律走 knowledge-layers 的状态机，不直接写 status 字段 ——
  *      直接写就绕过了级联同步，迁移完的片段状态会和版本不一致（不变量 I4）
  *
- * 闸门：默认直接执行迁移（旧表留档为 documents.legacy.json，新表已接好）。
- *      设 CONFIRM_MIGRATE=0 可显式跳过（CI 调试 / 演练用）。
+ * 闸门已移除：默认直接执行迁移（旧表留档为 documents.legacy.json，新表已接好）。
+ * 逃生通道：CONFIRM_MIGRATE=0 显式跳过（CI 调试 / 演练用）。
+ * ——
+ * 这是「拆闸门」阶段 10 的最终动作：所有上下游（上传/审核/列表/检索/统计）已切到
+ * 四层模型，旧表不再被读，跑这个脚本只是把旧表改名为 legacy.json 并把数据搬过来。
+ * 不可逆点：旧表被 rename 为 documents.legacy.json，原始内容仍在但代码不再读。
  *
  * 用法：node scripts/migrate-to-layers.js
  */
@@ -183,11 +187,9 @@ function applyOne(old, createdRawIds) {
 /**
  * 执行迁移。
  *
- * ⚠️ 闸门（已降级）：默认直接执行迁移。调用方显式传 { confirmed: false }
- * 或设环境变量 CONFIRM_MIGRATE=0 才会跳过（CI 调试用）。
- * 降级原因：lib/documents.js / routes/* 已经接好四层模型 + 旧表留档备查，
- * 跑迁移不会再让应用读到空知识库，所以不再需要前置确认。
- * 仍输出 warn + confirmed:true 标识（与产品端说好"默认会改库"）。
+ * 默认直接执行迁移（闸门已移除，参见文件头说明）。调用方显式传
+ * { confirmed: false } 或设环境变量 CONFIRM_MIGRATE=0 才会跳过（CI 调试用）。
+ * 返回值里 `confirmed: true` 标识"未受闸门拦截，本函数已按计划执行迁移"。
  *
  * @param {Object} [opts] { silent, confirmed }
  * @returns {{total, migrated, skipped, chunkCount, violations, renamed, confirmed, blocked?}}
@@ -277,7 +279,8 @@ function rollback(rawIds, log) {
 // 直接执行：默认就跑迁移；CONFIRM_MIGRATE=0 显式跳过（CI 调试用）
 if (require.main === module) {
   const confirmed = process.env.CONFIRM_MIGRATE !== '0';
-  // 闸门已降级：默认即执行迁移。仍显式打 warn 提示"会改库"——和 JSDoc 承诺一致。
+  // 闸门已拆，但跑的人仍要明确知道"会改库"——阶段 8 commit 5043f03 的承诺。
+  // 这是 0 成本的最后一道提醒，不是闸门。
   console.warn('[迁移] 默认会改库（设 CONFIRM_MIGRATE=0 跳过）');
   try {
     migrate({ confirmed });
