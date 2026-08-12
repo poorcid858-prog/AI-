@@ -1,5 +1,5 @@
 /**
- * 聊天历史 + 常用问题频次 — 数据层（B1）
+ * 聊天历史 + 常用问题频次 — 数据层（B1 / B2）
  *
  * 覆盖（对应《技术方案-聊天控制台.md》第 1.1 / 1.2 / 5 节）：
  *   T1. append + listBySession 基础 + 必填字段校验
@@ -8,6 +8,9 @@
  *   T4. trim 整 session 删：旧 session 全部 record 一起删，剩 10 条
  *   T5. frequency 归一化："退款流程 PRD" + "退款流程prd" 算同一条
  *   T6. frequency top 10 排序：count desc, lastAsked desc
+ *   T11. seedIfEmpty 空文件 → 写入 30 条种子（4 角色总和 = 30）
+ *   T12. seedIfEmpty 不会覆盖已有数据
+ *   T13. 每个角色 getTopFrequency(role, 10) 返回对应角色种子数
  *
  * 隔离：参考 documents.test.js 的 withTempDataDir —— 同步执行（finally 改 config.paths.data）。
  * 改 async/await 会让 finally 在 promise resolve 前跑，隔离静默失效。
@@ -420,5 +423,147 @@ test('T10：data/qa-frequency.json 被破坏 → getTopFrequency 不 crash，返
     const top2 = qa.getTopFrequency('product');
     assert.ok(top2.length >= 1, '坏文件后能正常写入新条目');
     assert.strictEqual(top2[0].text, '坏文件后写入的条目');
+  });
+});
+
+// ============================================================
+// T11. seedIfEmpty 空文件 → 写入 30 条种子（4 角色总和 = 30）
+// ============================================================
+
+test('T11：seedIfEmpty 空文件 → 写入 30 条种子（product 8 / test 8 / frontend 7 / cs 7）', () => {
+  withTempDataDir(() => {
+    // 空数据目录
+    const fp = path.join(config.paths.data, 'qa-frequency.json');
+    assert.ok(!fs.existsSync(fp), '起始 qa-frequency.json 应不存在');
+
+    // 执行 seed
+    const result = qa.seedIfEmpty();
+    assert.strictEqual(result.seeded, true, '空时 seedIfEmpty 应返回 seeded: true');
+    assert.strictEqual(result.count, 30, '应返回写入 30 条');
+
+    // 文件应落盘
+    assert.ok(fs.existsSync(fp), 'seed 后 qa-frequency.json 应被创建');
+    const persisted = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    assert.strictEqual(persisted.version, 1);
+    assert.ok(persisted.updatedAt, 'updatedAt 应写入');
+
+    // 4 角色总和 = 30
+    const byRole = persisted.byRole || {};
+    const total = Object.values(byRole).reduce((sum, list) => sum + (Array.isArray(list) ? list.length : 0), 0);
+    assert.strictEqual(total, 30, `4 角色总和应 = 30（实际 ${total}）`);
+
+    // 各角色数
+    assert.strictEqual((byRole.product || []).length, 8, 'product 应 8 条');
+    assert.strictEqual((byRole.test || []).length, 8, 'test 应 8 条');
+    assert.strictEqual((byRole.frontend || []).length, 7, 'frontend 应 7 条');
+    assert.strictEqual((byRole.cs || []).length, 7, 'cs 应 7 条');
+
+    // 每条 entry 形状
+    for (const role of ['product', 'test', 'frontend', 'cs']) {
+      for (const e of byRole[role]) {
+        assert.ok(typeof e.text === 'string' && e.text.length > 0, `${role} entry.text 应是非空字符串`);
+        assert.ok(Number.isInteger(e.count) && e.count >= 1 && e.count <= 15, `${role} entry.count 应是 1-15 整数`);
+        assert.ok(typeof e.lastAsked === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.lastAsked), `${role} entry.lastAsked 应是 YYYY-MM-DD`);
+      }
+    }
+
+    // 30 条归一化后 unique
+    const allText = [].concat(...Object.values(byRole)).map((e) => e.text);
+    assert.strictEqual(new Set(allText).size, 30, '30 条 text 归一化后应 unique');
+  });
+});
+
+// ============================================================
+// T12. seedIfEmpty 不会覆盖已有数据
+// ============================================================
+
+test('T12：seedIfEmpty 不会覆盖已有数据 —— 先 incrementFrequency 1 条 → 再 seedIfEmpty → 仍只有 1 条', () => {
+  withTempDataDir(() => {
+    // 先写 1 条用户数据
+    qa.incrementFrequency('product', '用户实际问的');
+    const before = store.read('qa-frequency', { byRole: {} });
+    assert.strictEqual(before.byRole.product.length, 1, '起始应是 1 条');
+    assert.strictEqual(before.byRole.product[0].text, '用户实际问的');
+
+    // 再 seed
+    const result = qa.seedIfEmpty();
+    assert.strictEqual(result.seeded, false, '已有数据时 seedIfEmpty 应返回 seeded: false');
+    assert.strictEqual(result.count, 0, '已存在时不应再写');
+
+    // 数据应不变 —— 仍是 1 条
+    const after = store.read('qa-frequency', { byRole: {} });
+    assert.strictEqual(after.byRole.product.length, 1, '已有 1 条 + seed 后仍应 1 条');
+    assert.strictEqual(after.byRole.product[0].text, '用户实际问的', '原条目应完整保留');
+    // 其他角色应仍是空（**不**被种子填充）
+    assert.strictEqual((after.byRole.test || []).length, 0, 'test 不应被种子填');
+    assert.strictEqual((after.byRole.frontend || []).length, 0, 'frontend 不应被种子填');
+    assert.strictEqual((after.byRole.cs || []).length, 0, 'cs 不应被种子填');
+  });
+});
+
+// ============================================================
+// T13. 每个角色 getTopFrequency(role, 10) 返回对应角色种子数
+// ============================================================
+
+test('T13：seedIfEmpty 后 getTopFrequency(role, 10) 返回对应角色种子数（product 8 / test 8 / frontend 7 / cs 7）', () => {
+  withTempDataDir(() => {
+    qa.seedIfEmpty();
+
+    // 各角色 top 10 应返回全部种子（都不超过 10）
+    assert.strictEqual(qa.getTopFrequency('product', 10).length, 8, 'product 种子 8 条');
+    assert.strictEqual(qa.getTopFrequency('test', 10).length, 8, 'test 种子 8 条');
+    assert.strictEqual(qa.getTopFrequency('frontend', 10).length, 7, 'frontend 种子 7 条');
+    assert.strictEqual(qa.getTopFrequency('cs', 10).length, 7, 'cs 种子 7 条');
+
+    // 排序：top 1 应是该角色 count 最大的
+    const topP = qa.getTopFrequency('product', 1);
+    const allP = store.read('qa-frequency', { byRole: {} }).byRole.product;
+    const maxP = Math.max(...allP.map((e) => e.count));
+    assert.strictEqual(topP[0].count, maxP, 'product top 1 应是 count 最大的');
+
+    // 未知 role 应返回 []（**不** crash）
+    assert.deepStrictEqual(qa.getTopFrequency('unknown_role', 10), [],
+      '未知 role 应返回空数组');
+  });
+});
+
+// ============================================================
+// T14. seedIfEmpty 写盘失败时静默 return，不 throw 冒泡（防 server.js 启动崩）
+// ============================================================
+
+test('T14：seedIfEmpty 写盘失败时静默 return 不抛（不阻断 server.js 启动）', () => {
+  withTempDataDir(() => {
+    // 验证：writeFrequency 已被 export（供 mock 用）
+    assert.strictEqual(typeof qa.writeFrequency, 'function', 'writeFrequency 应被 export（用于测试 mock）');
+
+    // mock writeFrequency 让它抛错
+    const origWrite = qa.writeFrequency;
+    let callCount = 0;
+    qa.writeFrequency = (data) => {
+      callCount += 1;
+      throw new Error('EACCES simulated');
+    };
+
+    let result;
+    try {
+      // 不应 throw —— 即使 writeFrequency 抛错也应静默
+      result = qa.seedIfEmpty();
+    } finally {
+      // 恢复原 writeFrequency（其他测试可能用得到）
+      qa.writeFrequency = origWrite;
+    }
+
+    assert.ok(result, 'seedIfEmpty 应正常返回（不 throw）');
+    assert.strictEqual(result.seeded, false, '写盘失败应返回 seeded: false');
+    assert.strictEqual(result.count, 0, '写盘失败应 count: 0');
+    assert.strictEqual(callCount, 1, '应调用 writeFrequency 一次');
+
+    // 恢复原 writeFrequency 后清缓存，确保恢复路径从干净状态开始
+    // （注：B2 amend-2 后 seedIfEmpty 不再 mutate 缓存，但清缓存仍是无害的兜底）
+    store.clearCache();
+    // 再次调用，验证种子真能写（系统能恢复）
+    const recover = qa.seedIfEmpty();
+    assert.strictEqual(recover.seeded, true, '写盘恢复后应能写入');
+    assert.strictEqual(recover.count, 30, '恢复后应写入 30 条');
   });
 });

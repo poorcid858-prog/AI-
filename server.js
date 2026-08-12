@@ -73,6 +73,10 @@ app.use((err, req, res, next) => {
 
 // ---------- 启动 ----------
 if (require.main === module) {
+  // 启动时预置常用问题种子（30 条，4 角色），已有数据时不写入
+  // 兜底 try/catch：即使 seedIfEmpty 内部 writeFrequency 抛错，也不阻断服务启动
+  try { require('./lib/qa-store').seedIfEmpty(); } catch (_) { /* 种子失败不阻断 */ }
+
   app.listen(config.port, config.host, () => {
     console.log('');
     console.log('  企业 AI 辅助工具已启动');
