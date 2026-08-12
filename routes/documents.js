@@ -11,8 +11,6 @@
 
 const express = require('express');
 const auth = require('../lib/auth');
-const config = require('../config');
-const store = require('../lib/store');
 const docs = require('../lib/documents');
 
 const router = express.Router();
@@ -60,23 +58,12 @@ router.post('/upload', auth.requireAuth, auth.requireWrite, (req, res) => {
   }
 });
 
-// 详情
+// 详情 —— 阶段 5 切到四层：docs.getDocumentView(rawId) 找视图，找不到返 404
+//   publicView(view, user) 负责 content/chunks 的脱敏（admin/reviewer 看完整，其他角色只留元信息）
 router.get('/:id', auth.requireAuth, (req, res) => {
-  const doc = store.read('documents', []).find((d) => d.id === req.params.id);
-  if (!doc) return res.status(404).json({ ok: false, error: '文档不存在' });
-  // 内部岗位只看自己业务线 + 密级
-  if (req.user.role !== 'admin' && req.user.role !== 'reviewer' && !req.user.readonly) {
-    if (doc.status !== 'approved') return res.status(403).json({ ok: false, error: '该文档尚未审核通过' });
-    const lines = auth.accessibleBizLines(req.user);
-    if (doc.bizLine !== 'all' && !lines.includes(doc.bizLine)) {
-      return res.status(403).json({ ok: false, error: '无权查看其他业务线文档' });
-    }
-    const maxSec = auth.maxSecurityLevel(req.user);
-    if (config.securityLevels[doc.securityLevel] > maxSec) {
-      return res.status(403).json({ ok: false, error: '文档密级超出当前角色权限' });
-    }
-  }
-  res.json({ ok: true, document: docs.publicView(doc, req.user) });
+  const view = docs.getDocumentView(req.params.id);
+  if (!view) return res.status(404).json({ ok: false, error: '文档不存在' });
+  res.json({ ok: true, document: docs.publicView(view, req.user) });
 });
 
 // 审核
@@ -100,14 +87,15 @@ router.delete('/:id', auth.requireAuth, auth.requireWrite, (req, res) => {
   }
 });
 
-// 切片列表（仅管理员/审核员）
+// 切片列表（仅管理员/审核员）—— 阶段 5 切到四层：走 docs.getDocumentView 取 chunks
+//   view.chunks 已经是 {id, seq, heading, keywords, content} 形状（不带 bizLine/securityLevel/status）
 router.get('/:id/chunks', auth.requireAuth, (req, res) => {
   if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
     return res.status(403).json({ ok: false, error: '仅审核员可查看切片' });
   }
-  const doc = store.read('documents', []).find((d) => d.id === req.params.id);
-  if (!doc) return res.status(404).json({ ok: false, error: '文档不存在' });
-  res.json({ ok: true, docId: doc.id, chunkCount: doc.chunkCount, chunks: doc.chunks || [] });
+  const view = docs.getDocumentView(req.params.id);
+  if (!view) return res.status(404).json({ ok: false, error: '文档不存在' });
+  res.json({ ok: true, docId: view.id, chunkCount: view.chunkCount, chunks: view.chunks || [] });
 });
 
 module.exports = router;
