@@ -308,3 +308,117 @@ test('T6：getTopFrequency 排序：count desc, lastAsked desc；限 top N', () 
     }
   });
 });
+
+// ============================================================
+// T7. listSessions 在 session 只有 type='ai' record（无 user）时 summary 应为 ''
+// ============================================================
+
+test("T7：listSessions session 只有 type='ai' record → summary 应是 ''（不 crash、不 null）", () => {
+  withTempDataDir(() => {
+    // 造 1 个 session，只有 1 条 type='ai' record（合法：type 枚举是 user/ai）
+    qa.appendRecord(makeRecord({
+      id: 'qa_ai_only_1', sessionId: 's_ai_only', turn: 1, type: 'ai',
+      content: '这是 AI 回答（没有 user 问题）', timestamp: '2026-08-13T10:00:00Z',
+      role: 'product', bizLine: 'trade', userId: 'u',
+    }));
+
+    const sessions = qa.listSessions();
+    assert.strictEqual(sessions.length, 1, '应返回 1 个 session');
+    assert.strictEqual(sessions[0].sessionId, 's_ai_only');
+    assert.strictEqual(sessions[0].summary, '', 'summary 缺首条 user content 时应是空字符串');
+    assert.strictEqual(sessions[0].recordCount, 1);
+  });
+});
+
+// ============================================================
+// T8. trim 在 lastTimestamp 平局时按 sessionId 字典序确定结果
+// ============================================================
+
+test('T8：trim 3 个 session lastTimestamp 完全相同 → 保留按 sessionId 字典序前 2 个（确定）', () => {
+  withTempDataDir(() => {
+    // 3 个 session，每个 1 条 record，timestamp 完全相同
+    const sameTs = '2026-08-13T10:00:00Z';
+    for (const sid of ['s_zeta', 's_alpha', 's_mid']) {
+      qa.appendRecord(makeRecord({
+        id: `qa_${sid}_1`, sessionId: sid, turn: 1, type: 'user',
+        content: `${sid} 的问题`, timestamp: sameTs,
+        role: 'product', bizLine: 'trade', userId: 'u',
+      }));
+    }
+    assert.strictEqual(qa.listBySession('s_alpha').length, 1);
+    assert.strictEqual(qa.listBySession('s_mid').length, 1);
+    assert.strictEqual(qa.listBySession('s_zeta').length, 1);
+
+    // 全部 timestamp 一样 → lastTimestamp 平局
+    qa.trim({ sessionCap: 2 });
+
+    // 字典序：alpha < mid < zeta
+    // 保留 alpha + mid，删 zeta
+    const after = store.read('qa-history', { records: [] });
+    const kept = after.records.map((r) => r.sessionId).sort();
+    assert.deepStrictEqual(kept, ['s_alpha', 's_mid'],
+      '平局时按 sessionId 字典序保留前 2 个，应是 alpha + mid（确定）');
+    assert.strictEqual(after.records.length, 2, '剩 2 条 record');
+  });
+});
+
+// ============================================================
+// T9. appendRecord 缺类型字段应抛 Error（fail fast，不落盘）
+// ============================================================
+
+test('T9：appendRecord 字段类型错应抛 Error（fail fast，不落盘）', () => {
+  withTempDataDir(() => {
+    const cases = [
+      { over: { turn: '1' },          label: 'turn 是字符串' },
+      { over: { turn: 1.5 },          label: 'turn 是浮点' },
+      { over: { sessionId: 123 },     label: 'sessionId 是数字' },
+      { over: { type: 'unknown' },    label: 'type 非法枚举' },
+      { over: { qualityScore: 11 },   label: 'qualityScore 越界（>10）' },
+      { over: { qualityScore: 0.5 },  label: 'qualityScore 是浮点' },
+      { over: { feedback: 'unknown' },label: 'feedback 非法枚举' },
+      { over: { ragChunks: 'not array' }, label: 'ragChunks 非数组' },
+      { over: { id: 123 },            label: 'id 是数字' },
+      { over: { content: 123 },       label: 'content 是数字' },
+      { over: { timestamp: 123 },     label: 'timestamp 是数字' },
+    ];
+
+    for (const { over, label } of cases) {
+      assert.throws(
+        () => qa.appendRecord(makeRecord(over)),
+        /record/,
+        `${label} 应抛 Error`,
+      );
+    }
+
+    // 校验失败时不应落盘 —— 整个文件应是 empty（从没成功 append 过）
+    const persisted = store.read('qa-history', { records: [] });
+    assert.deepStrictEqual(persisted.records, [],
+      'T9 全部 case 失败后 qa-history.json 应仍是空 records');
+  });
+});
+
+// ============================================================
+// T10. 频次文件被破坏时 read 应 fallback 不 crash
+// ============================================================
+
+test('T10：data/qa-frequency.json 被破坏 → getTopFrequency 不 crash，返回 []', () => {
+  withTempDataDir(() => {
+    // 先正常写一条，让 store 把合法数据写进缓存
+    qa.incrementFrequency('product', '正常条目');
+
+    // 清理缓存后，覆写为残缺 JSON
+    store.clearCache();
+    const fp = path.join(config.paths.data, 'qa-frequency.json');
+    fs.writeFileSync(fp, '{"version": 1, "byRole": `{', 'utf8');
+
+    // 不应 crash；getTopFrequency 应返回 []
+    const top = qa.getTopFrequency('product');
+    assert.deepStrictEqual(top, [], '文件残缺时 getTopFrequency 应返回 [] 而非 crash');
+
+    // 同样：incrementFrequency 应还能正常工作（read 走 fallback、write 覆盖坏文件）
+    assert.doesNotThrow(() => qa.incrementFrequency('product', '坏文件后写入的条目'));
+    const top2 = qa.getTopFrequency('product');
+    assert.ok(top2.length >= 1, '坏文件后能正常写入新条目');
+    assert.strictEqual(top2[0].text, '坏文件后写入的条目');
+  });
+});
