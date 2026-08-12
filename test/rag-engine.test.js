@@ -60,9 +60,9 @@ const guest = { id: 'u_guest', role: 'guest', bizLine: 'all', readonly: true };
 
 test('业务线隔离：交易线 PM 能看 trade / all，看不到 membership', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, tradePM);
   const lines = out.map((c) => c.bizLine);
@@ -72,9 +72,9 @@ test('业务线隔离：交易线 PM 能看 trade / all，看不到 membership',
 
 test('业务线隔离：会员线 PM 能看 membership / all，看不到 trade', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, memberPM);
   const lines = out.map((c) => c.bizLine);
@@ -84,8 +84,8 @@ test('业务线隔离：会员线 PM 能看 membership / all，看不到 trade',
 
 test('业务线隔离：bizLine=all 的 PM 能看 trade 和 membership', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, allPM);
   assert.strictEqual(out.length, 2, 'bizLine=all 应能跨线看');
@@ -93,8 +93,8 @@ test('业务线隔离：bizLine=all 的 PM 能看 trade 和 membership', () => {
 
 test('业务线隔离：admin 不受业务线限制，看全部', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, admin);
   assert.strictEqual(out.length, 2);
@@ -102,8 +102,8 @@ test('业务线隔离：admin 不受业务线限制，看全部', () => {
 
 test('业务线隔离：reviewer 不受业务线限制，看全部', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, reviewer);
   assert.strictEqual(out.length, 2);
@@ -111,8 +111,8 @@ test('业务线隔离：reviewer 不受业务线限制，看全部', () => {
 
 test('业务线隔离：guest(readonly) demo 用，看全部', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'confidential', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, guest);
   assert.strictEqual(out.length, 2);
@@ -120,9 +120,9 @@ test('业务线隔离：guest(readonly) demo 用，看全部', () => {
 
 test('业务线隔离：cs(客服) 按业务线过滤，cs.bizLine=all 时跨线', () => {
   const chunks = [
-    makeChunk({ bizLine: 'trade', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'membership', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
+    makeChunk({ bizLine: 'trade', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'membership', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, csAgent);
   assert.strictEqual(out.length, 3, 'cs.bizLine=all 应能跨线（受密级限制）');
@@ -130,9 +130,9 @@ test('业务线隔离：cs(客服) 按业务线过滤，cs.bizLine=all 时跨线
 
 test('业务线隔离：cs(客服) 受密级限制，只能看 public', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, csAgent);
   assert.strictEqual(out.length, 1, 'cs 只能看 public');
@@ -145,8 +145,8 @@ test('业务线隔离：cs(客服) 受密级限制，只能看 public', () => {
 
 test('密级隔离：guest 走 readonly 旁路，可浏览 internal（demo 便利，非密级豁免设计）', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, guest);
   // guest 走 readonly 旁路，看全部（demo 用）
@@ -155,9 +155,9 @@ test('密级隔离：guest 走 readonly 旁路，可浏览 internal（demo 便�
 
 test('密级隔离：cs 只能看 public，看不到 internal / confidential', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, csAgent);
   assert.strictEqual(out.length, 1);
@@ -166,10 +166,10 @@ test('密级隔离：cs 只能看 public，看不到 internal / confidential', (
 
 test('密级隔离：产品经理（confidential）能看到 public + internal + confidential，看不到 secret', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'confidential', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, tradePM);
   assert.strictEqual(out.length, 3, '产品经理不应看到 secret');
@@ -180,8 +180,8 @@ test('密级隔离：产品经理（confidential）能看到 public + internal +
 
 test('密级隔离：admin 能看 secret', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, admin);
   assert.strictEqual(out.length, 2);
@@ -189,7 +189,7 @@ test('密级隔离：admin 能看 secret', () => {
 
 test('密级隔离：reviewer 能看 secret', () => {
   const chunks = [
-    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'secret', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, reviewer);
   assert.strictEqual(out.length, 1);
@@ -202,21 +202,21 @@ test('密级隔离：reviewer 能看 secret', () => {
 test('状态过滤：pending 文档不进 RAG 库', () => {
   const chunks = [
     makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'pending' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, admin);
   assert.strictEqual(out.length, 1);
-  assert.strictEqual(out[0].status, 'approved');
+  assert.strictEqual(out[0].status, 'published');
 });
 
 test('状态过滤：rejected 文档不进 RAG 库', () => {
   const chunks = [
     makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'rejected' }),
-    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'approved' }),
+    makeChunk({ bizLine: 'all', securityLevel: 'public', status: 'published' }),
   ];
   const out = rag.permissionFilter(chunks, admin);
   assert.strictEqual(out.length, 1);
-  assert.strictEqual(out[0].status, 'approved');
+  assert.strictEqual(out[0].status, 'published');
 });
 
 test('状态过滤：chunk 无 status 字段时按合法通过（兼容旧数据）', () => {
@@ -233,9 +233,9 @@ test('状态过滤：chunk 无 status 字段时按合法通过（兼容旧数据
 
 test('retrieve：输入 user + query + index → 返回 topK chunks', () => {
   const chunks = [
-    makeChunk({ id: 'a', content: '退款流程说明：用户提交退款申请后系统进入审核环节', bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'b', content: '会员积分规则：消费一元积一分，到期清零', bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'c', content: '物流配送时效：四十八小时内发货', bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'a', content: '退款流程说明：用户提交退款申请后系统进入审核环节', bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'b', content: '会员积分规则：消费一元积一分，到期清零', bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'c', content: '物流配送时效：四十八小时内发货', bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
   ];
   const filtered = rag.permissionFilter(chunks, tradePM);
   const index = vs.buildIndex(filtered);
@@ -249,8 +249,8 @@ test('retrieve：输入 user + query + index → 返回 topK chunks', () => {
 
 test('retrieve：被过滤的 chunk 不会出现在结果中', () => {
   const chunks = [
-    makeChunk({ id: 'trade_doc', content: '退款流程 trade 业务线', bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'member_doc', content: '退款流程 membership 业务线', bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'trade_doc', content: '退款流程 trade 业务线', bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'member_doc', content: '退款流程 membership 业务线', bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const filtered = rag.permissionFilter(chunks, tradePM);
   const index = vs.buildIndex(filtered);
@@ -261,8 +261,8 @@ test('retrieve：被过滤的 chunk 不会出现在结果中', () => {
 
 test('retrieve：按 rerank 分数降序', () => {
   const chunks = [
-    makeChunk({ id: 'a', content: '退款退款退款退款退款', heading: '退款规则', keywords: ['退款', '流程'], bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'b', content: '完全无关的手机壳介绍', heading: '产品介绍', keywords: [], bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'a', content: '退款退款退款退款退款', heading: '退款规则', keywords: ['退款', '流程'], bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'b', content: '完全无关的手机壳介绍', heading: '产品介绍', keywords: [], bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
   ];
   const filtered = rag.permissionFilter(chunks, tradePM);
   const index = vs.buildIndex(filtered);
@@ -284,8 +284,8 @@ test('retrieve：空索引返回空数组（不崩）', () => {
 
 test('retrieve：传未过滤的全局索引，仍不能跨业务线泄漏', () => {
   const chunks = [
-    makeChunk({ id: 'trade_doc', content: '退款流程说明：交易线用户提交退款申请后进入审核', bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'member_doc', content: '退款流程说明：会员线用户提交退款申请后进入审核', bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'trade_doc', content: '退款流程说明：交易线用户提交退款申请后进入审核', bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'member_doc', content: '退款流程说明：会员线用户提交退款申请后进入审核', bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const globalIndex = vs.buildIndex(chunks); // 注意：没有 permissionFilter
   const r = rag.retrieve(tradePM, '退款流程', globalIndex, 5);
@@ -295,8 +295,8 @@ test('retrieve：传未过滤的全局索引，仍不能跨业务线泄漏', () 
 
 test('retrieve：传未过滤的全局索引，仍不能越级看高密级', () => {
   const chunks = [
-    makeChunk({ id: 'pub', content: '退款政策公开说明，任何人可查阅的基础规则', bizLine: 'trade', securityLevel: 'public', status: 'approved' }),
-    makeChunk({ id: 'secret', content: '退款政策绝密附录，仅限管理层查阅的风控阈值', bizLine: 'trade', securityLevel: 'secret', status: 'approved' }),
+    makeChunk({ id: 'pub', content: '退款政策公开说明，任何人可查阅的基础规则', bizLine: 'trade', securityLevel: 'public', status: 'published' }),
+    makeChunk({ id: 'secret', content: '退款政策绝密附录，仅限管理层查阅的风控阈值', bizLine: 'trade', securityLevel: 'secret', status: 'published' }),
   ];
   const globalIndex = vs.buildIndex(chunks);
   const r = rag.retrieve(tradePM, '退款政策', globalIndex, 5);
@@ -305,7 +305,7 @@ test('retrieve：传未过滤的全局索引，仍不能越级看高密级', () 
 
 test('retrieve：传未过滤的全局索引，仍不能召回未审核文档', () => {
   const chunks = [
-    makeChunk({ id: 'ok', content: '退款流程已审核通过的正式版本说明文档', bizLine: 'trade', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'ok', content: '退款流程已审核通过的正式版本说明文档', bizLine: 'trade', securityLevel: 'internal', status: 'published' }),
     makeChunk({ id: 'draft', content: '退款流程还在草稿状态的待审核版本说明文档', bizLine: 'trade', securityLevel: 'internal', status: 'pending' }),
   ];
   const globalIndex = vs.buildIndex(chunks);
@@ -315,8 +315,8 @@ test('retrieve：传未过滤的全局索引，仍不能召回未审核文档', 
 
 test('retrieve：用户可见范围为空时返回空数组（不是返回全部）', () => {
   const chunks = [
-    makeChunk({ id: 'm1', content: '会员积分规则说明：消费一元积一分', bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
-    makeChunk({ id: 'm2', content: '会员等级升降级规则说明文档', bizLine: 'membership', securityLevel: 'internal', status: 'approved' }),
+    makeChunk({ id: 'm1', content: '会员积分规则说明：消费一元积一分', bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
+    makeChunk({ id: 'm2', content: '会员等级升降级规则说明文档', bizLine: 'membership', securityLevel: 'internal', status: 'published' }),
   ];
   const globalIndex = vs.buildIndex(chunks);
   const r = rag.retrieve(tradePM, '会员积分', globalIndex, 5);
@@ -374,7 +374,7 @@ function buildAllRealChunks() {
       const raw = fs.readFileSync(path.join(base, line, file), 'utf8');
       const { chunks } = dp.processDocument(raw, { source: file });
       for (const c of chunks) {
-        allChunks.push(Object.assign({}, c, { status: 'approved' }));
+        allChunks.push(Object.assign({}, c, { status: 'published' }));
       }
     }
   }
