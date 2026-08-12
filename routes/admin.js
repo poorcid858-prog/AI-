@@ -3,6 +3,7 @@ const express = require('express');
 const auth = require('../lib/auth');
 const kl = require('../lib/knowledge-layers');
 const docs = require('../lib/documents');
+const qa = require('../lib/qa-store');
 const router = express.Router();
 
 router.get('/users', auth.requireAuth, (req, res) => {
@@ -119,6 +120,60 @@ router.get('/stats', auth.requireAuth, (req, res) => {
       bySecurityLevel,
       byUploader,
       recent,
+    },
+  });
+});
+
+// ---------- GET /api/admin/qa-history 问答历史列表 ----------
+
+router.get('/qa-history', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+
+  const limit = parseInt(req.query.limit || '50', 10);
+  const offset = parseInt(req.query.offset || '0', 10);
+
+  const sessions = qa.listSessions(limit + offset);
+  const sliced = sessions.slice(offset, offset + limit);
+
+  // 为每条 session 补充 userName / role / bizLine（从首条 user record 取）
+  const enriched = sliced.map((s) => {
+    const records = qa.listBySession(s.sessionId);
+    const firstUserRecord = records.find((r) => r.type === 'user');
+    return {
+      sessionId: s.sessionId,
+      lastTimestamp: s.lastTimestamp,
+      recordCount: s.recordCount,
+      summary: s.summary,
+      userName: firstUserRecord?.userName || '未知',
+      role: firstUserRecord?.role || '',
+      bizLine: firstUserRecord?.bizLine || '',
+    };
+  });
+
+  res.json({
+    ok: true,
+    sessions: enriched,
+    total: sessions.length,
+  });
+});
+
+// ---------- GET /api/admin/qa-history/:sessionId Session 详情 ----------
+
+router.get('/qa-history/:sessionId', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+
+  const { sessionId } = req.params;
+  const records = qa.listBySession(sessionId);
+
+  if (records.length === 0) {
+    return res.status(404).json({ ok: false, error: `session 不存在: ${sessionId}` });
+  }
+
+  res.json({
+    ok: true,
+    session: {
+      sessionId,
+      records,
     },
   });
 });

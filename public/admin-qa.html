@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA 审计页</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .admin-qa-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .page-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 24px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .current-role {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+
+    .filters {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .search-box {
+      flex: 1;
+      max-width: 400px;
+    }
+
+    .search-box input {
+      width: 100%;
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+    }
+
+    .role-filter {
+      padding: 8px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .session-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .session-item {
+      padding: 12px 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .session-item:hover {
+      background: var(--bg-panel-2);
+      border-color: var(--accent);
+    }
+
+    .session-item-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .session-item-meta {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .pagination {
+      margin-top: 20px;
+      text-align: center;
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .pagination button {
+      padding: 6px 10px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .pagination button.active {
+      background: var(--accent);
+      color: white;
+      border-color: var(--accent);
+    }
+
+    .detail-view {
+      display: none;
+    }
+
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .back-btn {
+      padding: 8px 14px;
+      background: var(--bg-panel-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .back-btn:hover {
+      background: var(--border);
+    }
+
+    .conversation {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message-bubble {
+      padding: 14px 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+
+    .message-bubble.user {
+      background: var(--bg-panel-2);
+      margin-left: auto;
+      max-width: 80%;
+    }
+
+    .message-bubble.ai {
+      margin-right: auto;
+      max-width: 90%;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .message-content {
+      font-size: 13px;
+      color: var(--text);
+      line-height: 1.5;
+      white-space: pre-wrap;
+      margin-bottom: 8px;
+    }
+
+    .rag-chunks {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .rag-chunks-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .rag-chunk {
+      padding: 8px 12px;
+      background: var(--bg);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+
+    .chunk-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .chunk-source {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .chunk-similarity {
+      color: var(--text-dim);
+    }
+
+    .chunk-content {
+      color: var(--text);
+      margin: 4px 0;
+      line-height: 1.4;
+    }
+
+    .no-chunks {
+      color: var(--text-faint);
+      font-size: 12px;
+    }
+
+    .quality-score {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-top: 4px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-faint);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--text-dim);
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-qa-container">
+    <!-- 列表视图 -->
+    <div id="listView">
+      <div class="page-header">
+        <h1>QA 审计</h1>
+        <div class="current-role" id="currentRole"></div>
+      </div>
+
+      <div class="filters">
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="搜索摘要或用户名...">
+        </div>
+        <select id="roleFilter" class="role-filter">
+          <option value="">全部角色</option>
+          <option value="product">产品经理</option>
+          <option value="test">测试</option>
+          <option value="frontend">前端</option>
+          <option value="cs">客服</option>
+        </select>
+      </div>
+
+      <div id="sessionListContainer" class="session-list"></div>
+
+      <div class="pagination" id="paginationContainer"></div>
+    </div>
+
+    <!-- 详情视图 -->
+    <div id="detailView" class="detail-view">
+      <div class="detail-header">
+        <button class="back-btn" onclick="goBack()">← 返回列表</button>
+        <div>
+          <div id="detailTitle" style="font-size: 18px; font-weight: 600; margin-bottom: 4px;"></div>
+          <div id="detailMeta" style="font-size: 12px; color: var(--text-dim);"></div>
+        </div>
+      </div>
+
+      <div id="conversationContainer" class="conversation"></div>
+    </div>
+  </div>
+
+  <script>
+    const ITEMS_PER_PAGE = 20;
+    let currentPage = 1;
+    let allSessions = [];
+    let filteredSessions = [];
+
+    async function loadSessions() {
+      try {
+        const response = await fetch('/api/admin/qa-history?limit=1000');
+        if (!response.ok) {
+          if (response.status === 403) {
+            showError('您没有权限访问此页面，仅管理员可见');
+          } else if (response.status === 401) {
+            showError('请先登录');
+          } else {
+            showError('加载失败');
+          }
+          return;
+        }
+        const data = await response.json();
+        allSessions = data.sessions || [];
+        applyFilters();
+      } catch (err) {
+        console.error('加载 session 列表失败:', err);
+        showError('加载失败');
+      }
+    }
+
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+      const roleFilter = document.getElementById('roleFilter').value;
+
+      filteredSessions = allSessions.filter((s) => {
+        const matchSearch = !search || s.summary.toLowerCase().includes(search) || s.userName.toLowerCase().includes(search);
+        const matchRole = !roleFilter || s.role === roleFilter;
+        return matchSearch && matchRole;
+      });
+
+      currentPage = 1;
+      renderSessionList();
+    }
+
+    function renderSessionList() {
+      const start = (currentPage - 1) * ITEMS_PER_PAGE;
+      const end = start + ITEMS_PER_PAGE;
+      const pageItems = filteredSessions.slice(start, end);
+
+      const container = document.getElementById('sessionListContainer');
+      if (pageItems.length === 0) {
+        container.innerHTML = '<div class="empty-state">暂无数据</div>';
+      } else {
+        container.innerHTML = pageItems
+          .map(
+            (s) => `
+          <div class="session-item" onclick="viewDetail('${s.sessionId}')">
+            <div class="session-item-title">${escapeHtml(s.summary)}</div>
+            <div class="session-item-meta">
+              <span>${new Date(s.lastTimestamp).toLocaleString('zh-CN')}</span>
+              <span>${s.userName || '未知'} · ${s.role || '-'} · ${s.bizLine || '-'}</span>
+              <span>${s.recordCount} 条记录</span>
+            </div>
+          </div>
+        `
+          )
+          .join('');
+      }
+
+      renderPagination();
+    }
+
+    function renderPagination() {
+      const totalPages = Math.ceil(filteredSessions.length / ITEMS_PER_PAGE);
+      const container = document.getElementById('paginationContainer');
+
+      if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+      }
+
+      let html = '';
+      for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+          html += `<button class="active">${i}</button>`;
+        } else {
+          html += `<button onclick="goToPage(${i})">${i}</button>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    function goToPage(page) {
+      currentPage = page;
+      renderSessionList();
+      window.scrollTo(0, 0);
+    }
+
+    async function viewDetail(sessionId) {
+      try {
+        const response = await fetch(`/api/admin/qa-history/${sessionId}`);
+        if (!response.ok) {
+          showError('加载详情失败');
+          return;
+        }
+        const data = await response.json();
+        renderDetail(data.session);
+      } catch (err) {
+        console.error('加载详情失败:', err);
+        showError('加载详情失败');
+      }
+    }
+
+    function renderDetail(session) {
+      const { sessionId, records } = session;
+
+      // 查找第一条 user record 获取 meta 信息
+      const firstUserRecord = records.find((r) => r.type === 'user');
+      const title = firstUserRecord?.content || '无题';
+      const meta = firstUserRecord
+        ? `${firstUserRecord.userName} · ${firstUserRecord.role} · ${firstUserRecord.bizLine} · ${new Date(firstUserRecord.timestamp).toLocaleString('zh-CN')}`
+        : '';
+
+      document.getElementById('detailTitle').textContent = title;
+      document.getElementById('detailMeta').textContent = meta;
+
+      const container = document.getElementById('conversationContainer');
+      container.innerHTML = records
+        .map((r) => {
+          if (r.type === 'user') {
+            return `
+          <div class="message-bubble user">
+            <div class="message-header">
+              <span>用户</span>
+              <span>${new Date(r.timestamp).toLocaleTimeString('zh-CN')}</span>
+            </div>
+            <div class="message-content">${escapeHtml(r.content)}</div>
+          </div>
+        `;
+          } else {
+            // AI message
+            const chunks = r.ragChunks || [];
+            const ragHtml =
+              chunks.length === 0
+                ? '<div class="no-chunks">本次检索未命中知识库中的相关片段</div>'
+                : chunks
+                    .map(
+                      (chunk, idx) => `
+                <div class="rag-chunk">
+                  <div class="chunk-header">
+                    <span class="chunk-source">① ${escapeHtml(chunk.source)} · ${escapeHtml(chunk.sectionPath || '')}</span>
+                    <span class="chunk-similarity">相似度 ${Math.round(chunk.similarity * 100)}%</span>
+                  </div>
+                  <div class="chunk-content">${escapeHtml(chunk.content)}</div>
+                </div>
+              `
+                    )
+                    .join('');
+
+            return `
+          <div class="message-bubble ai">
+            <div class="message-header">
+              <span>AI</span>
+              <span>${new Date(r.timestamp).toLocaleTimeString('zh-CN')} · ⏱ ${r.latencyMs}ms</span>
+            </div>
+            <div class="message-content">${escapeHtml(r.content)}</div>
+            <div class="quality-score">质量分: ${r.qualityScore !== null ? r.qualityScore + '/10' : '-'}</div>
+            ${chunks.length > 0 ? '<div class="rag-chunks"><div class="rag-chunks-title">── 召回详情 ──</div>' + ragHtml + '</div>' : '<div class="rag-chunks"><div class="rag-chunks-title">── 召回详情 ──</div>' + ragHtml + '</div>'}
+          </div>
+        `;
+          }
+        })
+        .join('');
+
+      document.getElementById('listView').style.display = 'none';
+      document.getElementById('detailView').style.display = 'block';
+      window.scrollTo(0, 0);
+    }
+
+    function goBack() {
+      document.getElementById('listView').style.display = 'block';
+      document.getElementById('detailView').style.display = 'none';
+    }
+
+    function showError(msg) {
+      const container = document.getElementById('sessionListContainer');
+      container.innerHTML = `<div class="empty-state">${escapeHtml(msg)}</div>`;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateRoleDisplay() {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        const user = JSON.parse(userStr);
+        document.getElementById('currentRole').textContent = `当前身份: ${user.role}`;
+      }
+    }
+
+    // 初始化
+    document.getElementById('searchInput').addEventListener('input', applyFilters);
+    document.getElementById('roleFilter').addEventListener('change', applyFilters);
+
+    updateRoleDisplay();
+    loadSessions();
+  </script>
+</body>
+</html>
