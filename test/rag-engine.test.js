@@ -6,8 +6,12 @@
  *   2. permissionFilter 密级隔离
  *   3. permissionFilter 状态过滤
  *   4. retrieve 主流程
- *   5. loadApprovedIndex
+ *   5. loadApprovedIndex 数据源切换（六层以下场景见 test/rag-engine-load.test.js）
  *   6. 真实端到端回归（13 份模拟文档）
+ *
+ * 阶段 7a 说明：loadApprovedIndex 的数据源从 data/documents.json 切到四层模型表
+ * （test/rag-engine-load.test.js 覆盖完整 / 草稿 / 待审 / 已审 / 多源 / 形状 6 个场景）。
+ * 本文件仅保留"无数据时空索引仍合法"这一条 —— 它既不依赖旧数据源，也不在新文件里。
  */
 
 const { test } = require('node:test');
@@ -320,22 +324,20 @@ test('retrieve：用户可见范围为空时返回空数组（不是返回全部
 });
 
 // ============================================================
-// 5. loadApprovedIndex
+// 5. loadApprovedIndex —— 数据源切换后的最小回归
 // ============================================================
 
-// loadApprovedIndex 读的是 store 的 documents 表（data/documents.json）。
-//
-// 注意：不能直接覆盖真实的 data/documents.json 做夹具 ——
-// `node --test` 会**并行**跑多个测试文件（各自独立进程），
-// documents.test.js 同时也在读写这张表，互相覆盖会导致随机失败。
-// 所以这里把 config.paths.data 临时指向一个本进程独占的目录，
-// store.filePath() 每次调用都重读 config，因此改指针就能完全隔离。
-function withDocuments(fakeData, fn) {
-  const tmpDir = path.join(__dirname, `.tmp-rag-${process.pid}`);
+// 阶段 7a 后，loadApprovedIndex 从四层表读 vector（PUBLISHED 状态）。
+// 数据源相关的全部场景在 test/rag-engine-load.test.js（六层新测试）覆盖。
+// 本节只保留"无数据时仍返回合法空索引"这一条最小回归 ——
+// 旧实现是从空 documents.json 读，新实现是从空的四层表读，
+// 但 loadApprovedIndex 的契约（index 可被 search 安全使用）不变。
+
+function withEmptyLayers(fn) {
+  const tmpDir = path.join(__dirname, `.tmp-rag-empty-${process.pid}`);
   const realDataDir = config.paths.data;
   try {
     fs.mkdirSync(tmpDir, { recursive: true });
-    fs.writeFileSync(path.join(tmpDir, 'documents.json'), JSON.stringify(fakeData, null, 2), 'utf8');
     config.paths.data = tmpDir;
     store.clearCache();
     return fn();
@@ -346,60 +348,8 @@ function withDocuments(fakeData, fn) {
   }
 }
 
-test('loadApprovedIndex：从 store 的 documents 表读取（不是 chunks.json）', () => {
-  const fakeData = [
-    {
-      id: 'doc_a', title: 'A', bizLine: 'trade', securityLevel: 'internal',
-      status: 'approved',
-      chunks: [
-        { id: 'a_c1', content: '退款流程说明第一段内容', heading: '退款', keywords: ['退款', '流程'], fingerprint: 'fp_aa' },
-      ],
-    },
-    {
-      id: 'doc_b', title: 'B', bizLine: 'membership', securityLevel: 'public',
-      status: 'pending',
-      chunks: [
-        { id: 'b_c1', content: '这条不应该被加载', heading: null, keywords: [], fingerprint: 'fp_bb' },
-      ],
-    },
-  ];
-  withDocuments(fakeData, () => {
-    const { index, chunks, byDoc, byFingerprint } = rag.loadApprovedIndex();
-    assert.ok(index, '应有 index');
-    assert.ok(Array.isArray(chunks), 'chunks 应为数组');
-    assert.strictEqual(chunks.length, 1, '只应加载 approved 的 1 个 chunk');
-    assert.ok(chunks[0].id === 'a_c1');
-    // byDoc 映射
-    assert.ok(byDoc.doc_a, 'byDoc.doc_a 应存在');
-    assert.strictEqual(byDoc.doc_a.length, 1);
-    assert.ok(!byDoc.doc_b, 'pending 文档不应在 byDoc 中');
-    // byFingerprint 映射
-    assert.ok(byFingerprint.get('fp_aa'), 'byFingerprint 应能查到 fp_aa');
-  });
-});
-
-test('loadApprovedIndex：chunk 继承所属文档的 业务线/密级/状态（权限过滤依赖这三个字段）', () => {
-  const fakeData = [
-    {
-      id: 'doc_s', title: 'S', bizLine: 'membership', securityLevel: 'secret',
-      status: 'approved',
-      chunks: [{ id: 's_c1', content: '会员绝密资料正文', fingerprint: 'fp_ss' }],
-    },
-  ];
-  withDocuments(fakeData, () => {
-    const { chunks } = rag.loadApprovedIndex();
-    assert.strictEqual(chunks.length, 1);
-    assert.strictEqual(chunks[0].bizLine, 'membership', 'chunk 应带上文档的业务线');
-    assert.strictEqual(chunks[0].securityLevel, 'secret', 'chunk 应带上文档的密级');
-    assert.strictEqual(chunks[0].status, 'approved', 'chunk 应带上文档的状态');
-    assert.strictEqual(chunks[0].docId, 'doc_s', 'chunk 应能回溯到文档');
-    // 交易线 PM 不该看到会员线绝密
-    assert.deepStrictEqual(rag.permissionFilter(chunks, tradePM), []);
-  });
-});
-
-test('loadApprovedIndex：documents 为空时返回的 index 也是合法的（search 不崩）', () => {
-  withDocuments([], () => {
+test('loadApprovedIndex：无任何数据时仍返回合法空索引（search 不崩）', () => {
+  withEmptyLayers(() => {
     const { index, chunks, byDoc, byFingerprint } = rag.loadApprovedIndex();
     assert.ok(index);
     assert.deepStrictEqual(chunks, []);
@@ -408,22 +358,6 @@ test('loadApprovedIndex：documents 为空时返回的 index 也是合法的（s
     // 验证 search 不崩
     const r = vs.search('任何关键词', index, 5);
     assert.deepStrictEqual(r, []);
-  });
-});
-
-test('loadApprovedIndex：跳过未审核文档（pending/rejected）的 chunk', () => {
-  const fakeData = [
-    { id: 'd1', bizLine: 'trade', securityLevel: 'internal', status: 'pending',
-      chunks: [{ id: 'd1c', content: '待审核的文档', fingerprint: 'fp_pending' }] },
-    { id: 'd2', bizLine: 'trade', securityLevel: 'internal', status: 'rejected',
-      chunks: [{ id: 'd2c', content: '被驳回的文档', fingerprint: 'fp_rejected' }] },
-    { id: 'd3', bizLine: 'trade', securityLevel: 'internal', status: 'approved',
-      chunks: [{ id: 'd3c', content: '已审核的文档', fingerprint: 'fp_approved' }] },
-  ];
-  withDocuments(fakeData, () => {
-    const { chunks } = rag.loadApprovedIndex();
-    assert.strictEqual(chunks.length, 1);
-    assert.strictEqual(chunks[0].id, 'd3c');
   });
 });
 
