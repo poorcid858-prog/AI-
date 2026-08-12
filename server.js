@@ -38,13 +38,14 @@ app.get('/api/health', (req, res) => {
 app.use(express.static(config.paths.public));
 
 // ---------- 路由注册 ----------
-// 后续步骤逐个接入：auth / documents / workflow / feedback / admin
+// 后续步骤逐个接入：auth / documents / workflow / feedback / admin / chat
 const routeModules = [
   ['/api/auth', './routes/auth'],
   ['/api/documents', './routes/documents'],
   ['/api/workflow', './routes/workflow'],
   ['/api/feedback', './routes/feedback'],
   ['/api/admin', './routes/admin'],
+  ['/api/chat', './routes/chat'],
 ];
 
 for (const [mountPath, modulePath] of routeModules) {
