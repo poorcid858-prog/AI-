@@ -118,7 +118,7 @@ test('迁移转换：knowledgeType 缺省为 other，fileType 从文件名推断
   assert.strictEqual(none.raw.fileType, 'md', '无文件名时按 md 兜底');
 });
 
-test('迁移判重键：按 fileName + createdAt，缺文件名时用旧 id 兜底', () => {
+test('迁移判重键：按 legacyId 优先，fallback 到 id/fileName/title —— 缺文件名也能算同一个键', () => {
   const k1 = mig.legacyKey(legacyDoc());
   const k2 = mig.legacyKey(legacyDoc());
   assert.strictEqual(k1, k2, '同一条旧记录必须得到同一个键（幂等的基础）');
@@ -127,7 +127,7 @@ test('迁移判重键：按 fileName + createdAt，缺文件名时用旧 id 兜�
   assert.notStrictEqual(k1, k3);
 
   const k4 = mig.legacyKey(legacyDoc({ fileName: null }));
-  assert.ok(k4.includes('doc_001'), '无文件名时应退回用旧 id 判重');
+  assert.ok(k4.includes('doc_001'), '无文件名时 fallback 到旧 id 判重');
 });
 
 test('迁移判重键：能从已迁移的 raw 记录还原同一个键（幂等靠这个对齐）', () => {
@@ -320,19 +320,127 @@ test('迁移执行：完整性自检有违反项时回滚并且**不改名**旧�
   });
 });
 
-test('迁移闸门：没有显式确认时只打印警告、什么都不做（上传/审核/检索还没接到新结构）', () => {
+test('迁移闸门：闸门已降级 —— 不传 opts 直接执行，confirmed=false 才跳过（CI 调试用）', () => {
+  withMigrateEnv([legacyDoc(), legacyDoc2()], (dir) => {
+    // 1) 不传 confirmed → 默认执行（旧行为是挡住，新行为是直接跑）
+    const run = mig.migrate({ silent: true });
+    assert.strictEqual(run.blocked, undefined, '默认不再被闸门挡住');
+    assert.strictEqual(run.confirmed, true, '默认即为已确认');
+    assert.strictEqual(run.migrated, 2, '默认应当执行迁移');
+    assert.strictEqual(run.renamed, true);
+
+    // 2) 显式 confirmed=false → 跳过（对应 CONFIRM_MIGRATE=0）
+    const skip = mig.migrate({ confirmed: false, silent: true });
+    assert.strictEqual(skip.blocked, true, '显式跳过时仍打 blocked 标识');
+    assert.strictEqual(skip.migrated, 0);
+    assert.strictEqual(skip.skipped, 0);
+    assert.strictEqual(skip.renamed, false);
+  });
+});
+
+// ============================================================
+// 阶段 8 补充：legacyKey 幂等性 bug + 闸门降级
+// ============================================================
+
+/**
+ * 35 条样本，贴近真实 data/documents.json 的分布（1 有 fileName=test.md，其余无 fileName）。
+ * 用来测"重跑迁移"场景下 legacyId 优先判重是否真能命中已建好的 raw。
+ */
+function legacyDocs35() {
+  const out = [];
+  for (let i = 1; i <= 35; i++) {
+    const id = `doc_${String(i).padStart(3, '0')}`;
+    out.push(legacyDoc({
+      id,
+      title: `文档${i}`,
+      fileName: i === 1 ? 'test.md' : null,
+      createdAt: new Date(Date.UTC(2026, 0, 1, 0, i - 1, 0)).toISOString(),
+    }));
+  }
+  return out;
+}
+
+test('【阶段 8 / t1】迁移执行：35 条旧数据第一次跑 → 建 35 raw，migrated=35', () => {
+  withMigrateEnv(legacyDocs35(), (dir) => {
+    const r = mig.migrate({ silent: true });
+    assert.strictEqual(r.migrated, 35, '默认应直接执行迁移，35 条全部迁出');
+    assert.strictEqual(r.skipped, 0);
+    assert.strictEqual(r.confirmed, true, '闸门降级后默认即为已确认');
+    assert.strictEqual(kl.listRaws().length, 35, 'raw_documents 应有 35 条');
+  });
+});
+
+test('【阶段 8 / t2】迁移执行：35 条旧数据第二次跑（同名 legacy 仍存在）→ 全部 skipped，不建新 raw', () => {
+  withMigrateEnv(legacyDocs35(), (dir) => {
+    const r1 = mig.migrate({ silent: true });
+    assert.strictEqual(r1.migrated, 35);
+
+    // 模拟"运维从备份恢复 documents.json / 脚本重跑"：旧表被放回去
+    fs.copyFileSync(path.join(dir, 'documents.legacy.json'), path.join(dir, 'documents.json'));
+    store.clearCache();
+
+    const r2 = mig.migrate({ silent: true });
+    assert.strictEqual(r2.migrated, 0, '第二次跑不能再造 35 个孤儿 raw');
+    assert.strictEqual(r2.skipped, 35, '35 条必须全部通过 legacyId 判重命中');
+    assert.strictEqual(kl.listRaws().length, 35, '总数不变');
+  });
+});
+
+test('【阶段 8 / t3】迁移执行：doc_001 + fileName=test.md 单独验证 legacyId 优先判重命中（幂等）', () => {
+  const doc = legacyDoc({ id: 'doc_001', fileName: 'test.md' });
+  withMigrateEnv([doc], (dir) => {
+    const r1 = mig.migrate({ silent: true });
+    assert.strictEqual(r1.migrated, 1);
+    const raws1 = kl.listRaws();
+    assert.strictEqual(raws1.length, 1);
+    assert.strictEqual(raws1[0].legacyId, 'doc_001');
+
+    // 把旧表放回去
+    fs.copyFileSync(path.join(dir, 'documents.legacy.json'), path.join(dir, 'documents.json'));
+    store.clearCache();
+
+    const r2 = mig.migrate({ silent: true });
+    assert.strictEqual(r2.migrated, 0);
+    assert.strictEqual(r2.skipped, 1, 'doc_001 必须命中已建好的 raw（legacyId 优先对齐）');
+    assert.strictEqual(kl.listRaws().length, 1, '无孤儿');
+  });
+});
+
+test('【阶段 8 / t4】迁移执行：不传任何 opts 也直接执行迁移（闸门降级为默认 execute）', () => {
   withMigrateEnv([legacyDoc(), legacyDoc2()], (dir) => {
     const r = mig.migrate({ silent: true });
-    assert.strictEqual(r.blocked, true, '未确认时必须被闸门挡住');
+    assert.strictEqual(r.migrated, 2, '默认直接执行，不需要任何确认');
+    assert.strictEqual(r.skipped, 0);
+    assert.strictEqual(r.renamed, true);
+    assert.strictEqual(r.confirmed, true, '返回里要带 confirmed:true 标识');
+    assert.strictEqual(r.blocked, undefined, '不再有 blocked 状态');
+    assert.ok(!fs.existsSync(path.join(dir, 'documents.json')), '旧表已改名');
+  });
+});
+
+test('【阶段 8 / t5】迁移执行：confirmed=false 显式跳过（CONFIRM_MIGRATE=0 路径），不写库', () => {
+  withMigrateEnv([legacyDoc(), legacyDoc2()], (dir) => {
+    const r = mig.migrate({ confirmed: false, silent: true });
     assert.strictEqual(r.migrated, 0);
+    assert.strictEqual(r.skipped, 0);
     assert.strictEqual(r.renamed, false);
     assert.ok(fs.existsSync(path.join(dir, 'documents.json')), '旧表一根头发都不能动');
     assert.strictEqual(kl.listRaws().length, 0);
     assert.ok(!fs.existsSync(path.join(dir, 'raw_documents.json')));
+  });
+});
 
-    // 显式确认后才真的执行
-    const go = mig.migrate({ confirmed: true, silent: true });
-    assert.strictEqual(go.blocked, undefined);
-    assert.strictEqual(go.migrated, 2);
+test('【阶段 8 / t6】迁移执行：闸门挡住需显式设置 confirmed=false（不再默认拦截）', () => {
+  withMigrateEnv([legacyDoc(), legacyDoc2()], (dir) => {
+    // 不传 confirmed → 不再被闸门挡住，直接执行
+    const noOpts = mig.migrate({ silent: true });
+    assert.strictEqual(noOpts.blocked, undefined, '默认不再有 blocked');
+    assert.strictEqual(noOpts.migrated, 2);
+
+    // 显式 confirmed=false → 才会被闸门挡住（CI 调试用）
+    const explicitSkip = mig.migrate({ confirmed: false, silent: true });
+    assert.strictEqual(explicitSkip.migrated, 0);
+    assert.strictEqual(explicitSkip.skipped, 0);
+    assert.strictEqual(explicitSkip.renamed, false);
   });
 });

@@ -14,11 +14,14 @@
  * 依据：docs/技术方案-四层模型.md 第 7 节
  *
  * 三条安全设计：
- *   1. **幂等**：按 fileName（或旧 id）+ createdAt 判重，重复执行不产生重复数据
+ *   1. **幂等**：按 legacyId（或旧 id）+ createdAt 判重，重复执行不产生重复数据
  *   2. **先自检再改名**：checkInvariants() 有违反项就回滚新建的数据并保留
  *      data/documents.json 不动 —— 旧文件还在，就还能重试
  *   3. 状态一律走 knowledge-layers 的状态机，不直接写 status 字段 ——
  *      直接写就绕过了级联同步，迁移完的片段状态会和版本不一致（不变量 I4）
+ *
+ * 闸门：默认直接执行迁移（旧表留档为 documents.legacy.json，新表已接好）。
+ *      设 CONFIRM_MIGRATE=0 可显式跳过（CI 调试 / 演练用）。
  *
  * 用法：node scripts/migrate-to-layers.js
  */
@@ -45,12 +48,16 @@ const STATUS_MAP = {
 
 /**
  * 判重键。
- * 优先文件名，其次旧记录 id（手工粘贴的内容没有文件名），最后标题。
- * 对"旧记录"和"已迁移出来的 raw 记录"都能算出同一个键 —— 幂等就靠这个对齐。
+ * 旧记录：只能拿到 `id`（没有 legacyId）；新 raw：有 `legacyId == 旧 id`。
+ * 优先级 legacyId → id → fileName → title —— 这样"旧记录"和"已迁出的 raw"
+ * 算出来是同一个键（走 id 那一条），彻底修掉 doc_001 + fileName='test.md'
+ * 这类"两边键不撞、重跑再造孤儿"的幂等性 bug。
+ * 之所以不把 fileName 放第一：旧表里绝大多数记录 fileName 是空
+ * （手工粘贴的内容没有文件名），那时空 key 不稳定，id 才是稳定锚点。
  */
 function legacyKey(rec) {
   const r = rec || {};
-  const head = r.fileName || r.legacyId || r.id || r.title || '';
+  const head = r.legacyId || r.id || r.fileName || r.title || '';
   return `${head}|${r.createdAt || ''}`;
 }
 
@@ -176,31 +183,32 @@ function applyOne(old, createdRawIds) {
 /**
  * 执行迁移。
  *
- * ⚠️ 闸门：默认 require 不会真的执行迁移。必须显式传 { confirmed: true } 才会落库。
- * 原因是当前 lib/documents.js / routes/* 还全在读旧的 documents 表，
- * 迁移一执行会让运行中的应用立刻变成空知识库。等下一批把上传/审核/检索
- * 接到新结构上后这道闸门才需要拆。
+ * ⚠️ 闸门（已降级）：默认直接执行迁移。调用方显式传 { confirmed: false }
+ * 或设环境变量 CONFIRM_MIGRATE=0 才会跳过（CI 调试用）。
+ * 降级原因：lib/documents.js / routes/* 已经接好四层模型 + 旧表留档备查，
+ * 跑迁移不会再让应用读到空知识库，所以不再需要前置确认。
+ * 仍输出 warn + confirmed:true 标识（与产品端说好"默认会改库"）。
  *
  * @param {Object} [opts] { silent, confirmed }
- * @returns {{total, migrated, skipped, chunkCount, violations, renamed, gated}}
+ * @returns {{total, migrated, skipped, chunkCount, violations, renamed, confirmed, blocked?}}
  */
 function migrate(opts) {
   const silent = !!(opts && opts.silent);
   const log = (...a) => { if (!silent) console.log(...a); };
 
+  // 闸门：仅在显式 confirmed=false 时跳过；默认 true
+  if (opts && opts.confirmed === false) {
+    log('[迁移] CONFIRM_MIGRATE=0 — 显式跳过迁移（不改库、不改表）');
+    return {
+      total: 0, migrated: 0, skipped: 0, chunkCount: 0, violations: [],
+      renamed: false, confirmed: true, blocked: true,
+    };
+  }
+
   const legacyPath = store.filePath(LEGACY_TABLE);
   const targetPath = path.join(config.paths.data, 'documents.legacy.json');
 
-  // 闸门：未确认则只打警告，什么都不做
-  if (!opts || opts.confirmed !== true) {
-    log('[迁移] 未确认 — 闸门已拦截');
-    log('[迁移] 原因：上传 / 审核 / 检索 三条流程尚未接到新的四层结构，');
-    log('[迁移]       执行迁移后应用会读到空知识库（旧表被改名、新表还没人读）。');
-    log('[迁移] 如确认要执行，请传 { confirmed: true } 或设环境变量 CONFIRM_MIGRATE=1。');
-    return { total: 0, migrated: 0, skipped: 0, chunkCount: 0, violations: [], renamed: false, blocked: true };
-  }
-
-  const result = { total: 0, migrated: 0, skipped: 0, chunkCount: 0, violations: [], renamed: false };
+  const result = { total: 0, migrated: 0, skipped: 0, chunkCount: 0, violations: [], renamed: false, confirmed: true };
 
   if (!fs.existsSync(legacyPath)) {
     log(`[迁移] 未找到 ${legacyPath}，无需迁移（可能已经迁过了）`);
@@ -266,9 +274,11 @@ function rollback(rawIds, log) {
   }
 }
 
-// 只有直接执行（带确认闸门）才跑迁移
+// 直接执行：默认就跑迁移；CONFIRM_MIGRATE=0 显式跳过（CI 调试用）
 if (require.main === module) {
-  const confirmed = process.env.CONFIRM_MIGRATE === '1';
+  const confirmed = process.env.CONFIRM_MIGRATE !== '0';
+  // 闸门已降级：默认即执行迁移。仍显式打 warn 提示"会改库"——和 JSDoc 承诺一致。
+  console.warn('[迁移] 默认会改库（设 CONFIRM_MIGRATE=0 跳过）');
   try {
     migrate({ confirmed });
   } catch (err) {
