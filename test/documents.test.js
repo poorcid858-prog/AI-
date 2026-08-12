@@ -257,6 +257,155 @@ test('upload：tags 数量 21 抛 400', () => {
   });
 });
 
+// ============================================================
+// 阶段 3：review() 切到四层链路（6 个新测试）
+// ============================================================
+//
+// 约束：每个测试都先 admin 上传一个 raw，再让 reviewer 调 review。
+// 阶段 3 不调 publishStd，所以 review 通过后：
+//   - std.status === 'approved'
+//   - std.isCurrent === false
+//   - raw.currentStdId === null（仍）
+
+// ----- 测试 1：review 通过，std 落库到 approved + 审核留痕 -----
+
+test('review：通过——std.status=approved + reviewedBy/At/Note 写好 + isCurrent 仍 false', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    const view = docs.upload(admin, {
+      title: '测试上传',
+      fileName: 'test.md',
+      content: '这是一段足够长的内容用于验证四层链路的状态机流转和字段继承关系。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: [],
+    });
+
+    docs.review(reviewer, view.id, 'approved', '这是审核意见');
+
+    const stds = kl.listStdByRaw(view.id);
+    assert.strictEqual(stds.length, 1, '应该只有 1 个 std 版本');
+    assert.strictEqual(stds[0].status, 'approved', 'std.status 必须切到 approved');
+    assert.strictEqual(stds[0].reviewedBy, 'reviewer', 'reviewedBy 必须是审核人');
+    assert.ok(typeof stds[0].reviewedAt === 'string' && stds[0].reviewedAt.length > 0,
+      'reviewedAt 必须是非空 ISO 字符串');
+    assert.strictEqual(stds[0].reviewNote, '这是审核意见', 'reviewNote 必须写好');
+    assert.strictEqual(stds[0].isCurrent, false,
+      '本阶段不调 publishStd，isCurrent 必须仍为 false');
+  });
+});
+
+// ----- 测试 2：review 驳回，下游 chunks.status 同步为 rejected -----
+
+test('review：驳回——std.status=rejected + chunks.status 同步为 rejected', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    const view = docs.upload(admin, {
+      title: '驳回测试',
+      fileName: 'reject.md',
+      content: '这是一段足够长的内容用于验证审核驳回后下游 chunks 状态同步。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: [],
+    });
+
+    docs.review(reviewer, view.id, 'rejected', '驳回原因');
+
+    const stds = kl.listStdByRaw(view.id);
+    assert.strictEqual(stds[0].status, 'rejected');
+    assert.strictEqual(stds[0].reviewedBy, 'reviewer');
+    assert.strictEqual(stds[0].reviewNote, '驳回原因');
+
+    // 下游 chunks 状态：setStdStatus 应级联同步（I4 不变量）
+    const chunks = kl.listChunksByStd(stds[0].id);
+    assert.ok(chunks.length > 0, '至少有 1 个 chunk');
+    assert.strictEqual(chunks[0].status, 'rejected', 'chunk.status 必须跟随 std 同步为 rejected');
+  });
+});
+
+// ----- 测试 3：review 抛 403：readonly guest -----
+
+test('review：readonly guest 抛 403', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const view = docs.upload(admin, {
+      title: '权限测试',
+      fileName: 'perm.md',
+      content: '这是一段足够长的内容用于验证 readonly guest 没有审核权限。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: [],
+    });
+
+    // 参照 mock-data/users.json：readonly=true 是访客的标志
+    const guest = { username: 'guest', role: 'guest', readonly: true };
+    assert.throws(
+      () => docs.review(guest, view.id, 'approved', 'note'),
+      (e) => e.status === 403
+    );
+  });
+});
+
+// ----- 测试 4：review 抛 404：rawId 不存在 -----
+
+test('review：rawId 不存在抛 404', () => {
+  withTempDataDir(() => {
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    assert.throws(
+      () => docs.review(reviewer, 'raw_不存在的id', 'approved', 'note'),
+      (e) => e.status === 404
+    );
+  });
+});
+
+// ----- 测试 5：review 抛 409：std 已是 approved，不能重复审 -----
+
+test('review：已 approved 的 std 再次审抛 409', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    const view = docs.upload(admin, {
+      title: '重复审测试',
+      fileName: 'dup.md',
+      content: '这是一段足够长的内容用于验证已 approved 的 std 不能再审。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: [],
+    });
+
+    docs.review(reviewer, view.id, 'approved', '第一次通过');
+    // 第二次通过：TRANSITIONS 里 approved → approved 不在白名单，setStdStatus 会抛 409
+    assert.throws(
+      () => docs.review(reviewer, view.id, 'approved', '第二次'),
+      (e) => e.status === 409
+    );
+  });
+});
+
+// ----- 测试 6：review 抛 400：note 超过 500 字符 -----
+
+test('review：note 超过 500 字符抛 400', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    const view = docs.upload(admin, {
+      title: '备注过长测试',
+      fileName: 'note.md',
+      content: '这是一段足够长的内容用于验证审核备注超过 500 字符被拒绝。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: [],
+    });
+
+    assert.throws(
+      () => docs.review(reviewer, view.id, 'approved', 'a'.repeat(501)),
+      (e) => e.status === 400
+    );
+  });
+});
+
 // ----- 测试 4：四层状态全部正确（raw.ready / std.pending + chunks 继承）-----
 
 test('upload：四层状态正确（raw.ready, std pending, chunks pending, 权限判据从 std 继承）', () => {
