@@ -38,7 +38,7 @@ app.get('/api/health', (req, res) => {
 app.use(express.static(config.paths.public));
 
 // ---------- 路由注册 ----------
-// 后续步骤逐个接入：auth / documents / workflow / feedback / admin / chat
+// 后续步骤逐个接入：auth / documents / workflow / feedback / admin / chat / service / reports / password-mgmt
 const routeModules = [
   ['/api/auth', './routes/auth'],
   ['/api/documents', './routes/documents'],
@@ -46,6 +46,14 @@ const routeModules = [
   ['/api/feedback', './routes/feedback'],
   ['/api/admin', './routes/admin'],
   ['/api/chat', './routes/chat'],
+  ['/api/service-chat', './routes/service-chat'],
+  ['/api/service-admin', './routes/service-admin'],
+  ['/api/reports', './routes/reports'],
+  ['/api/password-mgmt', './routes/password-mgmt'],
+  ['/api/retrieval', './routes/retrieval'],
+  ['/api/expiry', './routes/expiry'],
+  ['/api/compare', './routes/compare'],
+  ['/api/capabilities', './routes/capability'],
 ];
 
 for (const [mountPath, modulePath] of routeModules) {
@@ -77,6 +85,48 @@ if (require.main === module) {
   // 启动时预置常用问题种子（30 条，4 角色），已有数据时不写入
   // 兜底 try/catch：即使 seedIfEmpty 内部 writeFrequency 抛错，也不阻断服务启动
   try { require('./lib/qa-store').seedIfEmpty(); } catch (_) { /* 种子失败不阻断 */ }
+
+  // 持久化定时任务：每天 23:00 自动生成日报告（替代 CronCreate，7 天不过期）
+  try {
+    const reportsLib = require('./lib/reports');
+    const persistentScheduler = require('./lib/persistent-scheduler');
+    const qa = require('./lib/qa-store');
+    const expiry = require('./lib/expiry');
+
+    const dailyScheduler = persistentScheduler.createScheduler({
+      triggerTime: '23:00',
+      job(date) {
+        // 汇总当天全部会话，生成日报告并保存
+        const sessions = qa.listSessions(100).map(s => ({
+          sessionId: s.sessionId,
+          role: s.firstUserRole || 'guest',
+          turnCount: s.recordCount || 0,
+          successCount: s.recordCount || 0,
+          failCount: 0,
+        }));
+        // 需求 9：日报告包含到期文档列表
+        const expiringDocs = expiry.getExpiringDocs(7);
+        const expiredDocs = expiry.getExpiredDocs();
+        // 需求 9：自动处理过期文档
+        const processed = expiry.processExpired();
+        const daily = reportsLib.generateDailyReport(date, sessions, expiringDocs, expiredDocs);
+        const file = reportsLib.saveReport(daily);
+        console.log(`  · [日报告] ${date} 已生成: ${file}`);
+        if (expiringDocs.length > 0) {
+          console.log(`  · [到期提醒] ${expiringDocs.length} 个文档即将到期`);
+        }
+        if (expiredDocs.length > 0) {
+          console.log(`  · [过期文档] ${expiredDocs.length} 个文档已过期`);
+        }
+        if (processed > 0) {
+          console.log(`  · [自动处理] ${processed} 个过期文档已转为待复审`);
+        }
+      },
+    });
+    dailyScheduler.start();
+    console.log(`  · 定时任务: 每日 23:00 生成日报告（持久模式，跨重启存活）`);
+    console.log(`  · 文档过期检查: 每日 23:00 自动处理过期文档`);
+  } catch (_) { /* 定时任务注册失败不阻断启动 */ }
 
   app.listen(config.port, config.host, () => {
     console.log('');

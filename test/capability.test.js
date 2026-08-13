@@ -358,7 +358,398 @@ test('T13：边界 —— 能力不存在抛 404；无草稿可发布抛 400', (
     assert.throws(
       () => cap.trialRun('skill_product', 'q', 'product', 'trade'),
       (e) => e.status === 400,
-      '无草稿试跑应抛 400'
-    );
+      );
+  });
+});
+
+// ============================================================
+// API 路由测试（Task 2）
+// ============================================================
+// 启动真实 Express server，用内置 fetch 打 HTTP
+// 使用 withTempDataDirAsync 隔离数据
+
+const { test: test2, before, after } = require('node:test');
+
+let server;
+let baseUrl;
+
+async function withTempDataDirAsync(fn) {
+  const tmpDir = path.join(os.tmpdir(), `ai-cap-api-${process.pid}-${Math.random().toString(36).slice(2, 8)}`);
+  const realDataDir = config.paths.data;
+  try {
+    fs.mkdirSync(tmpDir, { recursive: true });
+    config.paths.data = tmpDir;
+    store.clearCache();
+    return await fn();
+  } finally {
+    config.paths.data = realDataDir;
+    store.clearCache();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+}
+
+before(async () => {
+  const app = require('../server');
+  server = await new Promise((resolve, reject) => {
+    const s = app.listen(0, '127.0.0.1', (err) => (err ? reject(err) : resolve(s)));
+  });
+  baseUrl = `http://127.0.0.1:${server.address().port}`;
+});
+
+after(() => {
+  if (server) server.close();
+});
+
+async function login(username) {
+  const r = await fetch(`${baseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ username, password: '123456' }),
+  });
+  if (!r.ok) throw new Error(`login failed: ${r.status} ${await r.text()}`);
+  const j = await r.json();
+  return j.token;
+}
+
+async function api(method, path, token, body) {
+  const opts = {
+    method,
+    headers: { 'content-type': 'application/json' },
+  };
+  if (token) opts.headers['x-token'] = token;
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(`${baseUrl}${path}`, opts);
+  return { status: r.status, body: await r.json() };
+}
+
+// ============================================================
+// T14. GET /api/capabilities 列表
+// ============================================================
+
+test2('T14：GET /api/capabilities → 200 + 4 个摘要', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('GET', '/api/capabilities', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.total, 4);
+    assert.ok(Array.isArray(r.body.capabilities));
+    for (const s of r.body.capabilities) {
+      assert.ok(s.id);
+      assert.ok(s.name);
+      assert.strictEqual(s.hasDraft, false);
+      assert.strictEqual(s.publishedVersion, 1);
+      assert.strictEqual(s.draftVersion, null);
+    }
+  });
+});
+
+// ============================================================
+// T15. GET /api/capabilities/:id 详情
+// ============================================================
+
+test2('T15：GET /api/capabilities/:id → 200 + 完整能力对象', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('GET', '/api/capabilities/skill_product', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.capability.id, 'skill_product');
+    assert.strictEqual(r.body.capability.published.version, 1);
+    assert.strictEqual(r.body.capability.draft, null);
+  });
+});
+
+// ============================================================
+// T16. GET /api/capabilities/:id 不存在 → 404
+// ============================================================
+
+test2('T16：GET /api/capabilities/:id 不存在 → 404', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('GET', '/api/capabilities/not_exist', token);
+    assert.strictEqual(r.status, 404);
+    assert.strictEqual(r.body.ok, false);
+  });
+});
+
+// ============================================================
+// T17. POST /api/capabilities/:id/draft 编辑草稿
+// ============================================================
+
+test2('T17：POST /api/capabilities/:id/draft → 200 + 草稿创建成功', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const newContent = { title: '新版产品经理', description: '自定义描述', outputFormat: '自定义格式' };
+    const r = await api('POST', '/api/capabilities/skill_product/draft', token, { content: newContent });
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.capability.draft.version, 2);
+    assert.deepStrictEqual(r.body.capability.draft.content, newContent);
+    assert.strictEqual(r.body.capability.published.version, 1);
+  });
+});
+
+// ============================================================
+// T18. GET /api/capabilities/:id/draft 获取草稿
+// ============================================================
+
+test2('T18：GET /api/capabilities/:id/draft → 200 + 草稿内容', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: 'xxx' } });
+    const r = await api('GET', '/api/capabilities/skill_product/draft', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.draft.content.title, 'xxx');
+  });
+});
+
+// ============================================================
+// T19. DELETE /api/capabilities/:id/draft 弃稿
+// ============================================================
+
+test2('T19：DELETE /api/capabilities/:id/draft → 200 + 草稿清空', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: '待弃稿' } });
+    const r = await api('DELETE', '/api/capabilities/skill_product/draft', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.ok(!r.body.capability.draft, '弃稿后草稿应为空');
+    assert.strictEqual(r.body.capability.published.version, 1);
+  });
+});
+
+// ============================================================
+// T20. DELETE /api/capabilities/:id/draft 无草稿可弃 → 400
+// ============================================================
+
+test2('T20：DELETE /api/capabilities/:id/draft 无草稿 → 400', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('DELETE', '/api/capabilities/skill_product/draft', token);
+    assert.strictEqual(r.status, 400);
+    assert.strictEqual(r.body.ok, false);
+  });
+});
+
+// ============================================================
+// T21. POST /api/capabilities/:id/publish 发布
+// ============================================================
+
+test2('T21：POST /api/capabilities/:id/publish → 200 + 草稿→生效版', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: '草稿 v2', role: 'product' } });
+    const r = await api('POST', '/api/capabilities/skill_product/publish', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.capability.published.version, 2);
+    assert.strictEqual(r.body.capability.published.content.title, '草稿 v2');
+    assert.strictEqual(r.body.capability.draft, null);
+    assert.strictEqual(r.body.capability.history.length, 1);
+  });
+});
+
+// ============================================================
+// T22. POST /api/capabilities/:id/publish 无草稿 → 400
+// ============================================================
+
+test2('T22：POST /api/capabilities/:id/publish 无草稿 → 400', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('POST', '/api/capabilities/skill_product/publish', token);
+    assert.strictEqual(r.status, 400);
+    assert.strictEqual(r.body.ok, false);
+  });
+});
+
+// ============================================================
+// T23. POST /api/capabilities/:id/rollback 回滚
+// ============================================================
+
+test2('T23：POST /api/capabilities/:id/rollback → 200 + 新草稿', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: 'v2', role: 'product' } });
+    await api('POST', '/api/capabilities/skill_product/publish', token);
+    const r = await api('POST', '/api/capabilities/skill_product/rollback', token, { version: 1 });
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.capability.draft.version, 3);
+    assert.strictEqual(r.body.capability.published.version, 2);
+    assert.ok(r.body.capability.draft.content.title);
+  });
+});
+
+// ============================================================
+// T24. POST /api/capabilities/:id/rollback 缺少 version → 400
+// ============================================================
+
+test2('T24：POST /api/capabilities/:id/rollback 缺少 version → 400', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('POST', '/api/capabilities/skill_product/rollback', token, {});
+    assert.strictEqual(r.status, 400);
+    assert.strictEqual(r.body.ok, false);
+  });
+});
+
+// ============================================================
+// T25. GET /api/capabilities/:id/versions 版本历史
+// ============================================================
+
+test2('T25：GET /api/capabilities/:id/versions → 200 + 版本列表', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { v: 'draft2' } });
+    await api('POST', '/api/capabilities/skill_product/publish', token);
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { v: 'draft3' } });
+    const r = await api('GET', '/api/capabilities/skill_product/versions', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.versions.length, 3);
+    assert.strictEqual(r.body.versions[0].version, 3);
+    assert.strictEqual(r.body.versions[0].status, 'draft');
+    assert.strictEqual(r.body.versions[1].version, 2);
+    assert.strictEqual(r.body.versions[1].status, 'published');
+    assert.strictEqual(r.body.versions[2].version, 1);
+    assert.strictEqual(r.body.versions[2].status, 'history');
+  });
+});
+
+// ============================================================
+// T26. GET /api/capabilities/audit 审计日志
+// ============================================================
+
+test2('T26：GET /api/capabilities/audit → 200 + 审计日志', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: 'x' } });
+    await api('POST', '/api/capabilities/skill_product/publish', token);
+    const r = await api('GET', '/api/capabilities/audit', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.ok(r.body.total >= 2);
+    assert.ok(Array.isArray(r.body.logs));
+    for (const l of r.body.logs) {
+      assert.ok(l.action);
+      assert.ok(l.capId);
+      assert.ok(l.timestamp);
+    }
+  });
+});
+
+// ============================================================
+// T27. GET /api/capabilities/audit?capId= 过滤
+// ============================================================
+
+test2('T27：GET /api/capabilities/audit?capId=skill_product → 过滤', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: 'x' } });
+    await api('POST', '/api/capabilities/skill_test/draft', token, { content: { title: 'y' } });
+    const r = await api('GET', '/api/capabilities/audit?capId=skill_product', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.ok(r.body.logs.every((l) => l.capId === 'skill_product'));
+  });
+});
+
+// ============================================================
+// T28. POST /api/capabilities/:id/trial 试跑
+// ============================================================
+
+test2('T28：POST /api/capabilities/:id/trial → 200 + 草稿+生效版结果', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    await api('POST', '/api/capabilities/skill_product/draft', token, {
+      content: { title: '产品经理草稿版', description: '草稿描述', outputFormat: '草稿格式' },
+    });
+    const r = await api('POST', '/api/capabilities/skill_product/trial', token, {
+      testQuestion: '帮我写退款流程PRD',
+      role: 'product',
+      bizLine: 'trade',
+    });
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.ok(r.body.draft, '应有 draft 结果');
+    assert.ok(r.body.draft.prompt, 'draft 应有 prompt');
+    assert.ok(r.body.draft.result, 'draft 应有 result');
+    assert.ok(r.body.published, '应有 published 结果');
+    assert.ok(Array.isArray(r.body.ragChunks), '应有 ragChunks');
+  });
+});
+
+// ============================================================
+// T29. POST /api/capabilities/:id/trial 无草稿 → 400
+// ============================================================
+
+test2('T29：POST /api/capabilities/:id/trial 无草稿 → 400', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('POST', '/api/capabilities/skill_product/trial', token, {
+      testQuestion: '测试问题',
+    });
+    assert.strictEqual(r.status, 400);
+    assert.strictEqual(r.body.ok, false);
+  });
+});
+
+// ============================================================
+// T30. POST /api/capabilities/diff 文本差异
+// ============================================================
+
+test2('T30：POST /api/capabilities/diff → 200 + 差异对象', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('POST', '/api/capabilities/diff', token, {
+      a: 'line1\nsame\nline3',
+      b: 'line1\nsame modified\nline3',
+    });
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.ok(r.body.diff);
+    assert.ok(typeof r.body.diff.removed === 'string');
+    assert.ok(typeof r.body.diff.added === 'string');
+  });
+});
+
+// ============================================================
+// T31. GET /api/capabilities/:id/published 生效版
+// ============================================================
+
+test2('T31：GET /api/capabilities/:id/published → 200 + 生效版', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('GET', '/api/capabilities/skill_product/published', token);
+    assert.strictEqual(r.status, 200);
+    assert.ok(r.body.ok);
+    assert.strictEqual(r.body.published.version, 1);
+    assert.strictEqual(r.body.published.content.role, 'product');
+  });
+});
+
+// ============================================================
+// T32. 未登录 → 401
+// ============================================================
+
+test2('T32：未登录调能力接口 → 401', async () => {
+  const r = await api('GET', '/api/capabilities', null);
+  assert.strictEqual(r.status, 401);
+  assert.strictEqual(r.body.ok, false);
+});
+
+// ============================================================
+// T33. guest（只读）调写操作 → 403
+// ============================================================
+
+test2('T33：guest 写操作 → 403', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('guest');
+    const r = await api('POST', '/api/capabilities/skill_product/draft', token, { content: { title: 'x' } });
+    assert.strictEqual(r.status, 403);
+    assert.strictEqual(r.body.ok, false);
   });
 });
