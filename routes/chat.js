@@ -11,6 +11,9 @@
 const express = require('express');
 const auth = require('../lib/auth');
 const qa = require('../lib/qa-store');
+const reports = require('../lib/reports');
+const rag = require('../lib/rag-engine');
+const snapshot = require('../lib/retrieval-snapshot');
 
 const router = express.Router();
 
@@ -124,6 +127,33 @@ router.post('/send', auth.requireAuth, auth.requireWrite, (req, res) => {
 
     // 4. 更新频次
     qa.incrementFrequency(role, userQuestion);
+
+    // 5. 记录检索快照（需求 6：召回可观测）
+    try {
+      const index = rag.loadApprovedIndex();
+      const results = rag.retrieve(user, userQuestion, index);
+      snapshot.recordSnapshot({
+        sessionId,
+        turn,
+        userQuestion,
+        user,
+        retrievalResults: results,
+        ragIndex: index,
+        aiOutput: workflowResult,
+      });
+    } catch (_) { /* 快照记录失败不阻断 */ }
+
+    // 6. 会话结束自动生成会话报告（任务包 C 收口）
+    const sessionData = {
+      sessionId,
+      role,
+      startTime: new Date(),
+      endTime: new Date(),
+      turnCount: turn,
+      successCount: 1,
+      failCount: 0,
+    };
+    try { reports.cronScheduleForSessionReport(sessionData); } catch (_) { /* 报告失败不阻断 */ }
 
     // 返回结果
     res.json({

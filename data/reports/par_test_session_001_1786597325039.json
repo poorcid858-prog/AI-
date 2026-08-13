@@ -1,0 +1,12 @@
+{
+  "sessionId": "par_test_session_001",
+  "role": "product",
+  "startTime": "2026-08-13T05:02:05.039Z",
+  "endTime": "2026-08-13T05:02:05.039Z",
+  "turnCount": 1,
+  "successCount": 1,
+  "failCount": 0,
+  "duration": 0,
+  "successRate": 100,
+  "generatedAt": "2026-08-13T05:02:05.039Z"
+}

@@ -63,16 +63,20 @@ test('T1: listSessions 返回 session 列表（倒序）', () => {
   const t1 = new Date('2026-08-12T10:00:00Z').toISOString();
   const t2 = new Date('2026-08-12T11:00:00Z').toISOString();
 
-  const sid1 = `s_test1_${Date.now()}`;
-  const sid2 = `s_test2_${Date.now()}`;
+  const sid1 = `s_test1_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const sid2 = `s_test2_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
   createTestSession(sid1, '用户A', 'product', 'trade', t1, '问题1');
   createTestSession(sid2, '用户B', 'test', 'membership', t2, '问题2');
 
-  const sessions = qa.listSessions(100);
-  assert(sessions.length >= 2, '应至少有 2 个 session');
+  // 用大 limit 确保能拿到数据（json 里已有 180+ 测试垃圾 session）
+  const store = require('../lib/store');
+  store.clearCache();
 
-  // 查找我们的测试数据
+  const sessions = qa.listSessions(500);
+  assert(sessions.length >= 2, `应至少有 2 个 session, 实际 ${sessions.length}`);
+
+  // 用精确 sid 查找
   const s1 = sessions.find((s) => s.sessionId === sid1);
   const s2 = sessions.find((s) => s.sessionId === sid2);
 

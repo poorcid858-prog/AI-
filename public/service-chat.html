@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客服助手</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .header h1 { font-size: 24px; margin-bottom: 5px; }
+    .header p { font-size: 13px; opacity: 0.9; }
+
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      padding: 12px 16px;
+      border-radius: 8px;
+      max-width: 70%;
+      word-wrap: break-word;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: #667eea;
+      color: white;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      background: #f0f0f0;
+      color: #333;
+    }
+
+    .input-area {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      display: flex;
+      gap: 10px;
+    }
+
+    #questionInput {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+    }
+
+    #questionInput:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    button:hover { background: #5568d3; }
+    button:active { transform: scale(0.98); }
+
+    .no-match {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .match-item {
+      padding: 12px;
+      background: #f9f9f9;
+      border: 1px solid #eee;
+      border-radius: 6px;
+      margin: 8px 0;
+    }
+
+    .match-keyword {
+      font-weight: 600;
+      color: #667eea;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .match-reply { color: #333; font-size: 14px; }
+
+    .loading {
+      text-align: center;
+      color: #999;
+      font-size: 13px;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ddd;
+      border-top-color: #667eea;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 客服助手</h1>
+      <p>有问题？我来帮你</p>
+    </div>
+
+    <div class="chat-area" id="chatArea">
+      <div class="message assistant">
+        👋 你好！我是客服助手。请问有什么我可以帮助你的吗？
+      </div>
+    </div>
+
+    <div class="input-area">
+      <input
+        type="text"
+        id="questionInput"
+        placeholder="输入你的问题..."
+        autocomplete="off"
+      />
+      <button id="sendBtn">发送</button>
+    </div>
+  </div>
+
+  <script>
+    const questionInput = document.getElementById('questionInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatArea = document.getElementById('chatArea');
+
+    async function sendQuestion() {
+      const question = questionInput.value.trim();
+      if (!question) return;
+
+      // 显示用户问题
+      const userMsg = document.createElement('div');
+      userMsg.className = 'message user';
+      userMsg.textContent = question;
+      chatArea.appendChild(userMsg);
+
+      questionInput.value = '';
+
+      // 显示加载中
+      const loadingMsg = document.createElement('div');
+      loadingMsg.className = 'message assistant';
+      loadingMsg.innerHTML = '<div class="loading"><span class="spinner"></span> 搜索中...</div>';
+      chatArea.appendChild(loadingMsg);
+      chatArea.scrollTop = chatArea.scrollHeight;
+
+      try {
+        const response = await fetch('/api/service-chat/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question, role: 'guest' }),
+        });
+
+        loadingMsg.remove();
+
+        if (!response.ok) {
+          throw new Error(`请求失败: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const { matches } = data;
+
+        if (matches && matches.length > 0) {
+          // 显示匹配的话术
+          for (const match of matches) {
+            const assistantMsg = document.createElement('div');
+            assistantMsg.className = 'message assistant';
+            const matchHTML = `
+              <div class="match-item">
+                <div class="match-keyword">关键词：${match.keyword}</div>
+                <div class="match-reply">${match.reply || '无回复'}</div>
+              </div>
+            `;
+            assistantMsg.innerHTML = matchHTML;
+            chatArea.appendChild(assistantMsg);
+          }
+        } else {
+          // 无匹配
+          const noMatchMsg = document.createElement('div');
+          noMatchMsg.className = 'message assistant';
+          noMatchMsg.innerHTML = '<div class="no-match">未找到相关话术，将为你转接人工客服...</div>';
+          chatArea.appendChild(noMatchMsg);
+        }
+
+        chatArea.scrollTop = chatArea.scrollHeight;
+      } catch (error) {
+        loadingMsg.remove();
+        const errorMsg = document.createElement('div');
+        errorMsg.className = 'message assistant';
+        errorMsg.textContent = `❌ ${error.message}`;
+        chatArea.appendChild(errorMsg);
+      }
+    }
+
+    sendBtn.addEventListener('click', sendQuestion);
+    questionInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendQuestion();
+      }
+    });
+
+    questionInput.focus();
+  </script>
+</body>
+</html>

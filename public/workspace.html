@@ -92,7 +92,10 @@ function getOrCreateSessionId() {
 }
 
 const currentSessionId = getOrCreateSessionId();
-let currentRole = sessionStorage.getItem('currentRole') || 'product';
+// 从登录用户信息读取 role，登录时由后端返回 user.role
+	// 登录时已存了 userRole 到 sessionStorage:
+	const userRole = sessionStorage.getItem('userRole') || 'product';
+	let currentRole = sessionStorage.getItem('currentRole') || userRole;
 let currentBizLine = sessionStorage.getItem('currentBizLine') || 'trade';
 
 // 显示当前岗位名称
@@ -339,6 +342,16 @@ if (App.guard()) {
   loadHistory();
   loadSessionMessages(currentSessionId);
   loadFrequency();
+
+  // 处理 URL 参数 ?q=xxx：从引导页跳转过来的预填问题
+  const params = new URLSearchParams(location.search);
+  const q = params.get('q');
+  if (q) {
+    // 清除 URL 中的 q 参数，避免刷新后重复发送
+    history.replaceState(null, '', location.pathname);
+    // 短期延迟确保页面渲染完成后再发送
+    setTimeout(() => sendMessage(q), 500);
+  }
 
   userInput.focus();
 }

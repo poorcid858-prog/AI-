@@ -1,0 +1,13 @@
+{
+  "date": "2026-08-12",
+  "sessionCount": 3,
+  "totalTurns": 12,
+  "totalSuccess": 0,
+  "overallSuccessRate": 0,
+  "roleBreakdown": {
+    "product": 1,
+    "test": 1,
+    "frontend": 1
+  },
+  "generatedAt": "2026-08-13T02:04:44.478Z"
+}

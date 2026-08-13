@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>回答对比调试工具</title>
+<style>
+  :root {
+    --bg: #f5f5f5;
+    --card: #fff;
+    --border: #ddd;
+    --text: #333;
+    --text-secondary: #666;
+    --primary: #1a73e8;
+    --primary-hover: #1557b0;
+    --success: #0f9d58;
+    --danger: #d93025;
+    --warning: #f9ab00;
+    --diff-added-bg: #e6f4ea;
+    --diff-added-text: #137333;
+    --diff-removed-bg: #fce8e6;
+    --diff-removed-text: #c5221f;
+    --diff-changed-bg: #fef7e0;
+    --diff-changed-text: #ea8600;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; padding: 20px; }
+  .container { max-width: 1400px; margin: 0 auto; }
+  h1 { font-size: 24px; margin-bottom: 8px; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+
+  /* 卡片 */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+  .card h2 { font-size: 18px; margin-bottom: 12px; }
+  .card h3 { font-size: 15px; margin-bottom: 8px; color: var(--text-secondary); }
+
+  /* 按钮 */
+  .btn { display: inline-block; padding: 8px 16px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: var(--text); cursor: pointer; font-size: 14px; transition: all 0.1s; }
+  .btn:hover { background: #eee; }
+  .btn-primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .btn-primary:hover { background: var(--primary-hover); }
+  .btn-success { background: var(--success); color: #fff; border-color: var(--success); }
+  .btn-success:hover { opacity: 0.9; }
+  .btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+  .btn-danger:hover { opacity: 0.9; }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn + .btn { margin-left: 8px; }
+
+  /* 表单 */
+  .form-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .form-row input, .form-row select { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+  .form-row input[type="text"] { flex: 1; min-width: 150px; }
+  .form-row select { min-width: 100px; }
+
+  /* 表格 */
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border); }
+  th { font-weight: 600; font-size: 13px; color: var(--text-secondary); background: #fafafa; }
+  td { font-size: 14px; }
+  .actions { white-space: nowrap; }
+
+  /* 消息 */
+  .msg { padding: 10px 16px; border-radius: 6px; margin-bottom: 12px; font-size: 14px; display: none; }
+  .msg-success { background: var(--diff-added-bg); color: var(--diff-added-text); display: block; }
+  .msg-error { background: var(--diff-removed-bg); color: var(--diff-removed-text); display: block; }
+  .msg-info { background: #e8f0fe; color: var(--primary); display: block; }
+
+  /* 快照列表 */
+  .snapshot-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .snapshot-tag { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+  .snapshot-tag.A { background: #e8f0fe; color: var(--primary); }
+  .snapshot-tag.B { background: #fce8e6; color: var(--danger); }
+
+  /* 对比结果 */
+  .compare-section { margin-bottom: 24px; }
+  .compare-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #fafafa; border: 1px solid var(--border); border-radius: 8px 8px 0 0; cursor: pointer; }
+  .compare-header h3 { font-size: 15px; margin: 0; }
+  .compare-header .badge { font-size: 12px; padding: 3px 10px; border-radius: 12px; font-weight: 600; }
+  .badge-improved { background: var(--diff-added-bg); color: var(--diff-added-text); }
+  .badge-worsened { background: var(--diff-removed-bg); color: var(--diff-removed-text); }
+  .badge-unchanged { background: #f1f3f4; color: var(--text-secondary); }
+
+  .compare-body { display: none; border: 1px solid var(--border); border-top: none; border-radius: 0 0 8px 8px; padding: 16px; }
+  .compare-body.open { display: block; }
+
+  .side-by-side { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .side-panel { border: 1px solid var(--border); border-radius: 6px; padding: 12px; }
+  .side-panel h4 { font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; }
+  .side-panel .label { font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 10px; display: inline-block; margin-bottom: 6px; }
+  .side-panel .label.A { background: #e8f0fe; color: var(--primary); }
+  .side-panel .label.B { background: #fce8e6; color: var(--danger); }
+
+  .chunk-item { padding: 8px; border-left: 3px solid var(--border); margin-bottom: 6px; background: #fafafa; border-radius: 0 4px 4px 0; font-size: 13px; }
+  .chunk-item.added { border-left-color: var(--success); background: var(--diff-added-bg); }
+  .chunk-item.removed { border-left-color: var(--danger); background: var(--diff-removed-bg); }
+  .chunk-score { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
+  .score-up { color: var(--success); }
+  .score-down { color: var(--danger); }
+
+  .answer-text { padding: 8px; background: #fafafa; border-radius: 4px; font-size: 13px; white-space: pre-wrap; }
+
+  .metrics-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 12px; }
+  .metric-card { text-align: center; padding: 12px; border: 1px solid var(--border); border-radius: 6px; }
+  .metric-card .metric-value { font-size: 22px; font-weight: 700; }
+  .metric-card .metric-value.up { color: var(--success); }
+  .metric-card .metric-value.down { color: var(--danger); }
+  .metric-card .metric-label { font-size: 12px; color: var(--text-secondary); margin-top: 4px; }
+
+  .summary-bar { display: flex; gap: 16px; margin-bottom: 20px; }
+  .summary-item { flex: 1; text-align: center; padding: 16px; border-radius: 8px; }
+
+  .empty-state { text-align: center; padding: 40px; color: var(--text-secondary); }
+  .empty-state p { margin-bottom: 8px; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 20px; color: var(--text-secondary); }
+  .spinner { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.6s linear infinite; margin-right: 8px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* 模态框 */
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); z-index: 100; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 12px; padding: 24px; width: 480px; max-width: 90vw; max-height: 80vh; overflow-y: auto; }
+  .modal h3 { margin-bottom: 16px; }
+  .modal .form-group { margin-bottom: 12px; }
+  .modal .form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+  .modal .form-group input, .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+
+  /* 响应式 */
+  @media (max-width: 768px) {
+    .side-by-side { grid-template-columns: 1fr; }
+    .summary-bar { flex-direction: column; }
+    .metrics-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🔍 回答对比调试工具</h1>
+  <p class="subtitle">维护测试问题 → 生成快照 A → 改动后生成快照 B → 并排对比差异</p>
+
+  <div id="msg" class="msg"></div>
+
+  <!-- 步骤 1：测试问题 -->
+  <div class="card" id="question-section">
+    <h2>📋 测试问题集</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">维护一组典型问题，用于对比改动前后的效果差异。</p>
+    <div class="form-row">
+      <input type="text" id="q-text" placeholder="问题文本" />
+      <select id="q-role">
+        <option value="cs">客服</option>
+        <option value="product">产品经理</option>
+        <option value="test">测试</option>
+        <option value="frontend">前端</option>
+      </select>
+      <select id="q-category">
+        <option value="客服">客服</option>
+        <option value="内部助手">内部助手</option>
+      </select>
+      <button class="btn btn-primary" onclick="addQuestion()">添加问题</button>
+    </div>
+    <div id="question-list">
+      <div class="empty-state"><p>暂无测试问题，请添加。</p></div>
+    </div>
+  </div>
+
+  <!-- 步骤 2：生成快照 -->
+  <div class="card" id="snapshot-section">
+    <h2>📸 快照管理</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">先跑一遍生成快照 A，改动后跑第二遍生成快照 B。</p>
+    <div class="snapshot-bar">
+      <button class="btn btn-primary" onclick="generateSnapshot('A')">⚡ 跑一遍 → 快照 A</button>
+      <button class="btn btn-success" onclick="generateSnapshot('B')">🔄 再跑一遍 → 快照 B</button>
+      <span id="snapshot-status" style="font-size:13px;color:var(--text-secondary);"></span>
+    </div>
+    <div id="snapshot-list" style="margin-top:12px;"></div>
+  </div>
+
+  <!-- 步骤 3：对比 -->
+  <div class="card" id="compare-section">
+    <h2>📊 快照对比</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">选择快照 A 和 B 进行并排对比，查看差异。</p>
+    <div class="form-row">
+      <select id="compare-labelA" style="min-width:150px;"><option value="">-- 选择快照 A --</option></select>
+      <select id="compare-labelB" style="min-width:150px;"><option value="">-- 选择快照 B --</option></select>
+      <button class="btn btn-primary" onclick="runCompare()">对比</button>
+    </div>
+    <div id="compare-results"></div>
+  </div>
+</div>
+
+<!-- 编辑问题模态框 -->
+<div class="modal-overlay" id="edit-modal">
+  <div class="modal">
+    <h3>编辑问题</h3>
+    <div class="form-group">
+      <label>问题文本</label>
+      <input type="text" id="edit-text" />
+    </div>
+    <div class="form-group">
+      <label>角色</label>
+      <select id="edit-role">
+        <option value="cs">客服</option>
+        <option value="product">产品经理</option>
+        <option value="test">测试</option>
+        <option value="frontend">前端</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>分类</label>
+      <select id="edit-category">
+        <option value="客服">客服</option>
+        <option value="内部助手">内部助手</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeEditModal()">取消</button>
+      <button class="btn btn-primary" onclick="saveEdit()">保存</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let currentEditId = null;
+
+// ============================================================
+// 消息
+// ============================================================
+function showMsg(text, type = 'info') {
+  const el = document.getElementById('msg');
+  el.textContent = text;
+  el.className = 'msg msg-' + type;
+  setTimeout(() => { el.style.display = 'none'; }, 5000);
+}
+
+// ============================================================
+// 问题管理
+// ============================================================
+async function loadQuestions() {
+  const res = await fetch('/api/compare/questions');
+  const data = await res.json();
+  if (!data.ok) { showMsg('加载问题失败', 'error'); return; }
+  renderQuestions(data.questions);
+}
+
+function renderQuestions(questions) {
+  const el = document.getElementById('question-list');
+  if (!questions || questions.length === 0) {
+    el.innerHTML = '<div class="empty-state"><p>暂无测试问题，请添加。</p></div>';
+    return;
+  }
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>#</th><th>问题文本</th><th>角色</th><th>分类</th><th>操作</th></tr></thead>
+      <tbody>${questions.map((q, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${escapeHtml(q.text)}</td>
+          <td>${escapeHtml(q.role)}</td>
+          <td>${escapeHtml(q.category)}</td>
+          <td class="actions">
+            <button class="btn btn-sm" onclick="openEditModal('${q.id}')">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteQuestion('${q.id}')">删除</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+}
+
+async function addQuestion() {
+  const text = document.getElementById('q-text').value.trim();
+  if (!text) { showMsg('请输入问题文本', 'error'); return; }
+  const role = document.getElementById('q-role').value;
+  const category = document.getElementById('q-category').value;
+  const res = await fetch('/api/compare/questions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, role, category }),
+  });
+  const data = await res.json();
+  if (!data.ok) { showMsg(data.error || '添加失败', 'error'); return; }
+  document.getElementById('q-text').value = '';
+  showMsg('问题已添加', 'success');
+  loadQuestions();
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('确定删除该问题？')) return;
+  const res = await fetch(`/api/compare/questions/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (!data.ok) { showMsg('删除失败', 'error'); return; }
+  showMsg('问题已删除', 'success');
+  loadQuestions();
+}
+
+function openEditModal(id) {
+  currentEditId = id;
+  // 从表格中找当前数据
+  document.getElementById('edit-modal').classList.add('open');
+  // 默认值
+  document.getElementById('edit-text').value = '';
+  document.getElementById('edit-role').value = 'cs';
+  document.getElementById('edit-category').value = '客服';
+}
+
+function closeEditModal() {
+  document.getElementById('edit-modal').classList.remove('open');
+  currentEditId = null;
+}
+
+async function saveEdit() {
+  const text = document.getElementById('edit-text').value.trim();
+  if (!text) { showMsg('请输入问题文本', 'error'); return; }
+  const role = document.getElementById('edit-role').value;
+  const category = document.getElementById('edit-category').value;
+  const res = await fetch(`/api/compare/questions/${currentEditId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, role, category }),
+  });
+  const data = await res.json();
+  if (!data.ok) { showMsg(data.error || '更新失败', 'error'); return; }
+  closeEditModal();
+  showMsg('问题已更新', 'success');
+  loadQuestions();
+}
+
+// ============================================================
+// 快照管理
+// ============================================================
+async function loadSnapshots() {
+  const res = await fetch('/api/compare/snapshots');
+  const data = await res.json();
+  if (!data.ok) return;
+  renderSnapshots(data.snapshots);
+  updateCompareSelectors(data.snapshots);
+}
+
+function renderSnapshots(snapshots) {
+  const el = document.getElementById('snapshot-list');
+  if (!snapshots || snapshots.length === 0) {
+    el.innerHTML = '<div class="empty-state" style="padding:16px"><p>暂无快照，点击上方按钮生成。</p></div>';
+    return;
+  }
+  el.innerHTML = `
+    <table>
+      <thead><tr><th>标签</th><th>时间</th><th>问题数</th><th>操作</th></tr></thead>
+      <tbody>${snapshots.map(s => `
+        <tr>
+          <td><span class="snapshot-tag ${s.label}">快照 ${s.label}</span></td>
+          <td>${new Date(s.timestamp).toLocaleString()}</td>
+          <td>${s.resultCount} 个问题</td>
+          <td class="actions">
+            <button class="btn btn-sm btn-danger" onclick="deleteSnapshot('${s.id}')">删除</button>
+          </td>
+        </tr>
+      `).join('')}</tbody>
+    </table>`;
+}
+
+function updateCompareSelectors(snapshots) {
+  const selA = document.getElementById('compare-labelA');
+  const selB = document.getElementById('compare-labelB');
+  const labels = [...new Set(snapshots.map(s => s.label))];
+  [selA, selB].forEach(sel => {
+    const current = sel.value;
+    sel.innerHTML = '<option value="">-- 选择快照 --</option>' +
+      labels.map(l => `<option value="${l}" ${l === current ? 'selected' : ''}>快照 ${l}${snapshots.find(s => s.label === l) ? ' (' + new Date(snapshots.find(s => s.label === l).timestamp).toLocaleString() + ')' : ''}</option>`).join('');
+  });
+}
+
+async function generateSnapshot(label) {
+  const btn = label === 'A'
+    ? document.querySelector('#snapshot-section .btn-primary')
+    : document.querySelector('#snapshot-section .btn-success');
+  btn.disabled = true;
+  btn.textContent = label === 'A' ? '⏳ 生成中...' : '⏳ 生成中...';
+
+  try {
+    const res = await fetch('/api/compare/snapshots', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ label, mode: 'rag' }),
+    });
+    const data = await res.json();
+    if (!data.ok) {
+      showMsg(data.error || '生成快照失败', 'error');
+    } else {
+      showMsg(`快照 ${label} 已生成 (${data.snapshot.results.length} 个问题)`, 'success');
+      loadSnapshots();
+    }
+  } catch (err) {
+    showMsg('生成快照失败: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = label === 'A' ? '⚡ 跑一遍 → 快照 A' : '🔄 再跑一遍 → 快照 B';
+  }
+}
+
+async function deleteSnapshot(id) {
+  if (!confirm('确定删除该快照？')) return;
+  const res = await fetch(`/api/compare/snapshots/${id}`, { method: 'DELETE' });
+  const data = await res.json();
+  if (!data.ok) { showMsg('删除失败', 'error'); return; }
+  showMsg('快照已删除', 'success');
+  loadSnapshots();
+}
+
+// ============================================================
+// 对比
+// ============================================================
+async function runCompare() {
+  const labelA = document.getElementById('compare-labelA').value;
+  const labelB = document.getElementById('compare-labelB').value;
+  if (!labelA || !labelB) { showMsg('请选择快照 A 和 B', 'error'); return; }
+
+  const btn = document.querySelector('#compare-section .btn-primary');
+  btn.disabled = true;
+  btn.textContent = '⏳ 对比中...';
+
+  try {
+    const res = await fetch('/api/compare/compare', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ labelA, labelB }),
+    });
+    const data = await res.json();
+    if (!data.ok) { showMsg(data.error || '对比失败', 'error'); return; }
+    renderCompareResult(data);
+  } catch (err) {
+    showMsg('对比失败: ' + err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '对比';
+  }
+}
+
+function renderCompareResult(data) {
+  const el = document.getElementById('compare-results');
+  const { diffs, summary, snapshotATimestamp, snapshotBTimestamp } = data;
+
+  el.innerHTML = `
+    <div class="summary-bar">
+      <div class="summary-item" style="background:var(--diff-added-bg);">
+        <div style="font-size:28px;font-weight:700;color:var(--diff-added-text);">${summary.improved}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">改善</div>
+      </div>
+      <div class="summary-item" style="background:var(--diff-removed-bg);">
+        <div style="font-size:28px;font-weight:700;color:var(--diff-removed-text);">${summary.worsened}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">变差</div>
+      </div>
+      <div class="summary-item" style="background:#f1f3f4;">
+        <div style="font-size:28px;font-weight:700;color:var(--text-secondary);">${summary.unchanged}</div>
+        <div style="font-size:13px;color:var(--text-secondary);">无变化</div>
+      </div>
+    </div>
+
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;">
+      快照 A: ${new Date(snapshotATimestamp).toLocaleString()} &nbsp;|&nbsp; 快照 B: ${new Date(snapshotBTimestamp).toLocaleString()}
+    </div>
+
+    ${diffs.map((d, i) => `
+      <div class="compare-section">
+        <div class="compare-header" onclick="toggleCompare(${i})">
+          <div>
+            <h3>#${d.questionIndex + 1}: ${escapeHtml(d.questionText)}</h3>
+          </div>
+          <div>
+            <span class="badge badge-${d.conclusion}">${d.conclusion === 'improved' ? '✅ 改善' : d.conclusion === 'worsened' ? '❌ 变差' : '➖ 无变化'}</span>
+          </div>
+        </div>
+        <div class="compare-body" id="compare-body-${i}">
+          ${renderRetrievalDiff(d)}
+          ${renderAnswerDiff(d)}
+          ${renderMetricsDiff(d)}
+        </div>
+      </div>
+    `).join('')}
+  `;
+}
+
+function renderRetrievalDiff(d) {
+  if (!d.retrievalChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">📄 召回无变化</p>';
+
+  const diff = d.retrievalDiff;
+  let html = '<div class="side-by-side">';
+  html += '<div class="side-panel"><h4>📄 召回片段</h4><span class="label A">快照 A</span></div>';
+  html += '<div class="side-panel"><h4>📄 召回片段</h4><span class="label B">快照 B</span></div>';
+  html += '</div>';
+
+  if (diff && diff.removed.length > 0) {
+    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-removed-text);">移除的片段</h4>';
+    diff.removed.forEach(c => {
+      html += `<div class="chunk-item removed"><strong>${escapeHtml(c.id)}</strong> (score: ${c.score.toFixed(3)})<br>${escapeHtml(c.content)}</div>`;
+    });
+    html += '</div>';
+  }
+
+  if (diff && diff.added.length > 0) {
+    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-added-text);">新增的片段</h4>';
+    diff.added.forEach(c => {
+      html += `<div class="chunk-item added"><strong>${escapeHtml(c.id)}</strong> (score: ${c.score.toFixed(3)})<br>${escapeHtml(c.content)}</div>`;
+    });
+    html += '</div>';
+  }
+
+  if (diff && diff.scoreChanges.length > 0) {
+    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-changed-text);">分数变化</h4>';
+    diff.scoreChanges.forEach(s => {
+      const cls = s.delta > 0 ? 'score-up' : 'score-down';
+      html += `<div class="chunk-item"><strong>${escapeHtml(s.id)}</strong> <span class="${cls}">${s.oldScore.toFixed(3)} → ${s.newScore.toFixed(3)} (${s.delta > 0 ? '+' : ''}${s.delta.toFixed(3)})</span></div>`;
+    });
+    html += '</div>';
+  }
+
+  return html;
+}
+
+function renderAnswerDiff(d) {
+  if (!d.answerChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">💬 回答无变化</p>';
+
+  const diff = d.answerDiff;
+  if (!diff) return '';
+
+  let html = '<div class="side-by-side">';
+  html += `<div class="side-panel"><span class="label A">快照 A</span><div class="answer-text">${escapeHtml(diff.oldAnswer || '(空)')}</div></div>`;
+  html += `<div class="side-panel"><span class="label B">快照 B</span><div class="answer-text">${escapeHtml(diff.newAnswer || '(空)')}</div></div>`;
+  html += '</div>';
+
+  return html;
+}
+
+function renderMetricsDiff(d) {
+  if (!d.metricsChanged) return '<p style="font-size:13px;color:var(--text-secondary);">📊 指标无变化</p>';
+
+  const diff = d.metricsDiff;
+  if (!diff) return '';
+
+  const hitDelta = diff.serviceHitRate.delta;
+  const transDelta = diff.transferRate.delta;
+
+  let html = '<div class="metrics-grid">';
+  html += `<div class="metric-card"><div class="metric-value ${hitDelta > 0 ? 'up' : hitDelta < 0 ? 'down' : ''}">${diff.serviceHitRate.old} → ${diff.serviceHitRate.new}</div><div class="metric-label">客服命中率 (${hitDelta > 0 ? '+' : ''}${hitDelta})</div></div>`;
+  html += `<div class="metric-card"><div class="metric-value ${transDelta < 0 ? 'up' : transDelta > 0 ? 'down' : ''}">${diff.transferRate.old} → ${diff.transferRate.new}</div><div class="metric-label">转人工率 (${transDelta > 0 ? '+' : ''}${transDelta})</div></div>`;
+  html += `</div>`;
+
+  return html;
+}
+
+function toggleCompare(index) {
+  const body = document.getElementById('compare-body-' + index);
+  body.classList.toggle('open');
+}
+
+function escapeHtml(text) {
+  if (!text) return '';
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+// ============================================================
+// 初始化
+// ============================================================
+loadQuestions();
+loadSnapshots();
+</script>
+</body>
+</html>

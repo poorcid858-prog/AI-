@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>客服管理后台</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+      background: #f5f5f5;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      flex-shrink: 0;
+    }
+
+    .header h1 { font-size: 24px; }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid #e0e0e0;
+      flex-shrink: 0;
+      background: white;
+    }
+
+    .tab-btn {
+      padding: 12px 20px;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: #999;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-btn:hover { color: #333; }
+
+    .content-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .section-title { font-size: 18px; font-weight: 600; color: #333; }
+
+    button {
+      padding: 10px 16px;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    button:hover { background: #5568d3; }
+
+    .table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e0e0e0;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .table th {
+      background: #f9f9f9;
+      padding: 12px;
+      text-align: left;
+      font-weight: 600;
+      color: #333;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table td {
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table tbody tr:hover { background: #f9f9f9; }
+
+    .action-btns {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-small {
+      padding: 6px 12px;
+      font-size: 12px;
+      background: #667eea;
+    }
+
+    .btn-danger {
+      background: #ef4444;
+    }
+
+    .btn-danger:hover { background: #dc2626; }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal.active { display: flex; }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .modal-header {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 14px;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.1);
+    }
+
+    .modal-footer {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 20px;
+    }
+
+    .btn-cancel {
+      background: #ddd;
+      color: #333;
+    }
+
+    .btn-cancel:hover { background: #ccc; }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .no-data { color: #999; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>⚙️ 客服管理后台</h1>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="phrases">话术库</button>
+      <button class="tab-btn" data-tab="synonyms">同义词表</button>
+      <button class="tab-btn" data-tab="unmatch">未命中池</button>
+    </div>
+
+    <div class="content-area">
+      <!-- 话术库 Tab -->
+      <div class="tab-content active" id="phrases-tab">
+        <div class="section-header">
+          <h2 class="section-title">话术库管理</h2>
+          <button id="addPhraseBtn">+ 新增话术</button>
+        </div>
+        <table class="table" id="phrasesTable">
+          <thead>
+            <tr>
+              <th>关键词</th>
+              <th>回复内容</th>
+              <th>优先级</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="phrasesList"></tbody>
+        </table>
+      </div>
+
+      <!-- 同义词表 Tab -->
+      <div class="tab-content" id="synonyms-tab">
+        <div class="section-header">
+          <h2 class="section-title">同义词管理</h2>
+          <button id="addSynonymBtn">+ 新增同义词</button>
+        </div>
+        <table class="table" id="synonymsTable">
+          <thead>
+            <tr>
+              <th>标准词</th>
+              <th>同义词</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="synonymsList"></tbody>
+        </table>
+      </div>
+
+      <!-- 未命中池 Tab -->
+      <div class="tab-content" id="unmatch-tab">
+        <div class="section-header">
+          <h2 class="section-title">未命中问题池</h2>
+        </div>
+        <div class="empty-state">
+          <p class="no-data">暂无数据</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新增/编辑话术模态框 -->
+  <div class="modal" id="phraseModal">
+    <div class="modal-content">
+      <div class="modal-header">新增话术</div>
+      <form id="phraseForm">
+        <div class="form-group">
+          <label>关键词</label>
+          <input type="text" id="phraseKeyword" placeholder="e.g. 退款" required>
+        </div>
+        <div class="form-group">
+          <label>回复内容</label>
+          <textarea id="phraseReply" placeholder="输入回复内容..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label>优先级 (1-10，越小越高)</label>
+          <input type="number" id="phrasePriority" min="1" max="10" value="1">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closePhraseModal()">取消</button>
+          <button type="submit">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 新增/编辑同义词模态框 -->
+  <div class="modal" id="synonymModal">
+    <div class="modal-content">
+      <div class="modal-header">新增同义词</div>
+      <form id="synonymForm">
+        <div class="form-group">
+          <label>标准词</label>
+          <input type="text" id="synonymKeyword" placeholder="e.g. 退货" required>
+        </div>
+        <div class="form-group">
+          <label>同义词（用逗号分隔）</label>
+          <textarea id="synonymVariants" placeholder="e.g. 不想要,能不能退,寄回去" required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-cancel" onclick="closeSynonymModal()">取消</button>
+          <button type="submit">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ============ 标签页切换 ============
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabName = btn.dataset.tab;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        loadData(tabName);
+      });
+    });
+
+    // ============ 加载数据 ============
+    async function loadData(tab) {
+      if (tab === 'phrases') {
+        await loadPhrases();
+      } else if (tab === 'synonyms') {
+        await loadSynonyms();
+      }
+    }
+
+    async function loadPhrases() {
+      try {
+        const response = await fetch('/api/service-admin/phrases');
+        const data = await response.json();
+        const phrasesList = document.getElementById('phrasesList');
+        phrasesList.innerHTML = '';
+
+        if (data.data && data.data.length > 0) {
+          for (const phrase of data.data) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${phrase.keyword}</td>
+              <td>${phrase.reply}</td>
+              <td>${phrase.priority}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-small" onclick="editPhrase('${phrase.id}')">编辑</button>
+                  <button class="btn-small btn-danger" onclick="deletePhrase('${phrase.id}')">删除</button>
+                </div>
+              </td>
+            `;
+            phrasesList.appendChild(row);
+          }
+        }
+      } catch (error) {
+        console.error('加载话术库失败:', error);
+      }
+    }
+
+    async function loadSynonyms() {
+      try {
+        const response = await fetch('/api/service-admin/synonyms');
+        const data = await response.json();
+        const synonymsList = document.getElementById('synonymsList');
+        synonymsList.innerHTML = '';
+
+        if (data.data && data.data.length > 0) {
+          for (const syn of data.data) {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${syn.keyword}</td>
+              <td>${syn.variants.join(', ')}</td>
+              <td>
+                <div class="action-btns">
+                  <button class="btn-small btn-danger" onclick="deleteSynonym('${syn.keyword}')">删除</button>
+                </div>
+              </td>
+            `;
+            synonymsList.appendChild(row);
+          }
+        }
+      } catch (error) {
+        console.error('加载同义词表失败:', error);
+      }
+    }
+
+    // ============ 模态框控制 ============
+    function openPhraseModal() {
+      document.getElementById('phraseModal').classList.add('active');
+    }
+
+    function closePhraseModal() {
+      document.getElementById('phraseModal').classList.remove('active');
+      document.getElementById('phraseForm').reset();
+    }
+
+    function openSynonymModal() {
+      document.getElementById('synonymModal').classList.add('active');
+    }
+
+    function closeSynonymModal() {
+      document.getElementById('synonymModal').classList.remove('active');
+      document.getElementById('synonymForm').reset();
+    }
+
+    // ============ 编辑/删除 ============
+    function editPhrase(id) {
+      // TODO: 实现编辑功能
+      alert('编辑功能待实现');
+    }
+
+    async function deletePhrase(id) {
+      if (!confirm('确认删除此话术？')) return;
+      try {
+        await fetch(`/api/service-admin/phrases/${id}`, { method: 'DELETE' });
+        await loadPhrases();
+      } catch (error) {
+        alert('删除失败: ' + error.message);
+      }
+    }
+
+    async function deleteSynonym(keyword) {
+      if (!confirm('确认删除此同义词？')) return;
+      try {
+        await fetch(`/api/service-admin/synonyms/${keyword}`, { method: 'DELETE' });
+        await loadSynonyms();
+      } catch (error) {
+        alert('删除失败: ' + error.message);
+      }
+    }
+
+    // ============ 表单提交 ============
+    document.getElementById('phraseForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const keyword = document.getElementById('phraseKeyword').value;
+      const reply = document.getElementById('phraseReply').value;
+      const priority = parseInt(document.getElementById('phrasePriority').value) || 1;
+
+      try {
+        const response = await fetch('/api/service-admin/phrases', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, reply, priority }),
+        });
+
+        if (response.ok) {
+          closePhraseModal();
+          await loadPhrases();
+          alert('新增成功！');
+        } else {
+          alert('新增失败');
+        }
+      } catch (error) {
+        alert('错误: ' + error.message);
+      }
+    });
+
+    document.getElementById('synonymForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const keyword = document.getElementById('synonymKeyword').value;
+      const variantsStr = document.getElementById('synonymVariants').value;
+      const variants = variantsStr.split(',').map(v => v.trim()).filter(v => v);
+
+      try {
+        const response = await fetch('/api/service-admin/synonyms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ keyword, variants }),
+        });
+
+        if (response.ok) {
+          closeSynonymModal();
+          await loadSynonyms();
+          alert('新增成功！');
+        } else {
+          alert('新增失败');
+        }
+      } catch (error) {
+        alert('错误: ' + error.message);
+      }
+    });
+
+    // ============ 按钮事件 ============
+    document.getElementById('addPhraseBtn').addEventListener('click', openPhraseModal);
+    document.getElementById('addSynonymBtn').addEventListener('click', openSynonymModal);
+
+    // 初始化
+    loadPhrases();
+  </script>
+</body>
+</html>

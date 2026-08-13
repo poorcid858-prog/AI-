@@ -29,6 +29,32 @@
       <li><span class="idx">6</span><div><b>双向反馈</b><br>优秀问答对沉淀实例库，优秀内容反哺知识库</div></li>
       <li><span class="idx">7</span><div><b>AI 客服分支</b><br>仅检索对外知识，含拒答规则与转人工兜底</div></li>
     </ul>
+
+    <!-- 三步体验引导 -->
+    <div class="guide-section">
+      <h2 class="guide-title"><span class="guide-flag">NEW</span>三步体验项目核心能力</h2>
+      <p class="guide-sub">新访客按这个顺序走，3 分钟看懂这个项目在解决什么问题</p>
+
+      <div class="guide-steps">
+        <div class="guide-step">
+          <div class="step-header"><span class="step-num">①</span><span class="step-label">用产品经理身份生成一份 PRD</span></div>
+          <p class="step-desc">输入一个需求，看 AI 先检索企业知识再生成，并展示它引用了哪些企业文档。</p>
+          <button class="btn-guide" onclick="quickStart('product', '我需要一个基于订单管理模块的退款需求的PRD')">以产品经理身份体验 →</button>
+        </div>
+
+        <div class="guide-step">
+          <div class="step-header"><span class="step-num">②</span><span class="step-label">切换成客服身份对比答案</span></div>
+          <p class="step-desc">同一个问题，客服只能看到对外公开知识——密级隔离就在这里生效。</p>
+          <button class="btn-guide" onclick="quickStart('cs', '退款的流程是什么？')">以客服身份体验 →</button>
+        </div>
+
+        <div class="guide-step">
+          <div class="step-header"><span class="step-num">③</span><span class="step-label">查看召回详情与反向修复</span></div>
+          <p class="step-desc">审计刚才那次回答召回了哪些知识片段，以及如何修正知识库。</p>
+          <button class="btn-guide" onclick="quickStart('admin', '')">查看 QA 审计页 →</button>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- 右侧：登录 -->
@@ -80,6 +106,7 @@ fetch('/api/auth/demo-accounts')
       el.type = 'button';
       el.className = 'acct';
       el.dataset.username = a.username;
+      el.dataset.role = a.role;
       el.innerHTML = `
         <div class="acct-top">
           <div class="avatar ${a.role}">${a.avatar || a.name[0]}</div>
@@ -104,6 +131,58 @@ fetch('/api/auth/demo-accounts')
     }
   })
   .catch((e) => { $('#accounts').innerHTML = `<div class="loading">账号列表加载失败：${e.message}</div>`; });
+
+// ---- 三步引导快捷入口 ----
+// 点击引导卡按钮：自动选中对应角色的演示账号 → 自动登录 → 跳转到对应功能页
+function quickStart(role, question) {
+  // 已登录用户直接跳转对应页
+  if (localStorage.getItem('token')) {
+    location.href = (role === 'admin' && !question)
+      ? '/admin-qa.html'
+      : '/workspace.html?q=' + encodeURIComponent(question || '');
+    return;
+  }
+  // 通过账号的 data-role 属性找到该角色的演示账号
+  const acct = document.querySelector(`.acct[data-role="${role}"]`);
+  if (acct) {
+    acct.click(); // 选中账号（自动填 username + password）
+    // 立即登录并跳转
+    doQuickLogin((role === 'admin' && !question) ? '/admin-qa.html'
+      : '/workspace.html?q=' + encodeURIComponent(question || ''));
+  } else {
+    // fallback：手动填（极少发生）
+    $('#username').value = role;
+    $('#password').value = '123456';
+    doQuickLogin((role === 'admin' && !question) ? '/admin-qa.html'
+      : '/workspace.html?q=' + encodeURIComponent(question || ''));
+  }
+}
+
+/** 用当前表单的用户名/密码发起登录，成功后跳转到 redirect */
+async function doQuickLogin(redirect) {
+  const btn = $('#submitBtn');
+  btn.disabled = true;
+  btn.textContent = '登录中…';
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: $('#username').value.trim(), password: $('#password').value }),
+    });
+    const d = await res.json();
+    if (!d.ok) throw new Error(d.error || '登录失败');
+    localStorage.setItem('token', d.token);
+    localStorage.setItem('user', JSON.stringify(d.user));
+    localStorage.setItem('permissions', JSON.stringify(d.permissions));
+    // 存角色到 sessionStorage，供工作台右栏岗位展示
+    sessionStorage.setItem('userRole', d.user.role);
+    location.href = redirect;
+  } catch (e) {
+    showErr(e.message);
+    btn.disabled = false;
+    btn.textContent = '登 录';
+  }
+}
 
 // ---- 提交登录 ----
 $('#loginForm').addEventListener('submit', async (ev) => {

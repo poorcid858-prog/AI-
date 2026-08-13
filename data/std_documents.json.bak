@@ -1,0 +1,2480 @@
+[
+  {
+    "id": "std_001",
+    "rawId": "raw_001",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_001",
+        "at": "2026-08-12T03:05:30.453Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:05:30.453Z",
+    "updatedAt": "2026-08-12T03:05:30.457Z"
+  },
+  {
+    "id": "std_002",
+    "rawId": "raw_002",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_002",
+        "at": "2026-08-12T03:05:38.524Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:05:38.525Z",
+    "updatedAt": "2026-08-12T03:05:38.532Z"
+  },
+  {
+    "id": "std_003",
+    "rawId": "raw_003",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_003",
+        "at": "2026-08-12T03:06:37.829Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:06:37.829Z",
+    "updatedAt": "2026-08-12T03:06:37.834Z"
+  },
+  {
+    "id": "std_004",
+    "rawId": "raw_004",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_004",
+        "at": "2026-08-12T03:06:50.978Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:06:50.979Z",
+    "updatedAt": "2026-08-12T03:06:50.984Z"
+  },
+  {
+    "id": "std_005",
+    "rawId": "raw_005",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_005",
+        "at": "2026-08-12T03:08:25.726Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:08:25.727Z",
+    "updatedAt": "2026-08-12T03:08:25.734Z"
+  },
+  {
+    "id": "std_006",
+    "rawId": "raw_006",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_006",
+        "at": "2026-08-12T03:09:18.722Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:09:18.723Z",
+    "updatedAt": "2026-08-12T03:09:18.728Z"
+  },
+  {
+    "id": "std_007",
+    "rawId": "raw_007",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_007",
+        "at": "2026-08-12T03:09:25.717Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:09:25.718Z",
+    "updatedAt": "2026-08-12T03:09:25.739Z"
+  },
+  {
+    "id": "std_008",
+    "rawId": "raw_008",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_008",
+        "at": "2026-08-12T03:11:13.230Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:11:13.231Z",
+    "updatedAt": "2026-08-12T03:11:13.235Z"
+  },
+  {
+    "id": "std_009",
+    "rawId": "raw_009",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_009",
+        "at": "2026-08-12T03:12:41.153Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:12:41.153Z",
+    "updatedAt": "2026-08-12T03:12:41.168Z"
+  },
+  {
+    "id": "std_010",
+    "rawId": "raw_010",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_010",
+        "at": "2026-08-12T03:15:43.487Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:15:43.488Z",
+    "updatedAt": "2026-08-12T03:15:43.492Z"
+  },
+  {
+    "id": "std_011",
+    "rawId": "raw_011",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_011",
+        "at": "2026-08-12T03:15:51.892Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:15:51.893Z",
+    "updatedAt": "2026-08-12T03:15:51.897Z"
+  },
+  {
+    "id": "std_012",
+    "rawId": "raw_012",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_012",
+        "at": "2026-08-12T03:16:00.188Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:16:00.189Z",
+    "updatedAt": "2026-08-12T03:16:00.194Z"
+  },
+  {
+    "id": "std_013",
+    "rawId": "raw_013",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_013",
+        "at": "2026-08-12T03:16:09.055Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:16:09.056Z",
+    "updatedAt": "2026-08-12T03:16:09.062Z"
+  },
+  {
+    "id": "std_014",
+    "rawId": "raw_014",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_014",
+        "at": "2026-08-12T03:16:30.511Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:16:30.512Z",
+    "updatedAt": "2026-08-12T03:16:30.521Z"
+  },
+  {
+    "id": "std_015",
+    "rawId": "raw_015",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_015",
+        "at": "2026-08-12T03:16:41.675Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:16:41.675Z",
+    "updatedAt": "2026-08-12T03:16:41.701Z"
+  },
+  {
+    "id": "std_016",
+    "rawId": "raw_016",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_016",
+        "at": "2026-08-12T03:18:58.802Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:18:58.803Z",
+    "updatedAt": "2026-08-12T03:18:58.809Z"
+  },
+  {
+    "id": "std_017",
+    "rawId": "raw_017",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_017",
+        "at": "2026-08-12T03:19:05.693Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:19:05.694Z",
+    "updatedAt": "2026-08-12T03:19:05.700Z"
+  },
+  {
+    "id": "std_018",
+    "rawId": "raw_018",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_018",
+        "at": "2026-08-12T03:22:04.683Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:22:04.683Z",
+    "updatedAt": "2026-08-12T03:22:04.689Z"
+  },
+  {
+    "id": "std_019",
+    "rawId": "raw_019",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_019",
+        "at": "2026-08-12T03:25:45.747Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:25:45.748Z",
+    "updatedAt": "2026-08-12T03:25:45.753Z"
+  },
+  {
+    "id": "std_020",
+    "rawId": "raw_020",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_020",
+        "at": "2026-08-12T03:26:39.458Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:26:39.459Z",
+    "updatedAt": "2026-08-12T03:26:39.465Z"
+  },
+  {
+    "id": "std_021",
+    "rawId": "raw_021",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_021",
+        "at": "2026-08-12T03:26:53.293Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:26:53.294Z",
+    "updatedAt": "2026-08-12T03:26:53.311Z"
+  },
+  {
+    "id": "std_022",
+    "rawId": "raw_022",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_022",
+        "at": "2026-08-12T03:27:37.218Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:27:37.219Z",
+    "updatedAt": "2026-08-12T03:27:37.224Z"
+  },
+  {
+    "id": "std_023",
+    "rawId": "raw_023",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_023",
+        "at": "2026-08-12T03:28:29.481Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:28:29.482Z",
+    "updatedAt": "2026-08-12T03:28:29.487Z"
+  },
+  {
+    "id": "std_024",
+    "rawId": "raw_024",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_024",
+        "at": "2026-08-12T03:30:51.969Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:30:51.970Z",
+    "updatedAt": "2026-08-12T03:30:51.976Z"
+  },
+  {
+    "id": "std_025",
+    "rawId": "raw_025",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_025",
+        "at": "2026-08-12T03:30:58.607Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:30:58.608Z",
+    "updatedAt": "2026-08-12T03:30:58.614Z"
+  },
+  {
+    "id": "std_026",
+    "rawId": "raw_026",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_026",
+        "at": "2026-08-12T03:32:47.843Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:32:47.844Z",
+    "updatedAt": "2026-08-12T03:32:47.860Z"
+  },
+  {
+    "id": "std_027",
+    "rawId": "raw_027",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_027",
+        "at": "2026-08-12T03:33:02.405Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:33:02.406Z",
+    "updatedAt": "2026-08-12T03:33:02.412Z"
+  },
+  {
+    "id": "std_028",
+    "rawId": "raw_028",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_028",
+        "at": "2026-08-12T03:34:28.772Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:34:28.773Z",
+    "updatedAt": "2026-08-12T03:34:28.780Z"
+  },
+  {
+    "id": "std_029",
+    "rawId": "raw_029",
+    "procVersion": 1,
+    "isCurrent": true,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_029",
+        "at": "2026-08-12T03:34:28.794Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": "reviewer",
+    "reviewedAt": "2026-08-12T03:34:28.813Z",
+    "reviewNote": "ok",
+    "publishedAt": "2026-08-12T03:34:28.821Z",
+    "bizLine": "trade",
+    "securityLevel": "confidential",
+    "status": "published",
+    "createdAt": "2026-08-12T03:34:28.794Z",
+    "updatedAt": "2026-08-12T03:34:28.821Z"
+  },
+  {
+    "id": "std_030",
+    "rawId": "raw_030",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_030",
+        "at": "2026-08-12T03:34:28.845Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": "reviewer",
+    "reviewedAt": "2026-08-12T03:34:28.857Z",
+    "reviewNote": "no",
+    "publishedAt": null,
+    "bizLine": "membership",
+    "securityLevel": "public",
+    "status": "rejected",
+    "createdAt": "2026-08-12T03:34:28.845Z",
+    "updatedAt": "2026-08-12T03:34:28.857Z"
+  },
+  {
+    "id": "std_031",
+    "rawId": "raw_031",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。这是一段足够长的内容用于验证 trade pending 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_031",
+        "at": "2026-08-12T03:35:00.477Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:35:00.478Z",
+    "updatedAt": "2026-08-12T03:35:00.486Z"
+  },
+  {
+    "id": "std_032",
+    "rawId": "raw_032",
+    "procVersion": 1,
+    "isCurrent": true,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。这是一段足够长的内容用于验证 trade published 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_032",
+        "at": "2026-08-12T03:35:00.503Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": "reviewer",
+    "reviewedAt": "2026-08-12T03:35:00.519Z",
+    "reviewNote": "ok",
+    "publishedAt": "2026-08-12T03:35:00.531Z",
+    "bizLine": "trade",
+    "securityLevel": "confidential",
+    "status": "published",
+    "createdAt": "2026-08-12T03:35:00.503Z",
+    "updatedAt": "2026-08-12T03:35:00.531Z"
+  },
+  {
+    "id": "std_033",
+    "rawId": "raw_033",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。这是一段足够长的内容用于验证 membership rejected 状态的统计聚合。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_033",
+        "at": "2026-08-12T03:35:00.551Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": "reviewer",
+    "reviewedAt": "2026-08-12T03:35:00.565Z",
+    "reviewNote": "no",
+    "publishedAt": null,
+    "bizLine": "membership",
+    "securityLevel": "public",
+    "status": "rejected",
+    "createdAt": "2026-08-12T03:35:00.551Z",
+    "updatedAt": "2026-08-12T03:35:00.565Z"
+  },
+  {
+    "id": "std_034",
+    "rawId": "raw_034",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_034",
+        "at": "2026-08-12T03:36:39.342Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:36:39.343Z",
+    "updatedAt": "2026-08-12T03:36:39.352Z"
+  },
+  {
+    "id": "std_035",
+    "rawId": "raw_035",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_035",
+        "at": "2026-08-12T03:36:57.061Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:36:57.062Z",
+    "updatedAt": "2026-08-12T03:36:57.072Z"
+  },
+  {
+    "id": "std_036",
+    "rawId": "raw_036",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_036",
+        "at": "2026-08-12T03:37:15.237Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:37:15.238Z",
+    "updatedAt": "2026-08-12T03:37:15.261Z"
+  },
+  {
+    "id": "std_037",
+    "rawId": "raw_037",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_037",
+        "at": "2026-08-12T03:37:42.393Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:37:42.394Z",
+    "updatedAt": "2026-08-12T03:37:42.400Z"
+  },
+  {
+    "id": "std_038",
+    "rawId": "raw_038",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_038",
+        "at": "2026-08-12T03:38:20.829Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:38:20.830Z",
+    "updatedAt": "2026-08-12T03:38:20.838Z"
+  },
+  {
+    "id": "std_039",
+    "rawId": "raw_039",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_039",
+        "at": "2026-08-12T03:38:33.527Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:38:33.528Z",
+    "updatedAt": "2026-08-12T03:38:33.549Z"
+  },
+  {
+    "id": "std_040",
+    "rawId": "raw_040",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_040",
+        "at": "2026-08-12T03:38:47.981Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:38:47.982Z",
+    "updatedAt": "2026-08-12T03:38:47.994Z"
+  },
+  {
+    "id": "std_041",
+    "rawId": "raw_041",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_041",
+        "at": "2026-08-12T03:39:47.104Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:39:47.105Z",
+    "updatedAt": "2026-08-12T03:39:47.113Z"
+  },
+  {
+    "id": "std_042",
+    "rawId": "raw_042",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_042",
+        "at": "2026-08-12T03:40:42.776Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:40:42.777Z",
+    "updatedAt": "2026-08-12T03:40:42.787Z"
+  },
+  {
+    "id": "std_043",
+    "rawId": "raw_043",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_043",
+        "at": "2026-08-12T03:41:47.979Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:41:47.987Z",
+    "updatedAt": "2026-08-12T03:41:47.995Z"
+  },
+  {
+    "id": "std_044",
+    "rawId": "raw_044",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_044",
+        "at": "2026-08-12T03:52:12.553Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:52:12.554Z",
+    "updatedAt": "2026-08-12T03:52:12.564Z"
+  },
+  {
+    "id": "std_045",
+    "rawId": "raw_045",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_045",
+        "at": "2026-08-12T03:55:16.583Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:55:16.584Z",
+    "updatedAt": "2026-08-12T03:55:16.598Z"
+  },
+  {
+    "id": "std_046",
+    "rawId": "raw_046",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_046",
+        "at": "2026-08-12T03:55:33.763Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:55:33.773Z",
+    "updatedAt": "2026-08-12T03:55:33.794Z"
+  },
+  {
+    "id": "std_047",
+    "rawId": "raw_047",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_047",
+        "at": "2026-08-12T03:55:50.307Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:55:50.309Z",
+    "updatedAt": "2026-08-12T03:55:50.318Z"
+  },
+  {
+    "id": "std_048",
+    "rawId": "raw_048",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_048",
+        "at": "2026-08-12T03:58:17.775Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:58:17.777Z",
+    "updatedAt": "2026-08-12T03:58:17.786Z"
+  },
+  {
+    "id": "std_049",
+    "rawId": "raw_049",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_049",
+        "at": "2026-08-12T03:59:26.361Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T03:59:26.362Z",
+    "updatedAt": "2026-08-12T03:59:26.386Z"
+  },
+  {
+    "id": "std_050",
+    "rawId": "raw_050",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_050",
+        "at": "2026-08-12T04:00:06.776Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T04:00:06.777Z",
+    "updatedAt": "2026-08-12T04:00:06.800Z"
+  },
+  {
+    "id": "std_051",
+    "rawId": "raw_051",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_051",
+        "at": "2026-08-12T08:03:50.904Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:03:50.969Z",
+    "updatedAt": "2026-08-12T08:03:51.042Z"
+  },
+  {
+    "id": "std_052",
+    "rawId": "raw_052",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_052",
+        "at": "2026-08-12T08:09:31.639Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:09:31.641Z",
+    "updatedAt": "2026-08-12T08:09:31.649Z"
+  },
+  {
+    "id": "std_053",
+    "rawId": "raw_053",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_053",
+        "at": "2026-08-12T08:09:46.018Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:09:46.019Z",
+    "updatedAt": "2026-08-12T08:09:46.028Z"
+  },
+  {
+    "id": "std_054",
+    "rawId": "raw_054",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_054",
+        "at": "2026-08-12T08:10:37.428Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:10:37.429Z",
+    "updatedAt": "2026-08-12T08:10:37.439Z"
+  },
+  {
+    "id": "std_055",
+    "rawId": "raw_055",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_055",
+        "at": "2026-08-12T08:14:10.441Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:14:10.443Z",
+    "updatedAt": "2026-08-12T08:14:10.452Z"
+  },
+  {
+    "id": "std_056",
+    "rawId": "raw_056",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_056",
+        "at": "2026-08-12T08:16:49.479Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:16:49.480Z",
+    "updatedAt": "2026-08-12T08:16:49.492Z"
+  },
+  {
+    "id": "std_057",
+    "rawId": "raw_057",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_057",
+        "at": "2026-08-12T08:18:51.522Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:18:51.524Z",
+    "updatedAt": "2026-08-12T08:18:51.532Z"
+  },
+  {
+    "id": "std_058",
+    "rawId": "raw_058",
+    "procVersion": 1,
+    "isCurrent": false,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。正文内容长度足够。",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "upload",
+        "action": "createStdVersion v1（content=原文，待后续重加工）",
+        "before": null,
+        "after": "raw_058",
+        "at": "2026-08-12T08:19:04.675Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": null,
+    "reviewedAt": null,
+    "reviewNote": null,
+    "publishedAt": null,
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "pending",
+    "createdAt": "2026-08-12T08:19:04.676Z",
+    "updatedAt": "2026-08-12T08:19:04.686Z"
+  },
+  {
+    "id": "std_059",
+    "rawId": "raw_059",
+    "procVersion": 1,
+    "isCurrent": true,
+    "params": {
+      "splitMode": "section",
+      "fixedSize": 400,
+      "overlap": 50,
+      "minChunkLength": 30,
+      "maxChunkLength": 600,
+      "keepTableStructure": true,
+      "prependHeading": true,
+      "cleanLevel": {
+        "stripHeaderFooter": true,
+        "stripRevision": true,
+        "mergeShortParagraphs": false
+      },
+      "dedupThreshold": 1
+    },
+    "content": "---\ndocId: TEST-001\ntitle: ????\nbizLine: trade\nsecurityLevel: internal\ntags: [??]\n---\n\n# ??????\n\n## ???\n\n????????????,??????????????????????????????\n\n## ???\n\n??????????????????,???????????????",
+    "sections": [],
+    "processLog": [
+      {
+        "step": "migrate",
+        "action": "从旧扁平表迁入，未重新加工",
+        "before": "doc_001",
+        "after": null,
+        "at": "2026-08-12T08:42:18.120Z"
+      }
+    ],
+    "qualityScore": null,
+    "reviewedBy": "reviewer",
+    "reviewedAt": "2026-08-11T10:02:47.015Z",
+    "reviewNote": "????",
+    "publishedAt": "2026-08-12T08:42:18.161Z",
+    "bizLine": "trade",
+    "securityLevel": "internal",
+    "status": "published",
+    "createdAt": "2026-08-12T08:42:18.127Z",
+    "updatedAt": "2026-08-12T08:42:18.161Z"
+  }
+]

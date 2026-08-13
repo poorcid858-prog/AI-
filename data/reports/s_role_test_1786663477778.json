@@ -1,0 +1,12 @@
+{
+  "sessionId": "s_role_test",
+  "role": "test",
+  "startTime": "2026-08-13T23:24:37.778Z",
+  "endTime": "2026-08-13T23:24:37.778Z",
+  "turnCount": 6,
+  "successCount": 1,
+  "failCount": 0,
+  "duration": 0,
+  "successRate": 17,
+  "generatedAt": "2026-08-13T23:24:37.778Z"
+}

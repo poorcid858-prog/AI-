@@ -1,0 +1,11 @@
+{
+  "date": "2026-08-13",
+  "sessionCount": 100,
+  "totalTurns": 207,
+  "totalSuccess": 207,
+  "overallSuccessRate": 100,
+  "roleBreakdown": {
+    "guest": 100
+  },
+  "generatedAt": "2026-08-13T15:00:34.997Z"
+}
