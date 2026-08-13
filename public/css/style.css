@@ -27,12 +27,16 @@ html { height: 100%; }
 
 body {
   height: 100%;
-  overflow: hidden;
   font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', sans-serif;
   background: var(--bg);
   color: var(--text);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+}
+
+/* 只在工作台 div 上应用 overflow hidden，不要全局应用 */
+#workspace {
+  overflow: hidden;
 }
 
 a { color: var(--accent); text-decoration: none; }
