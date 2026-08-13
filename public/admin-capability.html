@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><title>AI 能力编辑 - 管理后台</title>
+<link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="page" id="page" style="display:none">
+  <div class="page-head">
+    <h1>AI 能力编辑</h1>
+    <p><a href="/admin.html">&larr; 返回管理后台</a> &nbsp; 编辑 Skill / Prompt 的角色设定、输出格式、试跑验证</p>
+  </div>
+
+  <div id="notices"></div>
+
+  <div class="cap-layout">
+    <!-- 左栏：能力列表 -->
+    <div class="cap-sidebar">
+      <h3>能力列表</h3>
+      <div id="capList" class="muted">加载中…</div>
+    </div>
+
+    <!-- 右栏：编辑区 -->
+    <div class="cap-main">
+      <div id="noSelection" class="card muted" style="text-align:center;padding:60px 20px">请在左侧选择一个能力进行编辑</div>
+
+      <!-- 编辑器（选中后显示） -->
+      <div id="editorArea" style="display:none">
+        <!-- 标题 -->
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <h3 id="capTitle" style="margin-bottom:0"></h3>
+            <span id="capStatusBadge" class="tag"></span>
+            <span class="mono" style="color:var(--text-faint);font-size:12px" id="capIdLabel"></span>
+          </div>
+          <p id="capDesc" style="font-size:13px;color:var(--text-dim);margin-top:6px"></p>
+        </div>
+
+        <!-- 生效版（只读） -->
+        <div class="card" style="margin-bottom:14px">
+          <h3>生效版 <span class="mono" style="color:var(--text-faint);font-size:12px" id="publishedVersionLabel">v1</span></h3>
+          <pre id="publishedContent" class="cap-pre" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12.5px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)"></pre>
+        </div>
+
+        <!-- 草稿编辑区 -->
+        <div class="card" style="margin-bottom:14px">
+          <h3>草稿编辑 <span id="draftVersionLabel" class="mono" style="color:var(--text-faint);font-size:12px"></span></h3>
+          <p class="card-sub">修改角色的设定、输出格式等。保存草稿后可通过试跑对比效果。</p>
+          <div class="draft-fields" id="draftFields">
+            <div class="field">
+              <label>角色名称（title）</label>
+              <input id="draftTitle" placeholder="如：产品经理">
+            </div>
+            <div class="field">
+              <label>角色设定（description）</label>
+              <textarea id="draftDesc" rows="4" placeholder="描述该角色的职责、行为方式…"></textarea>
+            </div>
+            <div class="field">
+              <label>输出格式要求（outputFormat）</label>
+              <textarea id="draftFormat" rows="3" placeholder="如：使用 Markdown 格式输出，包含需求分析、详细方案、注意事项三部分"></textarea>
+            </div>
+            <div class="field">
+              <label>完整 JSON 编辑（覆盖以上字段）</label>
+              <textarea id="draftRaw" rows="6" placeholder='{"title":"...","description":"...","outputFormat":"..."}' style="font-family:var(--mono);font-size:12px"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <button class="btn btn-primary" id="saveDraftBtn" style="background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:9px 22px">保存草稿</button>
+            <button class="btn" id="publishBtn">发布</button>
+            <button class="btn" id="discardBtn">弃稿</button>
+          </div>
+        </div>
+
+        <!-- 试跑区 -->
+        <div class="card" style="margin-bottom:14px">
+          <h3>试跑对比</h3>
+          <p class="card-sub">输入测试问题，预览草稿版与生效版的输出效果差异</p>
+          <div class="trial-inputs" style="display:grid;gap:10px;grid-template-columns:1fr 160px 160px auto;align-items:end">
+            <div class="field" style="margin-bottom:0">
+              <label>测试问题</label>
+              <input id="trialQuestion" placeholder="如：帮我写一个退款流程的 PRD">
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>角色</label>
+              <select id="trialRole">
+                <option value="product">产品经理</option>
+                <option value="test">测试工程师</option>
+                <option value="frontend">前端工程师</option>
+                <option value="cs">客服代表</option>
+              </select>
+            </div>
+            <div class="field" style="margin-bottom:0">
+              <label>业务线</label>
+              <select id="trialBizLine">
+                <option value="trade">交易线</option>
+                <option value="membership">会员线</option>
+                <option value="all">全业务线</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" id="trialBtn" style="background:var(--accent);border-color:var(--accent);color:#fff;width:auto;padding:9px 22px;margin-top:0">试跑</button>
+          </div>
+          <div id="trialResult" style="display:none;margin-top:14px">
+            <div class="trial-compare">
+              <div class="trial-col">
+                <div class="trial-col-head">生效版输出</div>
+                <div class="trial-col-body" id="trialPublished">
+                  <div class="trial-prompt" id="trialPublishedPrompt"></div>
+                  <div class="trial-output" id="trialPublishedOutput"></div>
+                </div>
+              </div>
+              <div class="trial-col">
+                <div class="trial-col-head">草稿版输出</div>
+                <div class="trial-col-body" id="trialDraft">
+                  <div class="trial-prompt" id="trialDraftPrompt"></div>
+                  <div class="trial-output" id="trialDraftOutput"></div>
+                </div>
+              </div>
+            </div>
+            <div id="trialDiff" style="margin-top:12px">
+              <h4 style="font-size:13px;font-weight:500;margin-bottom:8px">输出差异</h4>
+              <div class="diff-boxes">
+                <div class="diff-box diff-removed">
+                  <div class="diff-label">移除了</div>
+                  <pre id="diffRemoved" class="diff-pre"></pre>
+                </div>
+                <div class="diff-box diff-added">
+                  <div class="diff-label">新增了</div>
+                  <pre id="diffAdded" class="diff-pre"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 版本历史 -->
+        <div class="card" style="margin-bottom:14px">
+          <h3>版本历史 <button class="btn btn-sm" id="refreshVersionsBtn" style="margin-left:8px">刷新</button></h3>
+          <div id="versionList" class="muted">加载中…</div>
+        </div>
+
+        <!-- 审计日志 -->
+        <div class="card">
+          <h3>审计日志 <button class="btn btn-sm" id="refreshAuditBtn" style="margin-left:8px">刷新</button></h3>
+          <div id="auditList" class="muted">加载中…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('admin');
+  document.getElementById('page').style.display = 'block';
+
+  if (App.user.readonly) {
+    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，写操作会被后端拦截。</div>';
+  }
+
+  // ============ 状态 ============
+  let currentCapId = null;
+  let currentCap = null;
+  let currentDraft = null;
+  let currentPublished = null;
+
+  // ============ 能力列表 ============
+  async function loadCapList() {
+    const d = await App.api('/api/capabilities');
+    const box = document.getElementById('capList');
+    if (d.capabilities.length === 0) {
+      box.innerHTML = '<div class="muted">暂无能力</div>';
+      return;
+    }
+    box.innerHTML = d.capabilities.map((c) => {
+      const statusClass = c.hasDraft ? 'status-draft' : 'status-published';
+      const statusText = c.hasDraft ? '草稿' : '已发布';
+      const activeClass = c.id === currentCapId ? 'cap-item-active' : '';
+      return `<div class="cap-item ${activeClass}" data-id="${App.esc(c.id)}">
+        <div class="cap-item-name">${App.esc(c.name)}</div>
+        <div class="cap-item-meta">
+          <span class="cap-status ${statusClass}">${statusText}</span>
+          <span class="mono" style="color:var(--text-faint);font-size:11px">v${c.publishedVersion}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    box.querySelectorAll('.cap-item').forEach((el) => {
+      el.onclick = () => selectCapability(el.dataset.id);
+    });
+  }
+
+  // ============ 选中能力 ============
+  async function selectCapability(id) {
+    currentCapId = id;
+    document.getElementById('noSelection').style.display = 'none';
+    document.getElementById('editorArea').style.display = 'block';
+
+    // 刷新列表高亮
+    document.querySelectorAll('.cap-item').forEach((el) => el.classList.remove('cap-item-active'));
+    const item = document.querySelector(`.cap-item[data-id="${id}"]`);
+    if (item) item.classList.add('cap-item-active');
+
+    // 加载详情
+    const d = await App.api(`/api/capabilities/${id}`);
+    currentCap = d.capability;
+    currentPublished = currentCap.published;
+    currentDraft = currentCap.draft;
+
+    renderCapability();
+    loadVersions();
+    loadAudit();
+  }
+
+  // ============ 渲染能力详情 ============
+  function renderCapability() {
+    document.getElementById('capTitle').textContent = currentCap.name;
+    document.getElementById('capIdLabel').textContent = currentCap.id;
+    document.getElementById('capDesc').textContent = currentCap.description;
+
+    // 状态
+    const badge = document.getElementById('capStatusBadge');
+    if (currentCap.draft) {
+      badge.textContent = '有草稿';
+      badge.style.borderColor = 'rgba(245,158,11,.4)';
+      badge.style.color = 'var(--warning)';
+    } else {
+      badge.textContent = '已发布';
+      badge.style.borderColor = 'rgba(16,185,129,.4)';
+      badge.style.color = 'var(--success)';
+    }
+
+    // 生效版
+    document.getElementById('publishedVersionLabel').textContent = 'v' + (currentPublished ? currentPublished.version : '-');
+    const pubContent = currentPublished ? currentPublished.content : null;
+    document.getElementById('publishedContent').textContent = pubContent ? JSON.stringify(pubContent, null, 2) : '(暂无)';
+
+    // 草稿
+    if (currentDraft) {
+      document.getElementById('draftVersionLabel').textContent = 'v' + currentDraft.version + '（未发布）';
+      const dc = currentDraft.content || {};
+      document.getElementById('draftTitle').value = dc.title || '';
+      document.getElementById('draftDesc').value = dc.description || '';
+      document.getElementById('draftFormat').value = dc.outputFormat || '';
+      document.getElementById('draftRaw').value = JSON.stringify(dc, null, 2);
+    } else {
+      document.getElementById('draftVersionLabel').textContent = '（无草稿，基于生效版新建）';
+      const pc = pubContent || {};
+      document.getElementById('draftTitle').value = pc.title || '';
+      document.getElementById('draftDesc').value = pc.description || '';
+      document.getElementById('draftFormat').value = pc.outputFormat || '';
+      document.getElementById('draftRaw').value = pc ? JSON.stringify(pc, null, 2) : '{}';
+    }
+
+    // 清空试跑结果
+    document.getElementById('trialResult').style.display = 'none';
+  }
+
+  // ============ 保存草稿 ============
+  document.getElementById('saveDraftBtn').onclick = async () => {
+    if (!currentCapId) return;
+    const raw = document.getElementById('draftRaw').value.trim();
+    let content;
+    if (raw) {
+      try {
+        content = JSON.parse(raw);
+      } catch (e) {
+        App.toast('JSON 格式错误：' + e.message, 'error');
+        return;
+      }
+    } else {
+      content = {
+        title: document.getElementById('draftTitle').value,
+        description: document.getElementById('draftDesc').value,
+        outputFormat: document.getElementById('draftFormat').value,
+      };
+    }
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/draft`, {
+        method: 'POST',
+        body: JSON.stringify({ content }),
+      });
+      currentCap = d.capability;
+      currentDraft = currentCap.draft;
+      currentPublished = currentCap.published;
+      App.toast('草稿已保存', 'success');
+      renderCapability();
+      loadCapList();
+      loadVersions();
+      loadAudit();
+    } catch (e) {
+      App.toast(e.message, 'error');
+    }
+  };
+
+  // ============ 发布 ============
+  document.getElementById('publishBtn').onclick = async () => {
+    if (!currentCapId) return;
+    if (!confirm('确认发布草稿？生效版将被替换为草稿内容，旧版进入历史。')) return;
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/publish`, { method: 'POST' });
+      currentCap = d.capability;
+      currentDraft = null;
+      currentPublished = currentCap.published;
+      App.toast('发布成功', 'success');
+      renderCapability();
+      loadCapList();
+      loadVersions();
+      loadAudit();
+    } catch (e) {
+      App.toast(e.message, 'error');
+    }
+  };
+
+  // ============ 弃稿 ============
+  document.getElementById('discardBtn').onclick = async () => {
+    if (!currentCapId) return;
+    if (!confirm('确认丢弃草稿？未保存的修改将丢失。')) return;
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/draft`, { method: 'DELETE' });
+      currentCap = d.capability;
+      currentDraft = null;
+      currentPublished = currentCap.published;
+      App.toast('已弃稿', 'success');
+      renderCapability();
+      loadCapList();
+      loadVersions();
+      loadAudit();
+    } catch (e) {
+      App.toast(e.message, 'error');
+    }
+  };
+
+  // ============ 试跑 ============
+  document.getElementById('trialBtn').onclick = async () => {
+    if (!currentCapId) return;
+    const question = document.getElementById('trialQuestion').value.trim();
+    if (!question) {
+      App.toast('请输入测试问题', 'error');
+      return;
+    }
+    const role = document.getElementById('trialRole').value;
+    const bizLine = document.getElementById('trialBizLine').value;
+    const btn = document.getElementById('trialBtn');
+    btn.disabled = true;
+    btn.textContent = '试跑中…';
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/trial`, {
+        method: 'POST',
+        body: JSON.stringify({ testQuestion: question, role, bizLine }),
+      });
+      showTrialResult(d, question);
+    } catch (e) {
+      App.toast(e.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '试跑';
+    }
+  };
+
+  function showTrialResult(data, question) {
+    document.getElementById('trialResult').style.display = 'block';
+
+    // 生效版
+    const pubEl = document.getElementById('trialPublished');
+    if (data.published) {
+      document.getElementById('trialPublishedPrompt').innerHTML = '<div class="trial-label">Prompt</div><pre class="trial-pre">' + App.esc(data.published.prompt) + '</pre>';
+      document.getElementById('trialPublishedOutput').innerHTML = '<div class="trial-label">输出</div><pre class="trial-pre">' + App.esc(data.published.result.content) + '</pre>';
+    } else {
+      pubEl.innerHTML = '<div class="muted" style="padding:20px;text-align:center">无生效版</div>';
+    }
+
+    // 草稿版
+    document.getElementById('trialDraftPrompt').innerHTML = '<div class="trial-label">Prompt</div><pre class="trial-pre">' + App.esc(data.draft.prompt) + '</pre>';
+    document.getElementById('trialDraftOutput').innerHTML = '<div class="trial-label">输出</div><pre class="trial-pre">' + App.esc(data.draft.result.content) + '</pre>';
+
+    // 差异对比
+    if (data.published) {
+      App.api('/api/capabilities/diff', {
+        method: 'POST',
+        body: JSON.stringify({ a: data.published.result.content, b: data.draft.result.content }),
+      }).then((diffData) => {
+        document.getElementById('diffRemoved').textContent = diffData.diff.removed || '(无)';
+        document.getElementById('diffAdded').textContent = diffData.diff.added || '(无)';
+        document.getElementById('trialDiff').style.display = 'block';
+      }).catch(() => {
+        document.getElementById('trialDiff').style.display = 'none';
+      });
+    } else {
+      document.getElementById('trialDiff').style.display = 'none';
+    }
+  }
+
+  // ============ 版本历史 ============
+  async function loadVersions() {
+    if (!currentCapId) return;
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/versions`);
+      const box = document.getElementById('versionList');
+      if (d.versions.length === 0) {
+        box.innerHTML = '<div class="muted">暂无版本历史</div>';
+        return;
+      }
+      const statusMap = { published: '已发布', draft: '草稿', history: '历史' };
+      const statusColor = { published: 'var(--success)', draft: 'var(--warning)', history: 'var(--text-faint)' };
+      box.innerHTML = '<table class="tbl"><tr><th>版本</th><th>状态</th><th>发布人</th><th>时间</th><th>操作</th></tr>' +
+        d.versions.map((v) => {
+          const isCurrent = v.status === 'published';
+          return `<tr>
+            <td class="mono">v${v.version}</td>
+            <td><span style="color:${statusColor[v.status] || 'var(--text-dim)'}">${statusMap[v.status] || v.status}</span></td>
+            <td class="mono">${App.esc(v.publishedBy || '-')}</td>
+            <td class="mono">${App.esc((v.publishedAt || v.updatedAt || '').slice(0, 16).replace('T', ' '))}</td>
+            <td>${!isCurrent ? `<button class="btn btn-sm rollback-btn" data-version="${v.version}">回滚到此版本</button>` : '-'}</td>
+          </tr>`;
+        }).join('') + '</table>';
+
+      box.querySelectorAll('.rollback-btn').forEach((btn) => {
+        btn.onclick = () => rollbackTo(Number(btn.dataset.version));
+      });
+    } catch (e) {
+      document.getElementById('versionList').innerHTML = '<div class="muted" style="color:var(--danger)">加载失败: ' + App.esc(e.message) + '</div>';
+    }
+  }
+
+  document.getElementById('refreshVersionsBtn').onclick = loadVersions;
+
+  async function rollbackTo(version) {
+    if (!currentCapId) return;
+    if (!confirm(`确认回滚到 v${version}？这将创建一个基于 v${version} 的新草稿，需手动发布。`)) return;
+    try {
+      const d = await App.api(`/api/capabilities/${currentCapId}/rollback`, {
+        method: 'POST',
+        body: JSON.stringify({ version }),
+      });
+      currentCap = d.capability;
+      currentDraft = currentCap.draft;
+      currentPublished = currentCap.published;
+      App.toast(`已回滚到 v${version}，新草稿 v${currentDraft.version} 已创建`, 'success');
+      renderCapability();
+      loadCapList();
+      loadVersions();
+      loadAudit();
+    } catch (e) {
+      App.toast(e.message, 'error');
+    }
+  }
+
+  // ============ 审计日志 ============
+  async function loadAudit() {
+    if (!currentCapId) return;
+    try {
+      const d = await App.api(`/api/capabilities/audit?capId=${currentCapId}&limit=30`);
+      const box = document.getElementById('auditList');
+      if (d.logs.length === 0) {
+        box.innerHTML = '<div class="muted">暂无审计日志</div>';
+        return;
+      }
+      const actionMap = {
+        edit_draft: '编辑草稿',
+        publish: '发布',
+        discard_draft: '弃稿',
+        rollback: '回滚',
+      };
+      box.innerHTML = '<table class="tbl"><tr><th>操作</th><th>操作人</th><th>版本</th><th>详情</th><th>时间</th></tr>' +
+        d.logs.map((l) => `<tr>
+          <td>${actionMap[l.action] || l.action}</td>
+          <td class="mono">${App.esc(l.editedBy || l.publishedBy || '-')}</td>
+          <td class="mono">${l.version ? 'v' + l.version : '-'}</td>
+          <td>${App.esc(l.detail || '')}</td>
+          <td class="mono">${App.esc((l.timestamp || '').slice(0, 16).replace('T', ' '))}</td>
+        </tr>`).join('') + '</table>';
+    } catch (e) {
+      document.getElementById('auditList').innerHTML = '<div class="muted" style="color:var(--danger)">加载失败: ' + App.esc(e.message) + '</div>';
+    }
+  }
+
+  document.getElementById('refreshAuditBtn').onclick = loadAudit;
+
+  // ============ 初始化 ============
+  loadCapList();
+}
+</script>
+<style>
+/* ===== 布局：左栏 + 右栏 ===== */
+.cap-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 18px;
+  min-height: 0;
+}
+
+@media (max-width: 960px) {
+  .cap-layout { grid-template-columns: 1fr; }
+}
+
+.cap-sidebar {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 0;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.cap-sidebar h3 {
+  font-size: 13px;
+  font-weight: 500;
+  padding: 0 16px 10px;
+  color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+  margin: 0 0 8px;
+}
+
+.cap-main {
+  min-width: 0;
+}
+
+/* ===== 能力列表项 ===== */
+.cap-item {
+  padding: 10px 16px;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all .12s;
+}
+
+.cap-item:hover { background: var(--bg-panel-2); }
+.cap-item-active { background: var(--accent-dim); border-left-color: var(--accent); }
+
+.cap-item-name { font-size: 13.5px; font-weight: 500; margin-bottom: 3px; }
+.cap-item-meta { display: flex; align-items: center; gap: 8px; }
+
+/* ===== 状态徽章 ===== */
+.cap-status {
+  display: inline-block;
+  font-size: 10.5px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--mono);
+}
+
+.status-published {
+  border: 1px solid rgba(16,185,129,.4);
+  color: var(--success);
+}
+
+.status-draft {
+  border: 1px solid rgba(245,158,11,.4);
+  color: var(--warning);
+}
+
+/* ===== 草稿编辑区 ===== */
+.draft-fields .field { margin-bottom: 12px; }
+
+.draft-fields label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 5px;
+}
+
+.draft-fields input,
+.draft-fields textarea,
+.draft-fields select {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.draft-fields textarea { resize: vertical; }
+
+/* ===== 试跑对比 ===== */
+.trial-compare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 800px) {
+  .trial-compare { grid-template-columns: 1fr; }
+}
+
+.trial-col {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.trial-col-head {
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: var(--bg-panel-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.trial-col-body { padding: 10px 12px; max-height: 500px; overflow-y: auto; }
+
+.trial-label {
+  font-size: 10.5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  margin-bottom: 4px;
+  margin-top: 8px;
+}
+
+.trial-label:first-child { margin-top: 0; }
+
+.trial-pre {
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-dim);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0 0 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  font-family: var(--mono);
+}
+
+/* ===== 差异区域 ===== */
+.diff-boxes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 800px) {
+  .diff-boxes { grid-template-columns: 1fr; }
+}
+
+.diff-box {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.diff-label {
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: var(--mono);
+}
+
+.diff-removed .diff-label { background: rgba(239,68,68,.1); color: #fca5a5; border-bottom: 1px solid rgba(239,68,68,.2); }
+.diff-added .diff-label { background: rgba(16,185,129,.1); color: #6ee7b7; border-bottom: 1px solid rgba(16,185,129,.2); }
+
+.diff-pre {
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: var(--mono);
+  margin: 0;
+  max-height: 200px;
+  overflow-y: auto;
+  color: var(--text-dim);
+}
+
+/* ===== 表格覆盖 ===== */
+.tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+.tbl th, .tbl td { padding: 9px 10px; text-align: left; border-bottom: 1px solid var(--border); }
+.tbl th { color: var(--text-dim); font-weight: 500; font-size: 12px; background: var(--bg-panel-2); }
+.tbl tr:hover td { background: var(--bg-panel-2); }
+
+/* ===== 内联覆盖 ===== */
+select, textarea, input[type=text] {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  font-family: inherit;
+}
+textarea { resize: vertical; }
+label { display: block; font-size: 12px; color: var(--text-dim); margin-bottom: 5px; }
+.btn-sm { font-size: 12px; padding: 4px 11px; }
+</style>
+</body>
+</html>
