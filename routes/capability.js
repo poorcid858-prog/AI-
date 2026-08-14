@@ -50,6 +50,23 @@ router.get('/', auth.requireAuth, (req, res) => {
 });
 
 // ============================================================
+// 创建新能力
+// ============================================================
+
+router.post('/', requireWrite, (req, res) => {
+  try {
+    const { type, name, description, content } = req.body || {};
+    if (!type) return res.status(400).json({ ok: false, error: '缺少 type 字段' });
+    if (!name) return res.status(400).json({ ok: false, error: '缺少 name 字段' });
+
+    const result = cap.createCapability(type, name, description, content, req.user.username);
+    res.status(201).json({ ok: true, capability: result });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
+// ============================================================
 // 审计日志（必须注册在 /:id 之前，否则 audit 会被当 :id 匹配）
 // ============================================================
 
@@ -58,6 +75,19 @@ router.get('/audit', auth.requireAuth, (req, res) => {
     const { capId, limit } = req.query;
     const logs = cap.getAuditLog({ capId, limit: limit ? Number(limit) : undefined });
     res.json({ ok: true, logs, total: logs.length });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
+// ============================================================
+// 删除能力（必须在 GET /:id 之前）
+// ============================================================
+
+router.delete('/:id', requireWrite, (req, res) => {
+  try {
+    cap.deleteCapability(req.params.id, req.user.username);
+    res.json({ ok: true });
   } catch (e) {
     sendError(res, e);
   }

@@ -755,6 +755,62 @@ test2('T33：guest 写操作 → 403', async () => {
 });
 
 // ============================================================
+// T36. POST /api/capabilities 创建新能力
+// ============================================================
+
+test2('T36：POST /api/capabilities → 201 + 新能力对象', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+    const r = await api('POST', '/api/capabilities', token, {
+      type: 'workflow',
+      name: 'API创建的工作流',
+      description: 'Via API',
+      content: { steps: ['s1', 's2'] },
+    });
+    assert.strictEqual(r.status, 201);
+    assert.ok(r.body.ok);
+    assert.ok(r.body.capability, '应返回新创建的能力');
+    assert.ok(r.body.capability.id.startsWith('cap_workflow_'));
+    assert.strictEqual(r.body.capability.type, 'workflow');
+    assert.strictEqual(r.body.capability.name, 'API创建的工作流');
+    assert.strictEqual(r.body.capability.published.version, 1);
+  });
+});
+
+// ============================================================
+// T37. DELETE /api/capabilities/:id 删除能力
+// ============================================================
+
+test2('T37：DELETE /api/capabilities/:id → 200 + 删除成功', async () => {
+  await withTempDataDirAsync(async () => {
+    const token = await login('admin');
+
+    // 先创建一个能力
+    const createRes = await api('POST', '/api/capabilities', token, {
+      type: 'reference',
+      name: '待删除的参考资料',
+      description: 'To be deleted',
+      content: {},
+    });
+    assert.strictEqual(createRes.status, 201);
+    const capId = createRes.body.capability.id;
+
+    // 验证能力存在
+    let getRes = await api('GET', `/api/capabilities/${capId}`, token);
+    assert.strictEqual(getRes.status, 200, '删除前能力应存在');
+
+    // 删除能力
+    const deleteRes = await api('DELETE', `/api/capabilities/${capId}`, token);
+    assert.strictEqual(deleteRes.status, 200);
+    assert.ok(deleteRes.body.ok);
+
+    // 验证能力已删除
+    getRes = await api('GET', `/api/capabilities/${capId}`, token);
+    assert.strictEqual(getRes.status, 404, '删除后能力应不存在');
+  });
+});
+
+// ============================================================
 // T34. createCapability 创建新能力
 // ============================================================
 
