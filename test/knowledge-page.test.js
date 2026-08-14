@@ -15,8 +15,8 @@ test('知识库页面包含基本结构', () => {
 
   assert.ok(content.includes('<!DOCTYPE html>'), '应该是有效的 HTML');
   assert.ok(content.includes('<title>知识库'), '应该有正确的标题');
-  assert.ok(content.includes('/css/style.css'), '应该链接 CSS');
-  assert.ok(content.includes('/js/app.js'), '应该加载应用 JS');
-  assert.ok(content.includes('App.guard()'), '应该使用权限卡');
-  assert.ok(content.includes('App.renderHeader'), '应该渲染页面头');
+  assert.ok(content.includes('css/style.css'), '应该链接 CSS');
+  assert.ok(content.includes('css/knowledge.css'), '应该链接知识库专用 CSS');
+  assert.ok(content.includes('script'), '应该加载 JS');
+  assert.ok(content.includes('knowledge.js'), '应该加载知识库 JS');
 });

@@ -110,6 +110,16 @@ router.post('/:id/review', auth.requireAuth, auth.requireReview, (req, res) => {
   }
 });
 
+// 发布 —— 审核通过后生成向量、正式进入 RAG 可检索状态
+router.post('/:id/publish', auth.requireAuth, auth.requireReview, (req, res) => {
+  try {
+    const doc = docs.publishDocument(req.user, req.params.id);
+    res.json({ ok: true, document: docs.publicView(doc, req.user) });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
 // 删除
 router.delete('/:id', auth.requireAuth, auth.requireWrite, (req, res) => {
   try {

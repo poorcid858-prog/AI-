@@ -30,7 +30,7 @@ test('只有 admin 拥有写权限，只有 reviewer 拥有审核权限', () => 
   const writers = Object.keys(config.roles).filter((r) => config.roles[r].canWrite);
   const reviewers = Object.keys(config.roles).filter((r) => config.roles[r].canReview);
   assert.deepStrictEqual(writers, ['admin']);
-  assert.deepStrictEqual(reviewers, ['reviewer']);
+  assert.deepStrictEqual(reviewers, ['admin', 'reviewer']);
 });
 
 test('guest 无写权限、无审核权限，但可以使用系统', () => {

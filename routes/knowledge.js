@@ -1,392 +1,378 @@
 /**
  * 知识库四层架构 API 路由
- * 包含 mock 数据，用于前端开发和测试
- * 实际的数据库实现在任务6完成后替换此模块
+ *
+ * 提供对四层知识模型的CRUD访问、追踪链路、完整数据查询。
+ * 数据来源：lib/knowledge-layers.js（四层模型）+ lib/traceability.js（追踪）
  */
 
 const express = require('express');
+const auth = require('../lib/auth');
+const kl = require('../lib/knowledge-layers');
+const tb = require('../lib/traceability');
+const docs = require('../lib/documents');
+
 const router = express.Router();
 
-// Mock API 无需认证（开发和测试用）
-// 生产环境应添加认证和权限检查
+// 用 lib/auth 的 requireAuth：它会从 x-token / Bearer 解析出 req.user
+router.use(auth.requireAuth);
 
-// ============ Mock 数据 ============
+// ============================================================
+// 辅助函数：字段映射（四层内部模型 → 前端响应模型）
+// ============================================================
 
-const mockDocuments = [
-  {
-    id: 'doc_001',
-    filename: '售后政策指南.pdf',
-    name: '售后政策指南',
-    file_type: 'pdf',
-    file_size: 1024 * 250,
-    uploader: '张三',
-    upload_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    review_status: 'approved',
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { pages: 12, keywords: ['售后', '退货', '换货'] },
-  },
-  {
-    id: 'doc_002',
-    filename: '会员积分规则.docx',
-    name: '会员积分规则',
-    file_type: 'docx',
-    file_size: 1024 * 180,
-    uploader: '李四',
-    upload_time: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    review_status: 'approved',
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { pages: 8, keywords: ['积分', '会员', '兑换'] },
-  },
-  {
-    id: 'doc_003',
-    filename: '订单流程说明.md',
-    name: '订单流程说明',
-    file_type: 'md',
-    file_size: 1024 * 95,
-    uploader: '王五',
-    upload_time: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    review_status: 'pending',
-    created_at: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { pages: 5, keywords: ['订单', '流程', '状态'] },
-  },
-  {
-    id: 'doc_004',
-    filename: '支付方式指南.txt',
-    name: '支付方式指南',
-    file_type: 'txt',
-    file_size: 1024 * 65,
-    uploader: '赵六',
-    upload_time: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    review_status: 'approved',
-    created_at: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    metadata: { pages: 3, keywords: ['支付', '银行卡', '支付宝', '微信'] },
-  },
-];
+/**
+ * 映射原始文档为前端格式
+ * 兼容旧 snake_case 字段名，取自 docs.getDocumentView() 或直接从 raw/std 合成
+ */
+function mapDocument(view) {
+  // view 来自 docs.getDocumentView()，已经有 id/title/fileName/...
+  return {
+    id: view.id,
+    filename: view.fileName || view.title || '未命名',
+    name: view.title || view.fileName || '未命名',
+    file_type: view.fileName ? (/\.(pdf|docx|pptx|txt|md)$/.exec(view.fileName) || [, 'md'])[1] : 'md',
+    file_size: 0, // 原始数据不带文件大小，前端不依赖此字段
+    uploader: view.uploadedBy || '-',
+    upload_time: view.createdAt,
+    review_status: view.status,  // view.status 已经是旧三值 pending/approved/rejected
+    created_at: view.createdAt,
+    metadata: {
+      keywords: view.tags || [],
+      knowledge_type: view.knowledgeType || 'other',
+    },
+  };
+}
 
-const mockStandardizedDocs = [
-  {
-    id: 'std_001',
-    doc_id: 'doc_001',
-    processed_content: '售后政策主要包括：1. 退货条件 2. 换货流程 3. 维修服务 4. 发票处理',
-    tags: ['退货', '换货', '维修'],
-    keywords: ['售后', '服务', '保障'],
-    category: '售后服务',
-    processing_status: 'completed',
-    processed_time: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'std_002',
-    doc_id: 'doc_001',
-    processed_content: '详细的售后流程：1. 申请 2. 审核 3. 寄回 4. 检测 5. 处理 6. 回寄',
-    tags: ['流程', '步骤', '时间'],
-    keywords: ['流程', '时间线'],
-    category: '售后流程',
-    processing_status: 'completed',
-    processed_time: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    created_at: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'std_003',
-    doc_id: 'doc_002',
-    processed_content: '会员积分规则：购物每 1 元积 1 分，签到每日 5 分，分享 10 分',
-    tags: ['积分', '获取', '规则'],
-    keywords: ['积分', '获取', '兑换'],
-    category: '会员系统',
-    processing_status: 'completed',
-    processed_time: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+/**
+ * 映射标准化文档为前端格式
+ */
+function mapStdDocument(std, raw) {
+  const statusMap = {
+    'qc_failed': 'failed',
+    'published': 'completed',
+    'need_review': 'completed',
+    'pending': 'processing',
+    'draft': 'processing',
+    'approved': 'processing',
+    'rejected': 'failed',
+    'archived': 'failed',
+  };
+  return {
+    id: std.id,
+    doc_id: std.rawId,
+    processed_content: std.content.substring(0, 200),
+    category: raw && raw.knowledgeType ? raw.knowledgeType : 'other',
+    tags: raw && raw.tags ? raw.tags : [],
+    processing_status: statusMap[std.status] || 'processing',
+    created_at: std.createdAt,
+  };
+}
 
-const mockChunks = [
-  {
-    id: 'chunk_001',
-    standardized_doc_id: 'std_001',
-    doc_id: 'doc_001',
-    chunk_content: '退货条件：1. 商品未使用 2. 包装完整 3. 在有效期内（通常 7-30 天）4. 提供购买凭证',
-    chunk_order: 1,
-    position: 'section_1',
-    split_strategy: 'paragraph',
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'chunk_002',
-    standardized_doc_id: 'std_001',
-    doc_id: 'doc_001',
-    chunk_content: '换货流程：1. 在线申请 2. 上传凭证照片 3. 等待审核（1-2 个工作日）4. 快递寄回',
-    chunk_order: 2,
-    position: 'section_2',
-    split_strategy: 'paragraph',
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'chunk_003',
-    standardized_doc_id: 'std_002',
-    doc_id: 'doc_001',
-    chunk_content: '售后申请步骤详解：进入"我的订单"→ 选择需要退货的商品 → 点击"退货"→ 填写退货原因',
-    chunk_order: 1,
-    position: 'subsection_2.1',
-    split_strategy: 'sentence',
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'chunk_004',
-    standardized_doc_id: 'std_003',
-    doc_id: 'doc_002',
-    chunk_content: '积分获取：购物每消费 1 元获得 1 分积分。VIP 用户双倍积分。积分可用于兑换商品或折扣',
-    chunk_order: 1,
-    position: 'section_1',
-    split_strategy: 'paragraph',
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+/**
+ * 映射 Chunk 为前端格式
+ */
+function mapChunk(chunk, std) {
+  const position = chunk.sectionPath && Array.isArray(chunk.sectionPath)
+    ? chunk.sectionPath.join(' > ')
+    : chunk.heading || '';
+  return {
+    id: chunk.id,
+    standardized_doc_id: chunk.stdId,
+    doc_id: chunk.rawId,
+    chunk_content: chunk.content,
+    chunk_order: chunk.seq || 1,
+    position,
+    split_strategy: std && std.params && std.params.splitMode ? std.params.splitMode : 'paragraph',
+    created_at: chunk.createdAt,
+  };
+}
 
-const mockEmbeddings = [
-  {
-    id: 'emb_001',
-    chunk_id: 'chunk_001',
-    model: 'text-embedding-3-large',
-    dimensions: 1536,
-    index_name: 'knowledge_index_v1',
-    is_current: true,
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'emb_002',
-    chunk_id: 'chunk_002',
-    model: 'text-embedding-3-large',
-    dimensions: 1536,
-    index_name: 'knowledge_index_v1',
-    is_current: true,
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'emb_003',
-    chunk_id: 'chunk_003',
-    model: 'text-embedding-3-large',
-    dimensions: 1536,
-    index_name: 'knowledge_index_v1',
-    is_current: true,
-    created_at: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'emb_004',
-    chunk_id: 'chunk_004',
-    model: 'text-embedding-3-large',
-    dimensions: 1536,
-    index_name: 'knowledge_index_v1',
-    is_current: true,
-    created_at: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+/**
+ * 映射 Vector 为前端格式
+ */
+function mapVector(vec) {
+  return {
+    id: vec.id,
+    chunk_id: vec.chunkId,
+    model: vec.model,
+    dimensions: vec.dim,
+    index_name: vec.indexName || 'default',
+    is_current: vec.isCurrent,
+    created_at: vec.createdAt,
+  };
+}
 
-// ============ 路由处理 ============
+// ============================================================
+// 路由：获取四层数据列表
+// ============================================================
 
-// 获取四层数据列表（支持搜索）
+/**
+ * GET /:layer?q=...
+ * 获取某一层的数据列表，支持关键词搜索
+ *
+ * layer: documents / standardized / chunks / embeddings
+ */
 router.get('/:layer', (req, res) => {
-  const layer = req.params.layer;
-  const keyword = req.query.q || '';
-
-  let data = [];
-
-  switch (layer) {
-    case 'documents':
-      data = mockDocuments;
-      break;
-    case 'standardized':
-      data = mockStandardizedDocs;
-      break;
-    case 'chunks':
-      data = mockChunks;
-      break;
-    case 'embeddings':
-      data = mockEmbeddings;
-      break;
-    default:
-      return res.status(400).json({ ok: false, error: '无效的层级' });
-  }
-
-  // 搜索过滤
-  if (keyword) {
-    data = data.filter((item) => {
-      const text = JSON.stringify(item).toLowerCase();
-      return text.includes(keyword.toLowerCase());
-    });
-  }
-
-  res.json({
-    ok: true,
-    items: data,
-    total: data.length,
-  });
-});
-
-// 获取单条数据详情
-router.get('/:layer/:id', (req, res) => {
-  const layer = req.params.layer;
-  const id = req.params.id;
-
-  let data = [];
-
-  switch (layer) {
-    case 'documents':
-      data = mockDocuments;
-      break;
-    case 'standardized':
-      data = mockStandardizedDocs;
-      break;
-    case 'chunks':
-      data = mockChunks;
-      break;
-    case 'embeddings':
-      data = mockEmbeddings;
-      break;
-    default:
-      return res.status(400).json({ ok: false, error: '无效的层级' });
-  }
-
-  const item = data.find((i) => i.id === id);
-  if (!item) {
-    return res.status(404).json({ ok: false, error: '未找到数据' });
-  }
-
-  res.json({
-    ok: true,
-    data: item,
-  });
-});
-
-// 追踪链路（从某一层追溯回原始文档）
-router.get('/trace/:layer/:id', (req, res) => {
-  const layer = req.params.layer;
-  const id = req.params.id;
-
-  let tracePath = [];
-
   try {
-    if (layer === 'chunks') {
-      const chunk = mockChunks.find((c) => c.id === id);
-      if (!chunk) {
-        return res.status(404).json({ ok: false, error: '未找到数据' });
+    const layer = req.params.layer;
+    const keyword = (req.query.q || '').toLowerCase();
+
+    let items = [];
+
+    switch (layer) {
+      case 'documents': {
+        // documents 层：任何人都能看（受权限约束的列表）
+        const views = docs.listForUser(req.user).map(v => docs.publicView(v, req.user));
+        items = views.map(v => mapDocument(v));
+        break;
       }
 
-      const std = mockStandardizedDocs.find((s) => s.id === chunk.standardized_doc_id);
-      const doc = mockDocuments.find((d) => d.id === chunk.doc_id);
-
-      tracePath = [
-        {
-          layer: 'documents',
-          id: doc?.id || 'unknown',
-          name: doc?.filename || 'Unknown',
-          title: doc?.filename,
-          content: doc?.metadata?.keywords?.join(', '),
-        },
-        {
-          layer: 'standardized',
-          id: std?.id || 'unknown',
-          name: `标准化文档 ${std?.id}`,
-          content: std?.processed_content?.substring(0, 100),
-        },
-        {
-          layer: 'chunks',
-          id: chunk.id,
-          name: `Chunk ${chunk.id}`,
-          content: chunk.chunk_content.substring(0, 100),
-        },
-      ];
-    } else if (layer === 'embeddings') {
-      const emb = mockEmbeddings.find((e) => e.id === id);
-      if (!emb) {
-        return res.status(404).json({ ok: false, error: '未找到数据' });
+      case 'standardized': {
+        // standardized 层：仅 admin/reviewer 可见（暴露原文内容）
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const stds = kl.listStds();
+        const rawMap = new Map(kl.listRaws().map(r => [r.id, r]));
+        items = stds.map(s => mapStdDocument(s, rawMap.get(s.rawId)));
+        break;
       }
 
-      const chunk = mockChunks.find((c) => c.id === emb.chunk_id);
-      const std = chunk ? mockStandardizedDocs.find((s) => s.id === chunk.standardized_doc_id) : null;
-      const doc = chunk ? mockDocuments.find((d) => d.id === chunk.doc_id) : null;
-
-      tracePath = [
-        {
-          layer: 'documents',
-          id: doc?.id || 'unknown',
-          name: doc?.filename || 'Unknown',
-          content: doc?.metadata?.keywords?.join(', '),
-        },
-        {
-          layer: 'standardized',
-          id: std?.id || 'unknown',
-          name: `标准化文档 ${std?.id}`,
-          content: std?.processed_content?.substring(0, 100),
-        },
-        {
-          layer: 'chunks',
-          id: chunk?.id || 'unknown',
-          name: `Chunk ${chunk?.id}`,
-          content: chunk?.chunk_content?.substring(0, 100),
-        },
-        {
-          layer: 'embeddings',
-          id: emb.id,
-          name: `向量 ${emb.id}`,
-          content: `模型: ${emb.model}, 维度: ${emb.dimensions}`,
-        },
-      ];
-    } else if (layer === 'standardized') {
-      const std = mockStandardizedDocs.find((s) => s.id === id);
-      if (!std) {
-        return res.status(404).json({ ok: false, error: '未找到数据' });
+      case 'chunks': {
+        // chunks 层：仅 admin/reviewer 可见
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const chunks = kl.listChunks();
+        const stdMap = new Map(kl.listStds().map(s => [s.id, s]));
+        items = chunks.map(c => mapChunk(c, stdMap.get(c.stdId)));
+        break;
       }
 
-      const doc = mockDocuments.find((d) => d.id === std.doc_id);
+      case 'embeddings': {
+        // embeddings 层：仅 admin/reviewer 可见
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const vecs = kl.listVectors();
+        items = vecs.map(v => mapVector(v));
+        break;
+      }
 
-      tracePath = [
-        {
-          layer: 'documents',
-          id: doc?.id || 'unknown',
-          name: doc?.filename || 'Unknown',
-          content: doc?.metadata?.keywords?.join(', '),
-        },
-        {
-          layer: 'standardized',
-          id: std.id,
-          name: `标准化文档 ${std.id}`,
-          content: std.processed_content.substring(0, 100),
-        },
-      ];
+      default:
+        return res.status(400).json({ ok: false, error: '无效的层级' });
     }
 
-    res.json({
-      ok: true,
-      path: tracePath,
-    });
+    // 关键词过滤
+    if (keyword) {
+      items = items.filter(item => {
+        const text = JSON.stringify(item).toLowerCase();
+        return text.includes(keyword);
+      });
+    }
+
+    res.json({ ok: true, items, total: items.length });
   } catch (err) {
-    res.status(500).json({ ok: false, error: '追踪失败: ' + err.message });
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
   }
 });
 
-// 获取某个原始文档的所有四层数据
+// ============================================================
+// 路由：获取单条数据详情
+// ============================================================
+
+router.get('/:layer/:id', (req, res) => {
+  try {
+    const { layer, id } = req.params;
+
+    let data = null;
+
+    switch (layer) {
+      case 'documents': {
+        const view = docs.getDocumentView(id);
+        if (!view) return res.status(404).json({ ok: false, error: '未找到数据' });
+        data = mapDocument(view);
+        break;
+      }
+
+      case 'standardized': {
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const std = kl.getStd(id);
+        if (!std) return res.status(404).json({ ok: false, error: '未找到数据' });
+        const raw = kl.getRaw(std.rawId);
+        data = mapStdDocument(std, raw);
+        break;
+      }
+
+      case 'chunks': {
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const chunk = kl.getChunk(id);
+        if (!chunk) return res.status(404).json({ ok: false, error: '未找到数据' });
+        const std = kl.getStd(chunk.stdId);
+        data = mapChunk(chunk, std);
+        break;
+      }
+
+      case 'embeddings': {
+        if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+          return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+        }
+        const vec = kl.listVectors().find(v => v.id === id);
+        if (!vec) return res.status(404).json({ ok: false, error: '未找到数据' });
+        data = mapVector(vec);
+        break;
+      }
+
+      default:
+        return res.status(400).json({ ok: false, error: '无效的层级' });
+    }
+
+    res.json({ ok: true, data });
+  } catch (err) {
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
+  }
+});
+
+// ============================================================
+// 路由：追踪链路
+// ============================================================
+
+/**
+ * GET /trace/:layer/:id
+ * 从某一层追溯到原始文档（或完整链路）
+ *
+ * layer: documents(raw) / standardized(std) / chunks(chunk) / embeddings(vector)
+ */
+router.get('/trace/:layer/:id', (req, res) => {
+  try {
+    const { layer, id } = req.params;
+
+    // 前端层名 → kl 层名 映射
+    const layerMap = {
+      'documents': kl.LAYERS.RAW,
+      'standardized': kl.LAYERS.STD,
+      'chunks': kl.LAYERS.CHUNK,
+      'embeddings': kl.LAYERS.VECTOR,
+    };
+
+    const klLayer = layerMap[layer];
+    if (!klLayer) {
+      return res.status(400).json({ ok: false, error: '无效的层级' });
+    }
+
+    // 调用 traceability.breadcrumb 拿完整面包屑
+    const crumbs = tb.breadcrumb(klLayer, id);
+    if (crumbs.length === 0) {
+      return res.status(404).json({ ok: false, error: '记录不存在或追踪链路断裂' });
+    }
+
+    // 转换为前端格式
+    const path = crumbs.map(crumb => {
+      const record = kl.listAll(crumb.layer).find(r => r.id === crumb.id);
+      let content = null;
+
+      if (!record) return { layer: crumb.layer, id: crumb.id, name: crumb.label };
+
+      if (crumb.layer === kl.LAYERS.RAW) {
+        return {
+          layer: 'documents',
+          id: record.id,
+          name: record.title || record.fileName || '未命名',
+          title: record.title,
+          filename: record.fileName,
+          content: record.tags ? record.tags.join(', ') : '',
+        };
+      } else if (crumb.layer === kl.LAYERS.STD) {
+        return {
+          layer: 'standardized',
+          id: record.id,
+          name: crumb.label,
+          content: record.content ? record.content.substring(0, 100) : '',
+        };
+      } else if (crumb.layer === kl.LAYERS.CHUNK) {
+        return {
+          layer: 'chunks',
+          id: record.id,
+          name: crumb.label,
+          content: record.content ? record.content.substring(0, 100) : '',
+        };
+      } else if (crumb.layer === kl.LAYERS.VECTOR) {
+        return {
+          layer: 'embeddings',
+          id: record.id,
+          name: crumb.label,
+          content: `模型: ${record.model}, 维度: ${record.dim}`,
+        };
+      }
+
+      return { layer: crumb.layer, id: crumb.id, name: crumb.label };
+    });
+
+    res.json({ ok: true, path });
+  } catch (err) {
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
+  }
+});
+
+// ============================================================
+// 路由：获取原始文档的全部四层数据
+// ============================================================
+
+/**
+ * GET /raw/:docId/layers
+ * 获取某个原始文档对应的全部四层数据（及其所有版本和片段）
+ */
 router.get('/raw/:docId/layers', (req, res) => {
-  const docId = req.params.docId;
+  try {
+    const { docId } = req.params;
+    const raw = kl.getRaw(docId);
 
-  const doc = mockDocuments.find((d) => d.id === docId);
-  if (!doc) {
-    return res.status(404).json({ ok: false, error: '未找到文档' });
+    if (!raw) {
+      return res.status(404).json({ ok: false, error: '文档不存在' });
+    }
+
+    // 权限检查：详情页允许，其他层仅 admin/reviewer
+    const isAllowed = req.user.role === 'admin' || req.user.role === 'reviewer';
+
+    const view = docs.getDocumentView(docId);
+
+    // 构造四层响应
+    const stds = kl.listStdByRaw(docId);
+    const chunks = [];
+    for (const std of stds) {
+      chunks.push(...kl.listChunksByStd(std.id));
+    }
+    const embeddings = [];
+    for (const chunk of chunks) {
+      embeddings.push(...kl.listVectorsByChunk(chunk.id));
+    }
+
+    const response = {
+      ok: true,
+      raw: mapDocument(view),
+      standardized: isAllowed ? stds.map(s => mapStdDocument(s, raw)) : [],
+      chunks: isAllowed ? chunks.map(c => mapChunk(c, kl.getStd(c.stdId))) : [],
+      embeddings: isAllowed ? embeddings.map(e => mapVector(e)) : [],
+    };
+
+    res.json(response);
+  } catch (err) {
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
   }
-
-  const stds = mockStandardizedDocs.filter((s) => s.doc_id === docId);
-  const chunks = mockChunks.filter((c) => c.doc_id === docId);
-  const embeddings = mockEmbeddings.filter((e) => chunks.some((c) => c.id === e.chunk_id));
-
-  res.json({
-    ok: true,
-    raw: doc,
-    standardized: stds,
-    chunks,
-    embeddings,
-  });
 });
 
+// ============================================================
 // 错误处理
+// ============================================================
+
 router.use((err, req, res, next) => {
   console.error('[KNOWLEDGE ERROR]', err.message);
   res.status(err.status || 500).json({ ok: false, error: err.message || '服务器错误' });

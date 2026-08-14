@@ -730,3 +730,192 @@ test('listForUser：返回的数组中每个元素都是 view 形状（含 statu
     assert.strictEqual(v.id, rPub.id);
   });
 });
+
+// ============================================================
+// I. publishDocument（发布——审核通过后生成向量、转 published）
+// ============================================================
+
+test('publishDocument：正常发布——approved→published，向量生成，isCurrent=true，下游同步', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+
+    // 走完整流程：upload → review(approved) → publish
+    const view = docs.upload(admin, {
+      title: '可发布文档',
+      fileName: 'pub.md',
+      content: '这是一段足够长的内容用于验证 publish 链路的完整流程。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: ['发布', '测试'],
+    });
+
+    // 审核通过
+    docs.review(reviewer, view.id, 'approved', '审核通过，准备发布');
+
+    // 发布
+    const published = docs.publishDocument(reviewer, view.id);
+
+    // 验证返回的 view
+    assert.ok(published, 'publishDocument 应返回 view');
+    assert.strictEqual(published.id, view.id, 'id 不变');
+    assert.strictEqual(published.lifecycleStatus, 'published', 'std 状态应为 published');
+
+    // 验证 std 状态
+    const stds = kl.listStdByRaw(view.id);
+    assert.strictEqual(stds.length, 1, '应只有 1 个 std 版本');
+    assert.strictEqual(stds[0].status, 'published', 'std.status 必须为 published');
+    assert.strictEqual(stds[0].isCurrent, true, 'publishStd 后 isCurrent 必须为 true');
+
+    // 验证 raw.currentStdId 更新（不变量 I7）
+    const raw = kl.getRaw(view.id);
+    assert.strictEqual(raw.currentStdId, stds[0].id, 'raw.currentStdId 必须指向新发布的 std（I7）');
+
+    // 验证 chunks 状态同步（I4）
+    const chunks = kl.listChunksByStd(stds[0].id);
+    assert.ok(chunks.length > 0, '至少应有 1 个 chunk');
+    for (const chunk of chunks) {
+      assert.strictEqual(chunk.status, 'published', 'chunk.status 必须跟随 std 同步为 published（I4）');
+      assert.strictEqual(chunk.embeddingStatus, 'done', 'chunk.embeddingStatus 必须为 done');
+    }
+
+    // 验证向量生成（每个 chunk 恰好一条 isCurrent 向量）
+    const vectors = kl.listVectorsByChunk(chunks[0].id);
+    assert.ok(vectors.length > 0, 'chunk 至少应有 1 条向量记录');
+    const currentVectors = vectors.filter(v => v.isCurrent);
+    assert.strictEqual(currentVectors.length, 1, '每个 chunk 恰好一条 isCurrent 向量（I2）');
+    assert.strictEqual(currentVectors[0].model, 'tfidf-v1', '向量模型应为 tfidf-v1');
+    assert.ok(currentVectors[0].dim > 0, '向量维度应大于 0');
+    assert.ok(Array.isArray(currentVectors[0].vec), '向量值数组应存在');
+
+    // 验证向量状态同步（I4）
+    for (const v of vectors) {
+      assert.strictEqual(v.status, 'published', 'vector.status 必须跟随 std 同步为 published（I4）');
+    }
+  });
+});
+
+test('publishDocument：未审核通过的文档尝试发布抛 409', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+
+    // 只上传，不审核
+    const view = docs.upload(admin, {
+      title: '未审文档',
+      fileName: 'pending.md',
+      content: '这是一段足够长的内容用于验证未审核文档无法发布。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+    });
+
+    // 状态是 pending（尚未审核）
+    assert.throws(
+      () => docs.publishDocument(reviewer, view.id),
+      (e) => e.status === 409 && /approved/.test(e.message)
+    );
+  });
+});
+
+test('publishDocument：guest 调用抛 403', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const guest = { username: 'guest', role: 'guest', readonly: true };
+
+    const view = docs.upload(admin, {
+      title: '权限测试',
+      fileName: 'perm.md',
+      content: '这是一段足够长的内容用于验证无权限用户无法发布。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+    });
+
+    assert.throws(
+      () => docs.publishDocument(guest, view.id),
+      (e) => e.status === 403
+    );
+  });
+});
+
+test('publishDocument：raw 不存在抛 404', () => {
+  withTempDataDir(() => {
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    assert.throws(
+      () => docs.publishDocument(reviewer, 'raw_不存在的id'),
+      (e) => e.status === 404
+    );
+  });
+});
+
+test('publishDocument：已发布的文档再次发布抛 409', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+
+    const view = docs.upload(admin, {
+      title: '重复发布测试',
+      fileName: 'dup.md',
+      content: '这是一段足够长的内容用于验证重复发布。'.repeat(20),
+      bizLine: 'trade',
+      securityLevel: 'internal',
+    });
+
+    docs.review(reviewer, view.id, 'approved', '第一次通过');
+    docs.publishDocument(reviewer, view.id); // 第一次发布成功
+
+    // 第二次发布：published → published 不在白名单，setStdStatus 会抛 409
+    assert.throws(
+      () => docs.publishDocument(reviewer, view.id),
+      (e) => e.status === 409
+    );
+  });
+});
+
+// ============================================================
+// J. 端到端回归：upload → review → publish → RAG 检索
+// ============================================================
+
+test('端到端回归：上传→审核通过→发布→RAG 引擎能检索到内容', () => {
+  withTempDataDir(() => {
+    const admin = { username: 'admin', role: 'admin' };
+    const reviewer = { username: 'reviewer', role: 'reviewer' };
+    const user = { username: 'product', role: 'product', bizLine: 'trade' };
+
+    // 1. 上传一个包含特定关键词的文档
+    const view = docs.upload(admin, {
+      title: '退款政策',
+      fileName: 'refund.md',
+      content: '退款流程：用户在购买商品后14天内可以申请退款，退款将在7个工作日内原路返回。',
+      bizLine: 'trade',
+      securityLevel: 'internal',
+      tags: ['退款', '售后'],
+    });
+
+    // 2. 审核通过
+    docs.review(reviewer, view.id, 'approved', '内容合规，通过');
+
+    // 3. 发布
+    docs.publishDocument(reviewer, view.id);
+
+    // 4. 加载 RAG 索引
+    const rag = require('../lib/rag-engine');
+    const { index } = rag.loadApprovedIndex();
+    assert.ok(index, 'RAG 索引应加载成功');
+    assert.ok(index.vectors.length > 0, 'RAG 索引应有向量');
+
+    // 5. 检索：普通用户搜索"退款"应能命中
+    const results = rag.retrieve(user, '退款', index, 5);
+    assert.ok(Array.isArray(results), '检索结果应为数组');
+    const hasRefund = results.some(r =>
+      r.content && r.content.includes('退款')
+    );
+    assert.ok(hasRefund, 'RAG 检索结果应包含刚发布的退款内容');
+
+    // 6. 检索：不相关查询返回的分数应该很低（单文档语料中可能仍有召回，但分数应远低于相关查询）
+    const unrelated = rag.retrieve(user, '航天飞机', index, 5);
+    if (unrelated.length > 0) {
+      // 不相关查询分数应显著低于相关查询的分数
+      assert.ok(unrelated[0].score < results[0].score, '不相关查询的分数应显著低于相关查询');
+    }
+  });
+});

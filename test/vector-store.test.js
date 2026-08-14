@@ -565,3 +565,59 @@ test('search 阈值生效：minScore 之下不召回', () => {
   // 此查询在向量空间里与"退款流程"接近正交，cosine ≈ 0，应被阈值过滤
   assert.ok(r.length === 0 || r.every((x) => x.score > 0.02), '低于 minScore 的不召回');
 });
+
+// ============================================================
+// 8. embedChunks
+// ============================================================
+
+test('embedChunks 空 chunks 返回 []', () => {
+  assert.deepStrictEqual(vs.embedChunks([]), []);
+});
+
+test('embedChunks 非数组返回 []', () => {
+  assert.deepStrictEqual(vs.embedChunks(null), []);
+  assert.deepStrictEqual(vs.embedChunks(undefined), []);
+  assert.deepStrictEqual(vs.embedChunks({}), []);
+});
+
+test('embedChunks 产出结构正确：chunkId / model / dim / vec / indexName', () => {
+  const chunks = [
+    { id: 'chk_001', content: '退款流程说明' },
+    { id: 'chk_002', content: '会员积分规则' },
+  ];
+  const result = vs.embedChunks(chunks, { model: 'tfidf-v1', indexName: 'main' });
+
+  assert.strictEqual(result.length, 2);
+  assert.strictEqual(result[0].chunkId, 'chk_001');
+  assert.strictEqual(result[0].model, 'tfidf-v1');
+  assert.ok(Array.isArray(result[0].vec), 'vec 必须是数组');
+  assert.ok(result[0].dim > 0, 'dim 必须大于 0');
+  assert.strictEqual(result[0].dim, result[0].vec.length, 'dim 必须等于 vec 长度');
+  assert.strictEqual(result[0].indexName, 'main');
+});
+
+test('embedChunks 相同 chunk 内容产出确定性向量（两次调用结果一致）', () => {
+  const chunks = [{ id: 'chk_001', content: '退款流程说明' }];
+  const a = vs.embedChunks(chunks);
+  const b = vs.embedChunks(chunks);
+  assert.strictEqual(a[0].dim, b[0].dim, 'dim 必须一致');
+  assert.deepStrictEqual(a[0].vec, b[0].vec, 'vec 必须一致');
+});
+
+test('embedChunks 不同 chunk 的词表合并', () => {
+  const chunks = [
+    { id: 'chk_001', content: '退款' },
+    { id: 'chk_002', content: '积分' },
+  ];
+  const result = vs.embedChunks(chunks);
+  // 两个 chunk 共享词表，词表应包含两段内容的所有 unigram + bigram
+  assert.ok(result[0].dim >= 2, '词表应包含两段的所有 token');
+  assert.strictEqual(result[0].dim, result[1].dim, '同一批的 chunk 共享词表');
+});
+
+test('embedChunks 使用默认 model 和 indexName', () => {
+  const chunks = [{ id: 'chk_001', content: '测试' }];
+  const result = vs.embedChunks(chunks);
+  assert.strictEqual(result[0].model, 'tfidf-v1', '默认 model 应为 tfidf-v1');
+  assert.strictEqual(result[0].indexName, 'main', '默认 indexName 应为 main');
+});
