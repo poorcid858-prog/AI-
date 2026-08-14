@@ -55,6 +55,7 @@ const routeModules = [
   ['/api/compare', './routes/compare'],
   ['/api/capabilities', './routes/capability'],
   ['/api/operations', './routes/operations'],
+  ['/api/knowledge', './routes/knowledge'],
 ];
 
 for (const [mountPath, modulePath] of routeModules) {
