@@ -51,9 +51,10 @@ test('只有 admin 能写入，其他角色一律不能', () => {
   }
 });
 
-test('只有 reviewer 能审核', () => {
+test('admin 和 reviewer 能审核', () => {
   for (const u of auth.loadUsers()) {
-    assert.strictEqual(auth.canReview(u), u.role === 'reviewer', `${u.username} 审核权限判定错误`);
+    const expected = u.role === 'reviewer' || u.role === 'admin';
+    assert.strictEqual(auth.canReview(u), expected, `${u.username} 审核权限判定错误`);
   }
 });
 
@@ -164,7 +165,7 @@ test('requireWrite 放行管理员', () => {
   assert.strictEqual(passed, true);
 });
 
-test('requireReview 放行审核员、拦截管理员', () => {
+test('requireReview 放行审核员和管理员（管理员有全部权限）', () => {
   const reviewer = auth.loadUsers().find((u) => u.username === 'reviewer');
   const admin = auth.loadUsers().find((u) => u.username === 'admin');
 
@@ -172,11 +173,9 @@ test('requireReview 放行审核员、拦截管理员', () => {
   auth.requireReview({ user: reviewer }, fakeRes(), () => { reviewerPassed = true; });
   assert.strictEqual(reviewerPassed, true, '审核员应能审核');
 
-  const res = fakeRes();
   let adminPassed = false;
-  auth.requireReview({ user: admin }, res, () => { adminPassed = true; });
-  assert.strictEqual(adminPassed, false, '管理员不应兼任审核，需职责分离');
-  assert.strictEqual(res.statusCode, 403);
+  auth.requireReview({ user: admin }, fakeRes(), () => { adminPassed = true; });
+  assert.strictEqual(adminPassed, true, '管理员应有全部权限，包括审核权');
 });
 
 // ---------- 数据完整性 ----------

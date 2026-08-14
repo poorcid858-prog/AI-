@@ -137,7 +137,7 @@ module.exports = {
 
   // ---------- 角色 ----------
   roles: {
-    admin: { label: '系统管理员', canWrite: true, canReview: false, canUse: true },
+    admin: { label: '系统管理员', canWrite: true, canReview: true, canUse: true },
     reviewer: { label: '审核专员', canWrite: false, canReview: true, canUse: true },
     product: { label: '产品经理', canWrite: false, canReview: false, canUse: true },
     test: { label: '测试工程师', canWrite: false, canReview: false, canUse: true },
