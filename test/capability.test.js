@@ -792,3 +792,32 @@ test('T34：createCapability 创建 workflow 类型的新能力', () => {
     assert.strictEqual(found.name, '代码审查工作流');
   });
 });
+
+// ============================================================
+// T35. deleteCapability 删除能力
+// ============================================================
+
+test('T35：deleteCapability 删除创建的能力', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    const newCap = cap.createCapability('reference', '参考资料库', '公司文档库', {}, 'admin');
+    const capId = newCap.id;
+
+    // 验证能力存在
+    let found = cap.getCapability(capId);
+    assert.ok(found, '创建后能力应存在');
+
+    // 删除能力
+    const result = cap.deleteCapability(capId, 'admin');
+    assert.strictEqual(result, true, '删除应返回 true');
+
+    // 验证能力已删除
+    found = cap.getCapability(capId);
+    assert.strictEqual(found, null, '删除后能力应不存在');
+
+    // 验证能力从列表中移除
+    const all = cap.listCapabilities();
+    const inList = all.some(c => c.id === capId);
+    assert.strictEqual(inList, false, '能力应从列表中移除');
+  });
+});
