@@ -12,6 +12,21 @@
     <h1>文档审核</h1>
     <p>安全分级、是否含敏感字段、是否纳入 RAG 库——你（审核员）说了算。</p>
   </div>
+
+  <!-- 搜索和筛选区域（仅在列表视图显示） -->
+  <div id="filterArea" style="margin-bottom: 20px; display: none;">
+    <div class="input-group">
+      <input
+        type="text"
+        id="searchInput"
+        class="form-control"
+        placeholder="搜索文件名或 ID..."
+        onkeypress="handleSearch(event)"
+      >
+      <button class="btn btn-primary" type="button" onclick="handleSearch({type:'click'})">查询</button>
+    </div>
+  </div>
+
   <div id="content"></div>
 </div>
 
@@ -23,34 +38,114 @@ if (App.guard()) {
 
   const params = new URLSearchParams(location.search);
   const idParam = params.get('id');
+  let currentPage = 1;
+  let currentSearch = '';
+
+  function formatDate(dateStr) {
+    const d = new Date(dateStr);
+    return d.toLocaleString('zh-CN');
+  }
+
+  function getFileType(filename) {
+    const ext = filename.split('.').pop().toUpperCase();
+    return ext || 'Unknown';
+  }
 
   function loadList() {
-    App.api('/api/documents/pending').then((d) => {
+    const search = document.getElementById('searchInput')?.value?.trim() || '';
+    const queryParams = new URLSearchParams({
+      page: currentPage,
+      pageSize: 20,
+      ...(search && { search })
+    });
+
+    App.api(`/api/documents/pending?${queryParams}`).then((d) => {
       const box = document.getElementById('content');
-      if (d.documents.length === 0) {
-        box.innerHTML = '<div class="card"><div class="muted">当前无待审核文档</div></div>';
+      const { documents, total, page, pageSize, totalPages } = d;
+
+      if (documents.length === 0) {
+        box.innerHTML = `
+          <div class="alert alert-info" role="alert">
+            ${total === 0 ? '当前无待审核文档' : '搜索无结果，请尝试其他关键词'}
+          </div>
+        `;
         return;
       }
-      const items = d.documents.map((x) => `
-        <div class="card" style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:start;gap:10px">
-            <div>
-              <div style="font-size:15px;font-weight:500;margin-bottom:4px">${App.esc(x.title)}</div>
-              <div class="muted" style="font-size:12px">
-                <span class="mono">${x.id}</span> ·
-                <span class="tag ${x.bizLine}">${x.bizLine}</span> ·
-                <span class="tag">${x.securityLevel}</span> ·
-                ${x.chunkCount||0} 切片 ·
-                上传者 <span class="mono">${x.uploadedBy}</span>
-              </div>
-            </div>
-            <div style="display:flex;gap:6px">
-              <button class="btn btn-sm" onclick="location.href='?id=${x.id}'">展开</button>
-            </div>
-          </div>
-        </div>`).join('');
-      box.innerHTML = (idParam ? '' : '<div class="card-sub" style="margin-bottom:10px">共 ' + d.documents.length + ' 份待审核</div>') + items;
+
+      // 表格行 HTML
+      const tableRows = documents.map((x) => `
+        <tr>
+          <td><strong>${App.esc(x.title)}</strong><br><span class="text-muted small">${x.id}</span></td>
+          <td>${App.esc(x.uploadedBy)}</td>
+          <td>${formatDate(x.createdAt)}</td>
+          <td><span class="badge bg-secondary">${getFileType(x.title)}</span></td>
+          <td><span class="badge bg-warning text-dark">待审</span></td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="location.href='?id=${x.id}'">查看详情</button>
+          </td>
+        </tr>
+      `).join('');
+
+      // 分页按钮 HTML
+      const paginationHTML = totalPages > 1 ? `
+        <nav aria-label="Table pagination" style="margin-top: 20px;">
+          <ul class="pagination justify-content-center">
+            <li class="page-item ${page === 1 ? 'disabled' : ''}">
+              <button class="page-link" onclick="changePage(${page - 1})">上一页</button>
+            </li>
+            ${Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => `
+              <li class="page-item ${p === page ? 'active' : ''}">
+                <button class="page-link" onclick="changePage(${p})">${p}</button>
+              </li>
+            `).join('')}
+            <li class="page-item ${page === totalPages ? 'disabled' : ''}">
+              <button class="page-link" onclick="changePage(${page + 1})">下一页</button>
+            </li>
+          </ul>
+        </nav>
+      ` : '';
+
+      box.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>文件名</th>
+                <th>上传者</th>
+                <th>上传时间</th>
+                <th>类型</th>
+                <th>状态</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+        </div>
+        <div class="text-muted small" style="margin: 12px 0;">
+          共 ${total} 份待审核文档，第 ${page}/${totalPages} 页
+        </div>
+        ${paginationHTML}
+      `;
+
+      currentPage = page;
+      currentSearch = search;
+    }).catch((e) => {
+      document.getElementById('content').innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
     });
+  }
+
+  function changePage(newPage) {
+    currentPage = newPage;
+    loadList();
+  }
+
+  function handleSearch(event) {
+    if (event.key === 'Enter' || event.type === 'click') {
+      currentPage = 1;
+      loadList();
+    }
   }
 
   function loadDetail() {
@@ -122,7 +217,14 @@ if (App.guard()) {
     }).catch((e) => App.toast(e.message, 'error'));
   }
 
-  if (idParam) loadDetail(); else loadList();
+  // 根据参数决定显示列表还是详情
+  if (idParam) {
+    document.getElementById('filterArea').style.display = 'none';
+    loadDetail();
+  } else {
+    document.getElementById('filterArea').style.display = 'block';
+    loadList();
+  }
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

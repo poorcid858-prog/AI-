@@ -44,8 +44,41 @@ router.get('/pending', auth.requireAuth, (req, res) => {
   if (req.user.role !== 'reviewer' && req.user.role !== 'admin') {
     return res.status(403).json({ ok: false, error: '仅审核员可看待审核列表' });
   }
-  const list = docs.listForUser(req.user, { status: 'pending' }).map((d) => docs.publicView(d, req.user));
-  res.json({ ok: true, documents: list, total: list.length });
+
+  // 查询参数处理
+  const search = (req.query.search || '').trim();
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const pageSize = Math.max(10, Math.min(100, parseInt(req.query.pageSize) || 20));
+
+  // 获取待审核文档列表
+  let list = docs.listForUser(req.user, { status: 'pending' });
+
+  // 搜索过滤：按文件名或 ID 搜索
+  if (search) {
+    list = list.filter((d) =>
+      d.title.toLowerCase().includes(search.toLowerCase()) ||
+      d.id.toLowerCase().includes(search.toLowerCase())
+    );
+  }
+
+  // 排序：按上传时间倒序
+  list.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  // 分页
+  const total = list.length;
+  const startIdx = (page - 1) * pageSize;
+  const endIdx = startIdx + pageSize;
+  const paginated = list.slice(startIdx, endIdx);
+
+  const documents = paginated.map((d) => docs.publicView(d, req.user));
+  res.json({
+    ok: true,
+    documents,
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize)
+  });
 });
 
 // 上传
