@@ -753,3 +753,42 @@ test2('T33：guest 写操作 → 403', async () => {
     assert.strictEqual(r.body.ok, false);
   });
 });
+
+// ============================================================
+// T34. createCapability 创建新能力
+// ============================================================
+
+test('T34：createCapability 创建 workflow 类型的新能力', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    const newCap = cap.createCapability(
+      'workflow',
+      '代码审查工作流',
+      '自动执行代码审查',
+      { steps: ['分析', '输出报告'] },
+      'admin'
+    );
+
+    assert.ok(newCap.id, '应生成 ID');
+    assert.ok(newCap.id.startsWith('cap_workflow_'), '应以 cap_workflow_ 开头');
+    assert.strictEqual(newCap.type, 'workflow', '类型应为 workflow');
+    assert.strictEqual(newCap.name, '代码审查工作流', '名称应匹配');
+    assert.strictEqual(newCap.description, '自动执行代码审查', '描述应匹配');
+    assert.ok(newCap.published, '应有生效版');
+    assert.strictEqual(newCap.published.version, 1, '首版本应为 1');
+    assert.deepStrictEqual(newCap.published.content, { steps: ['分析', '输出报告'] }, '内容应匹配');
+    assert.strictEqual(newCap.published.publishedBy, 'admin', '发布者应为 admin');
+    assert.strictEqual(newCap.draft, null, '初始无草稿');
+    assert.ok(Array.isArray(newCap.history), '应有历史数组');
+    assert.strictEqual(newCap.history.length, 0, '初始无历史');
+    assert.ok(newCap.createdAt, '应记录创建时间');
+    assert.ok(newCap.updatedAt, '应记录更新时间');
+
+    // 验证能力已保存到列表
+    const all = cap.listCapabilities();
+    const found = all.find(c => c.id === newCap.id);
+    assert.ok(found, '能力应在列表中');
+    assert.strictEqual(found.type, 'workflow');
+    assert.strictEqual(found.name, '代码审查工作流');
+  });
+});

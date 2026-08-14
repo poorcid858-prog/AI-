@@ -54,6 +54,7 @@ const routeModules = [
   ['/api/expiry', './routes/expiry'],
   ['/api/compare', './routes/compare'],
   ['/api/capabilities', './routes/capability'],
+  ['/api/operations', './routes/operations'],
 ];
 
 for (const [mountPath, modulePath] of routeModules) {
