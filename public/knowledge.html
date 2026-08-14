@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>知识库 - 四层管理</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/knowledge.css">
+</head>
+<body>
+  <div class="page-container">
+    <div class="page-head">
+      <h1>知识库管理</h1>
+      <p class="subtitle">原始文档 → 标准化文档 → Chunk → 向量化数据</p>
+    </div>
+
+    <main class="knowledge-container">
+      <!-- 追踪面包屑 -->
+      <div id="breadcrumb" class="breadcrumb" style="display: none;">
+        <span>追踪路径：</span>
+        <span id="breadcrumb-content"></span>
+      </div>
+
+      <!-- 标签页导航 -->
+      <nav class="tabs" role="tablist">
+        <button class="tab-btn active" data-layer="documents" role="tab" aria-selected="true">
+          原始文档
+        </button>
+        <button class="tab-btn" data-layer="standardized" role="tab" aria-selected="false">
+          标准化文档
+        </button>
+        <button class="tab-btn" data-layer="chunks" role="tab" aria-selected="false">
+          Chunk
+        </button>
+        <button class="tab-btn" data-layer="embeddings" role="tab" aria-selected="false">
+          向量化数据
+        </button>
+      </nav>
+
+      <!-- 搜索和筛选控制区 -->
+      <div class="controls">
+        <input
+          type="text"
+          id="search"
+          class="search-input"
+          placeholder="搜索关键词..."
+          aria-label="搜索"
+        >
+        <button id="btn-search" class="btn btn-primary" title="搜索">
+          🔍 搜索
+        </button>
+        <button id="btn-clear" class="btn btn-secondary" title="清空">
+          ✕ 清空
+        </button>
+      </div>
+
+      <!-- 数据列表容器 -->
+      <div id="content-area" class="content-area" role="tabpanel">
+        <div class="loading" id="loading" style="display: none;">
+          <span class="spinner"></span>
+          <p>加载中...</p>
+        </div>
+        <div class="empty-state" id="empty-state" style="display: none;">
+          <p>📭 暂无数据</p>
+        </div>
+        <div id="table-container"></div>
+      </div>
+
+      <!-- 分页容器 -->
+      <div id="pagination" class="pagination" style="display: none;"></div>
+
+      <!-- 详情弹窗 -->
+      <div id="detail-modal" class="modal" role="dialog" aria-labelledby="modal-title">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="modal-title">详情</h2>
+            <button class="modal-close" aria-label="关闭">&times;</button>
+          </div>
+          <div id="detail-content" class="modal-body"></div>
+        </div>
+      </div>
+
+      <!-- 追踪链路弹窗 -->
+      <div id="trace-modal" class="modal" role="dialog" aria-labelledby="trace-title">
+        <div class="modal-content modal-large">
+          <div class="modal-header">
+            <h2 id="trace-title">追踪链路</h2>
+            <button class="modal-close" aria-label="关闭">&times;</button>
+          </div>
+          <div id="trace-content" class="modal-body"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/knowledge.js"></script>
+</body>
+</html>
