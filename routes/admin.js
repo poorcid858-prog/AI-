@@ -4,6 +4,8 @@ const auth = require('../lib/auth');
 const kl = require('../lib/knowledge-layers');
 const docs = require('../lib/documents');
 const qa = require('../lib/qa-store');
+const promptTemplates = require('../lib/prompt-templates');
+const adminConfig = require('../lib/admin-config');
 const router = express.Router();
 
 router.get('/users', auth.requireAuth, (req, res) => {
@@ -176,6 +178,133 @@ router.get('/qa-history/:sessionId', auth.requireAuth, (req, res) => {
       records,
     },
   });
+});
+
+// ---------- GET /api/admin/prompt-templates 获取提问模板 ----------
+
+router.get('/prompt-templates', auth.requireAuth, (req, res) => {
+  const role = req.query.role || 'all';
+  const templates = promptTemplates.listEnabled(role);
+  res.json({ ok: true, templates });
+});
+
+// ========== 密码配置 API ==========
+
+router.get('/password-config', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const config = adminConfig.getPasswordConfig();
+  res.json({ ok: true, config });
+});
+
+router.put('/password-config', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const { enabled, default_expire_minutes, max_expire_minutes, complexity } = req.body;
+  const config = adminConfig.updatePasswordConfig({
+    enabled,
+    default_expire_minutes,
+    max_expire_minutes,
+    complexity,
+  });
+  res.json({ ok: true, config });
+});
+
+router.get('/temp-passwords', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const tempPasswords = adminConfig.listTempPasswords();
+  res.json({ ok: true, tempPasswords });
+});
+
+router.post('/temp-passwords', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可生成' });
+  const { password, expiryMinutes } = req.body;
+  const tempPassword = adminConfig.generateTempPassword(password, expiryMinutes || 120);
+  res.json({ ok: true, tempPassword });
+});
+
+// ========== Chunk 切分配置 API ==========
+
+router.get('/chunking-config', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const config = adminConfig.getChunkingConfig();
+  res.json({ ok: true, config });
+});
+
+router.put('/chunking-config', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const { strategy, max_tokens, overlap_tokens, header_level } = req.body;
+  const config = adminConfig.updateChunkingConfig({
+    strategy,
+    max_tokens,
+    overlap_tokens,
+    header_level,
+  });
+  res.json({ ok: true, config });
+});
+
+// ========== 分层 Prompt 配置 API ==========
+
+router.get('/prompt-layers', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const layers = adminConfig.listPromptLayers();
+  res.json({ ok: true, layers });
+});
+
+router.post('/prompt-layers', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可创建' });
+  const { level, role_name, business_line, prompt_text } = req.body;
+  const layer = adminConfig.createPromptLayer({
+    level,
+    role_name,
+    business_line,
+    prompt_text,
+  });
+  res.json({ ok: true, layer });
+});
+
+router.put('/prompt-layers/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const { id } = req.params;
+  const { level, role_name, business_line, prompt_text } = req.body;
+  const layer = adminConfig.updatePromptLayer(parseInt(id, 10), {
+    level,
+    role_name,
+    business_line,
+    prompt_text,
+  });
+  if (!layer) return res.status(404).json({ ok: false, error: 'Prompt 配置不存在' });
+  res.json({ ok: true, layer });
+});
+
+router.delete('/prompt-layers/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除' });
+  const { id } = req.params;
+  const success = adminConfig.deletePromptLayer(parseInt(id, 10));
+  if (!success) return res.status(404).json({ ok: false, error: 'Prompt 配置不存在' });
+  res.json({ ok: true });
+});
+
+// ========== 系统参数配置 API ==========
+
+router.get('/system-config', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const configs = adminConfig.getAllSystemConfig();
+  res.json({ ok: true, configs });
+});
+
+router.put('/system-config/:key', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const { key } = req.params;
+  const { value } = req.body;
+  const config = adminConfig.updateSystemConfig(key, value);
+  res.json({ ok: true, config });
+});
+
+router.delete('/system-config/:key', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除' });
+  const { key } = req.params;
+  const success = adminConfig.deleteSystemConfig(key);
+  if (!success) return res.status(404).json({ ok: false, error: '配置项不存在' });
+  res.json({ ok: true });
 });
 
 module.exports = router;
