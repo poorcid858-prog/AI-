@@ -1,57 +1,404 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN" data-bs-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>能力中心</title>
-  <link rel="stylesheet" href="css/capability.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>能力中心 · 企业 AI 辅助工具</title>
+<link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="/css/custom-theme.css">
+<link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <div class="capability-container">
-    <!-- 左侧菜单 -->
-    <div class="sidebar">
-      <h2>能力中心</h2>
-      <ul class="menu">
-        <li><a href="#" data-type="workflow">Workflow</a></li>
-        <li><a href="#" data-type="skill">Skill</a></li>
-        <li><a href="#" data-type="reference">Reference</a></li>
-        <li><a href="#" data-type="script">Script</a></li>
-        <li><a href="#" data-type="tool">Tool</a></li>
-      </ul>
+<div class="page" id="page" style="display:none">
+  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+    <div>
+      <h1>能力中心</h1>
+      <p>以 AI 能力为单位的聚合视图，每条能力关联一个 Workflow 及其全部要素</p>
     </div>
+    <button class="btn btn-primary" id="newCapBtn" style="background:var(--accent);border-color:var(--accent);color:#fff;white-space:nowrap">+ 新建能力</button>
+  </div>
 
-    <!-- 中间和右侧区域 -->
-    <div class="content">
-      <!-- 中间区域 -->
-      <div class="list-area">
-        <input type="text" id="search" placeholder="搜索...">
-        <table id="capability-list">
-          <thead>
-            <tr>
-              <th>名称</th>
-              <th>描述</th>
-              <th>创建时间</th>
-              <th>状态</th>
-            </tr>
-          </thead>
-          <tbody>
-            <!-- 动态填充 -->
-          </tbody>
-        </table>
-        <div class="pagination">
-          <!-- 分页 -->
+  <!-- 能力列表区域 -->
+  <div id="capabilityListArea">
+    <div class="muted" id="loadingMsg">加载中…</div>
+  </div>
+
+  <!-- 详情面板 -->
+  <div id="detailPanel" style="display:none;margin-top:18px"></div>
+</div>
+
+<!-- 新建能力模态框 -->
+<div class="modal fade" id="newCapModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" style="background:var(--bg-panel);border:1px solid var(--border)">
+      <div class="modal-header">
+        <h5 class="modal-title" id="newCapModalTitle">新建 AI 能力</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <!-- 步骤指示器 -->
+        <div class="d-flex justify-content-center mb-4 gap-2">
+          <span class="badge" id="step1Badge" style="background:var(--accent);padding:8px 16px">1. 基本信息</span>
+          <span class="badge" id="step2Badge" style="background:var(--text-faint);padding:8px 16px">2. 能力内容</span>
+          <span class="badge" id="step3Badge" style="background:var(--text-faint);padding:8px 16px">3. 确认创建</span>
+        </div>
+
+        <!-- Step 1: 基本信息 -->
+        <div id="step1">
+          <div class="mb-3">
+            <label class="form-label">能力类型</label>
+            <select id="newCapType" class="form-select">
+              <option value="workflow">Workflow（工作流）</option>
+              <option value="skill">Skill（技能）</option>
+              <option value="reference">Reference（参考）</option>
+              <option value="script">Script（脚本）</option>
+              <option value="tool">Tool（工具）</option>
+            </select>
+            <div class="form-text text-muted mt-1">
+              <span id="typeHint">Workflow 已包含 Skill/Reference/Prompt/Tool/Script 等要素</span>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">能力名称</label>
+            <input type="text" class="form-control" id="newCapName" placeholder="如：需求分析助手">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">能力描述</label>
+            <textarea class="form-control" id="newCapDesc" rows="2" placeholder="描述该能力的用途"></textarea>
+          </div>
+        </div>
+
+        <!-- Step 2: 能力内容 -->
+        <div id="step2" style="display:none">
+          <div class="mb-3">
+            <label class="form-label">能力内容（JSON）</label>
+            <textarea class="form-control" id="newCapContent" rows="10" style="font-family:var(--mono);font-size:12px" placeholder='{"title":"...","description":"...","outputFormat":"..."}'></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">或从已有能力复制内容</label>
+            <select class="form-select" id="copyFromCap">
+              <option value="">不复制</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 3: 确认 -->
+        <div id="step3" style="display:none">
+          <div class="card" style="background:var(--bg-input)">
+            <div class="card-body">
+              <h5>确认信息</h5>
+              <table class="table table-sm" style="margin:0">
+                <tr><td style="width:100px;color:var(--text-dim)">类型</td><td id="confirmType"></td></tr>
+                <tr><td style="color:var(--text-dim)">名称</td><td id="confirmName"></td></tr>
+                <tr><td style="color:var(--text-dim)">描述</td><td id="confirmDesc"></td></tr>
+                <tr><td style="color:var(--text-dim)">内容</td><td><pre id="confirmContent" style="max-height:200px;overflow:auto;font-size:11px;white-space:pre-wrap;word-break:break-word;margin:0;background:transparent;border:none;padding:0"></pre></td></tr>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
-
-      <!-- 右侧区域 -->
-      <div class="detail-area">
-        <div id="detail-content">
-          <!-- 动态显示详情和编辑表单 -->
-        </div>
+      <div class="modal-footer">
+        <button class="btn" id="prevStepBtn" style="display:none">上一步</button>
+        <button class="btn btn-primary" id="nextStepBtn" style="background:var(--accent);border-color:var(--accent);color:#fff">下一步</button>
+        <button class="btn btn-success" id="createBtn" style="display:none;background:var(--success);border-color:var(--success);color:#fff">创建能力</button>
       </div>
     </div>
   </div>
+</div>
 
-  <script src="js/capability.js"></script>
+<script src="/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('capability');
+  document.getElementById('page').style.display = 'block';
+
+  let capabilities = [];
+  let currentStep = 1;
+
+  // ============ 加载能力列表 ============
+  function loadCapabilities() {
+    document.getElementById('capabilityListArea').innerHTML = '<div class="muted">加载中…</div>';
+
+    App.api('/api/capabilities').then((d) => {
+      capabilities = d.capabilities || [];
+      renderCapabilityList(capabilities);
+    }).catch((e) => {
+      document.getElementById('capabilityListArea').innerHTML = '<div class="alert alert-danger">加载失败: ' + App.esc(e.message) + '</div>';
+    });
+  }
+
+  function renderCapabilityList(list) {
+    if (list.length === 0) {
+      document.getElementById('capabilityListArea').innerHTML =
+        '<div class="alert alert-info">暂无能力，点击"新建能力"创建</div>';
+      return;
+    }
+
+    // 按类型分组排序
+    const typeOrder = ['workflow', 'skill', 'reference', 'script', 'tool'];
+    const grouped = {};
+    for (const c of list) {
+      const t = c.type || 'other';
+      if (!grouped[t]) grouped[t] = [];
+      grouped[t].push(c);
+    }
+
+    let html = '';
+    for (const type of typeOrder) {
+      const items = grouped[type] || [];
+      if (items.length === 0) continue;
+      const typeLabels = { workflow: '工作流', skill: '技能', reference: '参考', script: '脚本', tool: '工具' };
+      html += `<div class="card" style="margin-bottom:14px">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <h3 style="margin:0;font-size:15px">${typeLabels[type] || type}</h3>
+          <span class="badge bg-secondary">${items.length}</span>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover" style="margin:0">
+            <thead>
+              <tr>
+                <th>名称</th>
+                <th style="width:80px">版本</th>
+                <th style="width:100px">状态</th>
+                <th style="width:120px">更新时间</th>
+                <th style="width:80px">操作</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map((c) => {
+                const hasReview = c.review && c.review.status === 'pending_review';
+                const reviewApproved = c.review && c.review.status === 'approved';
+                const statusText = hasReview ? '待审核' : reviewApproved ? '审核通过' : c.hasDraft ? '有草稿' : '已发布';
+                const statusColor = hasReview ? 'var(--warning)' : reviewApproved ? 'var(--success)' : c.hasDraft ? 'var(--warning)' : 'var(--text-dim)';
+                return `<tr onclick="showCapabilityDetail('${c.id}')" style="cursor:pointer">
+                  <td><strong>${App.esc(c.name)}</strong><br><span class="text-muted small">${c.id}</span></td>
+                  <td class="mono">v${c.publishedVersion || '-'}</td>
+                  <td><span style="color:${statusColor}">${statusText}</span></td>
+                  <td class="mono small">${c.updatedAt ? new Date(c.updatedAt).toLocaleString('zh-CN') : '-'}</td>
+                  <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();showCapabilityDetail('${c.id}')">详情</button></td>
+                </tr>`;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+    }
+
+    document.getElementById('capabilityListArea').innerHTML = html;
+  }
+
+  // ============ 能力详情 ============
+  function showCapabilityDetail(id) {
+    const panel = document.getElementById('detailPanel');
+    panel.style.display = 'block';
+    panel.innerHTML = '<div class="muted">加载详情…</div>';
+
+    App.api('/api/capabilities/' + id).then((d) => {
+      const c = d.capability;
+      const pubContent = c.published ? JSON.stringify(c.published.content, null, 2) : '(暂无)';
+      const draftContent = c.draft ? JSON.stringify(c.draft.content, null, 2) : '(无草稿)';
+      const hasReview = c.review && c.review.status === 'pending_review';
+      const reviewApproved = c.review && c.review.status === 'approved';
+      const reviewRejected = c.review && c.review.status === 'rejected';
+
+      let reviewStatusHtml = '';
+      if (hasReview) {
+        reviewStatusHtml = `<span class="badge bg-warning text-dark">待审核（${c.review.submittedBy} 提交）</span>`;
+      } else if (reviewApproved) {
+        reviewStatusHtml = `<span class="badge bg-success">审核通过</span>`;
+      } else if (reviewRejected) {
+        reviewStatusHtml = `<span class="badge bg-danger">已驳回</span>`;
+      }
+
+      // 判断是否可提交审核：有草稿且未有审核流程或审核已驳回
+      const canSubmitReview = c.draft && (!c.review || c.review.status === 'rejected' || c.review.status === 'approved');
+
+      panel.innerHTML = `
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:18px;font-weight:500;margin-bottom:4px">${App.esc(c.name)}</div>
+              <div class="muted">
+                <span class="mono">${c.id}</span> · ${App.esc(c.type)} · ${App.esc(c.description || '')}
+                ${reviewStatusHtml}
+              </div>
+            </div>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm" onclick="document.getElementById('detailPanel').style.display='none';window.scrollTo(0,0)">关闭</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card" style="margin-bottom:14px">
+              <h3>生效版 <span class="mono" style="color:var(--text-faint);font-size:12px">v${c.publishedVersion || '-'}</span></h3>
+              <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)">${App.esc(pubContent)}</pre>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card" style="margin-bottom:14px">
+              <h3>草稿版 <span class="mono" style="color:var(--text-faint);font-size:12px">${c.draft ? 'v' + c.draft.version : '(无)'}</span></h3>
+              <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word">${App.esc(draftContent)}</pre>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <h3>操作</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a href="/admin-capability.html" class="btn btn-outline-primary btn-sm">前往编辑</a>
+            ${canSubmitReview ? `<button class="btn btn-warning btn-sm" id="submitReviewBtn">提交审核</button>` : ''}
+            ${reviewApproved ? `<button class="btn btn-success btn-sm" id="publishCapBtn">发布生效</button>` : ''}
+            ${hasReview ? '<span class="text-muted small" style="display:flex;align-items:center">⏳ 已提交审核，等待审核员处理</span>' : ''}
+          </div>
+        </div>
+      `;
+
+      const submitBtn = document.getElementById('submitReviewBtn');
+      if (submitBtn) {
+        submitBtn.onclick = () => {
+          if (!confirm('确认提交审核？提交后能力将进入待审核状态。')) return;
+          App.api('/api/capabilities/' + id + '/submit-review', { method: 'POST' }).then(() => {
+            App.toast('已提交审核', 'success');
+            showCapabilityDetail(id);
+          }).catch((e) => App.toast(e.message, 'error'));
+        };
+      }
+
+      const publishBtn = document.getElementById('publishCapBtn');
+      if (publishBtn) {
+        publishBtn.onclick = () => {
+          if (!confirm('确认发布？草稿将替换为生效版。')) return;
+          App.api('/api/capabilities/' + id + '/publish', { method: 'POST' }).then(() => {
+            App.toast('能力已发布', 'success');
+            showCapabilityDetail(id);
+            loadCapabilities();
+          }).catch((e) => App.toast(e.message, 'error'));
+        };
+      }
+    }).catch((e) => {
+      panel.innerHTML = '<div class="alert alert-danger">加载详情失败: ' + App.esc(e.message) + '</div>';
+    });
+  }
+
+  // ============ 新建能力向导 ============
+  const newCapModal = new bootstrap.Modal(document.getElementById('newCapModal'));
+
+  document.getElementById('newCapBtn').onclick = () => {
+    currentStep = 1;
+    showStep(1);
+    document.getElementById('newCapName').value = '';
+    document.getElementById('newCapDesc').value = '';
+    document.getElementById('newCapContent').value = '';
+    newCapModal.show();
+  };
+
+  // 类型切换时提示
+  document.getElementById('newCapType').onchange = function() {
+    const hints = {
+      workflow: 'Workflow 已包含 Skill/Reference/Prompt/Tool/Script 等要素，选择 Workflow 即确定能力包含什么',
+      skill: 'Skill 定义角色设定与任务指令，用于组装 Prompt',
+      reference: 'Reference 提供企业标准、模板、案例等参考信息',
+      script: 'Script 执行固定逻辑，如数据转换、格式化',
+      tool: 'Tool 调用外部 API，如查询订单、发送通知',
+    };
+    document.getElementById('typeHint').textContent = hints[this.value] || '';
+  };
+  document.getElementById('newCapType').dispatchEvent(new Event('change'));
+
+  function showStep(step) {
+    currentStep = step;
+    document.getElementById('step1').style.display = step === 1 ? 'block' : 'none';
+    document.getElementById('step2').style.display = step === 2 ? 'block' : 'none';
+    document.getElementById('step3').style.display = step === 3 ? 'block' : 'none';
+    document.getElementById('prevStepBtn').style.display = step > 1 ? 'inline-block' : 'none';
+    document.getElementById('nextStepBtn').style.display = step < 3 ? 'inline-block' : 'none';
+    document.getElementById('createBtn').style.display = step === 3 ? 'inline-block' : 'none';
+
+    // 更新步骤指示器
+    for (let i = 1; i <= 3; i++) {
+      const badge = document.getElementById('step' + i + 'Badge');
+      badge.style.background = i <= step ? 'var(--accent)' : 'var(--text-faint)';
+    }
+
+    if (step === 2) {
+      const sel = document.getElementById('copyFromCap');
+      sel.innerHTML = '<option value="">不复制</option>' + capabilities.map((c) =>
+        `<option value="${c.id}">${App.esc(c.name)} (${c.type})</option>`
+      ).join('');
+    }
+
+    if (step === 3) {
+      document.getElementById('confirmType').textContent = document.getElementById('newCapType').value;
+      document.getElementById('confirmName').textContent = document.getElementById('newCapName').value || '(未填写)';
+      document.getElementById('confirmDesc').textContent = document.getElementById('newCapDesc').value || '(未填写)';
+      document.getElementById('confirmContent').textContent = document.getElementById('newCapContent').value || '{}';
+    }
+
+    document.getElementById('newCapModalTitle').textContent = '新建 AI 能力 - 步骤 ' + step + '/3';
+  }
+
+  document.getElementById('nextStepBtn').onclick = () => {
+    if (currentStep === 1) {
+      if (!document.getElementById('newCapName').value.trim()) {
+        App.toast('请填写能力名称', 'error');
+        return;
+      }
+      const type = document.getElementById('newCapType').value;
+      const templates = {
+        workflow: '{"steps": ["步骤1", "步骤2"], "conditions": {}}',
+        skill: '{"title": "", "description": "", "outputFormat": ""}',
+        reference: '{"content": "", "source": ""}',
+        script: '{"code": "", "language": "javascript"}',
+        tool: '{"endpoint": "", "method": "GET", "params": {}}',
+      };
+      if (!document.getElementById('newCapContent').value) {
+        document.getElementById('newCapContent').value = templates[type] || '{}';
+      }
+    }
+    if (currentStep < 3) showStep(currentStep + 1);
+  };
+
+  document.getElementById('prevStepBtn').onclick = () => {
+    if (currentStep > 1) showStep(currentStep - 1);
+  };
+
+  document.getElementById('createBtn').onclick = () => {
+    const type = document.getElementById('newCapType').value;
+    const name = document.getElementById('newCapName').value.trim();
+    const desc = document.getElementById('newCapDesc').value.trim();
+    let content;
+    try {
+      content = JSON.parse(document.getElementById('newCapContent').value || '{}');
+    } catch (e) {
+      App.toast('能力内容 JSON 格式错误: ' + e.message, 'error');
+      return;
+    }
+
+    App.api('/api/capabilities', {
+      method: 'POST',
+      body: JSON.stringify({ type, name, description: desc, content }),
+    }).then(() => {
+      App.toast('能力创建成功', 'success');
+      newCapModal.hide();
+      loadCapabilities();
+    }).catch((e) => App.toast(e.message, 'error'));
+  };
+
+  // 复制内容
+  document.getElementById('copyFromCap').onchange = function() {
+    if (!this.value) return;
+    App.api('/api/capabilities/' + this.value).then((d) => {
+      const content = d.capability.published?.content || d.capability.draft?.content || {};
+      document.getElementById('newCapContent').value = JSON.stringify(content, null, 2);
+    }).catch(() => {});
+  };
+
+  // ============ 初始化 ============
+  loadCapabilities();
+}
+</script>
 </body>
 </html>

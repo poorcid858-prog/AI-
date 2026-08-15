@@ -1,393 +1,212 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>运营中心 - 企业 AI 辅助工具</title>
+  <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/custom-theme.css">
   <link rel="stylesheet" href="/css/style.css">
-  <style>
-    .operations-container {
-      display: flex;
-      height: calc(100vh - 80px);
-      background: var(--bg-secondary, #f5f5f5);
-    }
-
-    .ops-sidebar {
-      width: 200px;
-      background: var(--bg-primary, white);
-      border-right: 1px solid var(--border-color, #e0e0e0);
-      padding: 20px 0;
-      overflow-y: auto;
-    }
-
-    .ops-sidebar-menu {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-
-    .ops-sidebar-menu li {
-      padding: 0;
-      margin: 0;
-    }
-
-    .ops-sidebar-menu button {
-      width: 100%;
-      padding: 12px 16px;
-      border: none;
-      background: transparent;
-      cursor: pointer;
-      text-align: left;
-      font-size: 14px;
-      color: var(--text-secondary, #666);
-      transition: all 0.2s;
-    }
-
-    .ops-sidebar-menu button:hover,
-    .ops-sidebar-menu button.active {
-      background: var(--bg-secondary, #f0f0f0);
-      color: var(--primary-color, #007bff);
-      font-weight: 500;
-    }
-
-    .ops-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    .ops-header {
-      padding: 20px;
-      background: var(--bg-primary, white);
-      border-bottom: 1px solid var(--border-color, #e0e0e0);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .ops-main {
-      flex: 1;
-      overflow-y: auto;
-      padding: 20px;
-    }
-
-    .ops-section {
-      display: none;
-    }
-
-    .ops-section.active {
-      display: block;
-    }
-
-    /* Chat Records Section */
-    .chat-records-filters {
-      background: var(--bg-primary, white);
-      padding: 16px;
-      border-radius: 4px;
-      margin-bottom: 16px;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr 100px;
-      gap: 12px;
-    }
-
-    .chat-records-filters input,
-    .chat-records-filters select {
-      padding: 8px 12px;
-      border: 1px solid var(--border-color, #e0e0e0);
-      border-radius: 4px;
-      font-size: 14px;
-    }
-
-    .chat-records-filters button {
-      padding: 8px 16px;
-      background: var(--primary-color, #007bff);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-    }
-
-    .chat-records-table {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--bg-primary, white);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-
-    .chat-records-table th {
-      background: var(--bg-secondary, #f5f5f5);
-      padding: 12px;
-      text-align: left;
-      font-weight: 600;
-      border-bottom: 1px solid var(--border-color, #e0e0e0);
-    }
-
-    .chat-records-table td {
-      padding: 12px;
-      border-bottom: 1px solid var(--border-color, #e0e0e0);
-    }
-
-    .chat-records-table tr:hover {
-      background: var(--bg-secondary, #f9f9f9);
-    }
-
-    .chunk-badge {
-      display: inline-block;
-      background: #e3f2fd;
-      color: #1976d2;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
-      margin-right: 4px;
-    }
-
-    /* Stats Section */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 20px;
-    }
-
-    .stat-card {
-      background: var(--bg-primary, white);
-      padding: 16px;
-      border-radius: 4px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .stat-card-label {
-      font-size: 12px;
-      color: var(--text-secondary, #999);
-      margin-bottom: 8px;
-    }
-
-    .stat-card-value {
-      font-size: 24px;
-      font-weight: bold;
-      color: var(--primary-color, #007bff);
-    }
-
-    /* Chunk Tracking */
-    .chunk-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 16px;
-    }
-
-    .chunk-card {
-      background: var(--bg-primary, white);
-      padding: 16px;
-      border-radius: 4px;
-      border: 1px solid var(--border-color, #e0e0e0);
-    }
-
-    .chunk-card-title {
-      font-weight: 600;
-      margin-bottom: 8px;
-      word-break: break-word;
-    }
-
-    .chunk-card-content {
-      font-size: 12px;
-      color: var(--text-secondary, #666);
-      margin-bottom: 12px;
-      max-height: 60px;
-      overflow: hidden;
-    }
-
-    .chunk-stats {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border-color, #e0e0e0);
-    }
-
-    .chunk-stat {
-      font-size: 12px;
-    }
-
-    .chunk-stat-label {
-      color: var(--text-secondary, #999);
-    }
-
-    .chunk-stat-value {
-      font-weight: 600;
-      color: var(--text-primary, #333);
-    }
-
-    /* Loading & Empty */
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: var(--text-secondary, #999);
-    }
-
-    .empty {
-      text-align: center;
-      padding: 40px;
-      background: var(--bg-primary, white);
-      border-radius: 4px;
-      color: var(--text-secondary, #999);
-    }
-
-    @media (max-width: 1200px) {
-      .chat-records-filters {
-        grid-template-columns: 1fr 1fr;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-
-    @media (max-width: 768px) {
-      .operations-container {
-        flex-direction: column;
-      }
-
-      .ops-sidebar {
-        width: 100%;
-        height: auto;
-        display: flex;
-        border-right: none;
-        border-bottom: 1px solid var(--border-color, #e0e0e0);
-        overflow-x: auto;
-      }
-
-      .ops-sidebar-menu {
-        display: flex;
-      }
-
-      .ops-sidebar-menu button {
-        width: auto;
-        padding: 12px;
-        white-space: nowrap;
-      }
-
-      .chat-records-filters {
-        grid-template-columns: 1fr;
-      }
-
-      .stats-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .chunk-cards {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <link rel="stylesheet" href="/css/operations.css">
 </head>
 <body>
-  <div class="operations-container">
-    <!-- 左侧菜单 -->
-    <div class="ops-sidebar">
-      <ul class="ops-sidebar-menu">
-        <li>
-          <button class="nav-btn active" data-section="chat-records">
-            📋 聊天记录查询
-          </button>
-        </li>
-        <li>
-          <button class="nav-btn" data-section="chunk-tracking">
-            🔍 Chunk 追踪热度
-          </button>
-        </li>
-        <li>
-          <button class="nav-btn" data-section="analytics">
-            📊 分析统计
-          </button>
-        </li>
-        <li>
-          <button class="nav-btn" data-section="top-questions">
-            ❓ 高频问题
-          </button>
-        </li>
-      </ul>
+<div class="operations-container">
+  <!-- 左侧菜单 -->
+  <div class="ops-sidebar">
+    <ul class="ops-sidebar-menu">
+      <li>
+        <button class="nav-btn active" data-section="chat-records">
+          📋 聊天记录查询
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="chunk-tracking">
+          🔍 Chunk 追踪热度
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="analytics">
+          📊 分析统计
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="effect-analysis">
+          📈 效果分析
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="capability-analysis">
+          ⚡ 能力运营分析
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="full-link">
+          🔗 问题定位全链路
+        </button>
+      </li>
+      <li>
+        <button class="nav-btn" data-section="top-questions">
+          ❓ 高频问题
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- 主内容区 -->
+  <div class="ops-content">
+    <!-- 页面标题 -->
+    <div class="ops-header">
+      <h1>运营中心</h1>
+      <p style="margin: 0; color: var(--text-faint); font-size: 14px;">
+        查询聊天记录 · 追踪 Chunk 使用 · 分析统计数据 · 效果分析 · 能力运营 · 问题定位
+      </p>
     </div>
 
-    <!-- 主内容区 -->
-    <div class="ops-content">
-      <!-- 页面标题 -->
-      <div class="ops-header">
-        <h1>运营中心</h1>
-        <p style="margin: 0; color: var(--text-secondary, #999); font-size: 14px;">
-          查询聊天记录 · 追踪 Chunk 使用 · 分析统计数据
-        </p>
+    <!-- 主要内容 -->
+    <div class="ops-main">
+      <!-- 聊天记录查询 -->
+      <div id="chat-records" class="ops-section active">
+        <h2>聊天记录查询</h2>
+        <div class="chat-records-filters">
+          <input type="date" id="startDate" placeholder="开始日期">
+          <input type="date" id="endDate" placeholder="结束日期">
+          <input type="text" id="keyword" placeholder="搜索关键词">
+          <select id="role">
+            <option value="">全部角色</option>
+            <option value="product">产品</option>
+            <option value="test">测试</option>
+            <option value="frontend">前端</option>
+            <option value="cs">客服</option>
+          </select>
+          <button id="queryBtn">查询</button>
+        </div>
+        <div id="chatRecordsContainer">
+          <div class="ops-loading">点击【查询】开始</div>
+        </div>
       </div>
 
-      <!-- 主要内容 -->
-      <div class="ops-main">
-        <!-- 聊天记录查询 -->
-        <div id="chat-records" class="ops-section active">
-          <h2>聊天记录查询</h2>
-          <div class="chat-records-filters">
-            <input type="date" id="startDate" placeholder="开始日期">
-            <input type="date" id="endDate" placeholder="结束日期">
-            <input type="text" id="keyword" placeholder="搜索关键词">
-            <select id="role">
-              <option value="">全部角色</option>
-              <option value="product">产品</option>
-              <option value="test">测试</option>
-              <option value="frontend">前端</option>
-              <option value="cs">客服</option>
+      <!-- Chunk 追踪热度 -->
+      <div id="chunk-tracking" class="ops-section">
+        <h2>Chunk 追踪热度</h2>
+        <div style="margin-bottom: 16px;">
+          <label style="margin-right: 16px;">
+            排序方式：
+            <select id="sortBy" style="padding: 6px 8px;">
+              <option value="usageCount">使用次数</option>
+              <option value="avgScore">平均评分</option>
+              <option value="lastUsed">最近使用</option>
             </select>
-            <button id="queryBtn">查询</button>
+          </label>
+          <button id="loadChunksBtn" class="btn btn-primary" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
+            加载数据
+          </button>
+        </div>
+        <div id="chunkTrackingContainer">
+          <div class="ops-loading">点击【加载数据】开始</div>
+        </div>
+      </div>
+
+      <!-- 分析统计 -->
+      <div id="analytics" class="ops-section">
+        <h2>分析统计</h2>
+        <div id="analyticsContainer">
+          <div class="ops-loading">准备加载...</div>
+        </div>
+      </div>
+
+      <!-- 效果分析 -->
+      <div id="effect-analysis" class="ops-section">
+        <h2>📈 效果分析</h2>
+        <div class="stats-grid" id="effectStatsGrid">
+          <div class="stat-card">
+            <div class="stat-card-label">满意度得分</div>
+            <div class="stat-card-value" id="satisfactionScore">-</div>
           </div>
-          <div id="chatRecordsContainer">
-            <div class="loading">点击【查询】开始</div>
+          <div class="stat-card">
+            <div class="stat-card-label">点赞数</div>
+            <div class="stat-card-value" id="upCount">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">点踩数</div>
+            <div class="stat-card-value" id="downCount">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">采纳率</div>
+            <div class="stat-card-value" id="adoptionRate">-</div>
           </div>
         </div>
+        <div id="effectChartContainer" style="height: 300px; margin-bottom: 20px;"></div>
+        <div id="effectDetailContainer"></div>
+      </div>
 
-        <!-- Chunk 追踪热度 -->
-        <div id="chunk-tracking" class="ops-section">
-          <h2>Chunk 追踪热度</h2>
-          <div style="margin-bottom: 16px;">
-            <label style="margin-right: 16px;">
-              排序方式：
-              <select id="sortBy" style="padding: 6px 8px;">
-                <option value="usageCount">使用次数</option>
-                <option value="avgScore">平均评分</option>
-                <option value="lastUsed">最近使用</option>
-              </select>
-            </label>
-            <button id="loadChunksBtn" style="padding: 6px 12px; background: var(--primary-color, #007bff); color: white; border: none; border-radius: 4px; cursor: pointer;">
-              加载数据
-            </button>
+      <!-- 能力运营分析 -->
+      <div id="capability-analysis" class="ops-section">
+        <h2>⚡ 能力运营分析</h2>
+        <div class="stats-grid" id="capStatsGrid">
+          <div class="stat-card">
+            <div class="stat-card-label">总调用次数</div>
+            <div class="stat-card-value" id="totalCalls">-</div>
           </div>
-          <div id="chunkTrackingContainer">
-            <div class="loading">点击【加载数据】开始</div>
+          <div class="stat-card">
+            <div class="stat-card-label">成功率</div>
+            <div class="stat-card-value" id="successRate">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">平均耗时</div>
+            <div class="stat-card-value" id="avgLatency">-</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">不同角色</div>
+            <div class="stat-card-value" id="roleCount">-</div>
           </div>
         </div>
+        <div id="capChartContainer" style="height: 300px; margin-bottom: 20px;"></div>
+        <div id="capDetailContainer"></div>
+      </div>
 
-        <!-- 分析统计 -->
-        <div id="analytics" class="ops-section">
-          <h2>分析统计</h2>
-          <div id="analyticsContainer">
-            <div class="loading">准备加载...</div>
+      <!-- 问题定位全链路 -->
+      <div id="full-link" class="ops-section">
+        <h2>🔗 问题定位全链路</h2>
+        <div class="ops-loading" id="linkDefault">选择一个回答记录查看全链路。</div>
+        <div id="linkContainer" style="display:none;">
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label>Session ID：</label>
+            <input type="text" id="linkSessionId" class="form-control" placeholder="输入 Session ID 查看全链路" style="width: 320px; display: inline-block;">
+            <button id="linkQueryBtn" class="btn btn-primary" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">查询</button>
           </div>
+          <div id="linkChain"></div>
         </div>
+      </div>
 
-        <!-- 高频问题 -->
-        <div id="top-questions" class="ops-section">
-          <h2>高频问题排行</h2>
-          <div style="margin-bottom: 16px;">
-            <button id="loadQuestionsBtn" style="padding: 6px 12px; background: var(--primary-color, #007bff); color: white; border: none; border-radius: 4px; cursor: pointer;">
-              加载数据
-            </button>
-          </div>
-          <div id="topQuestionsContainer">
-            <div class="loading">点击【加载数据】开始</div>
-          </div>
+      <!-- 高频问题 -->
+      <div id="top-questions" class="ops-section">
+        <h2>高频问题排行</h2>
+        <div style="margin-bottom: 16px;">
+          <button id="loadQuestionsBtn" class="btn btn-primary" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
+            加载数据
+          </button>
+        </div>
+        <div id="topQuestionsContainer">
+          <div class="ops-loading">点击【加载数据】开始</div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
-  <script src="/js/operations-api-client.js"></script>
-  <script src="/js/operations.js"></script>
+<script src="/js/vendor/bootstrap.bundle.min.js"></script>
+<script src="/js/vendor/sweetalert2.all.min.js"></script>
+<script src="/js/vendor/dompurify.min.js"></script>
+<script src="/js/vendor/toastify.js"></script>
+<link rel="stylesheet" href="/css/vendor/toastify.css">
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('operations');
+  document.querySelector('.operations-container').style.display = 'flex';
+}
+</script>
+<script src="/js/operations-api-client.js"></script>
+<script src="/js/operations.js"></script>
 </body>
 </html>

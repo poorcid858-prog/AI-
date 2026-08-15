@@ -57,8 +57,15 @@ const App = {
       { key: 'dashboard', label: '首页', href: '/dashboard.html', show: true },
       { key: 'workspace', label: '工作台', href: '/workspace.html', show: true },
       { key: 'knowledge', label: '知识库', href: '/knowledge.html', show: true },
+      { key: 'knowledge-quality', label: '知识质量', href: '/knowledge-quality.html', show: u.role === 'admin' || u.role === 'reviewer' },
+      { key: 'capability', label: '能力中心', href: '/capability.html', show: true },
+      { key: 'operations', label: '运营中心', href: '/operations.html', show: u.role === 'admin' || u.role === 'reviewer' },
       { key: 'review', label: '审核', href: '/review.html', show: u.role === 'reviewer' || u.role === 'admin' || u.role === 'guest' },
       { key: 'admin', label: '管理后台', href: '/admin.html', show: u.role === 'admin' || u.role === 'guest' },
+      { key: 'admin-config', label: '系统配置', href: '/admin-config.html', show: u.role === 'admin' },
+      { key: 'admin-model', label: '模型配置', href: '/admin-model.html', show: u.role === 'admin' },
+      { key: 'admin-logs', label: 'AI 日志', href: '/admin-logs.html', show: u.role === 'admin' },
+      { key: 'admin-users', label: '用户管理', href: '/admin-users.html', show: u.role === 'admin' },
     ].filter((n) => n.show);
 
     const el = document.createElement('header');

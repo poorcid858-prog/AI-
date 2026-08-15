@@ -3,24 +3,14 @@
  *
  * 需求 3：AI 客服独立子系统
  * 职责：接收客户问题，通过关键字匹配检索，返回话术或转人工
+ * 数据层：lib/service-store.js（JSON 文件持久化）
  */
 
 const express = require('express');
 const engine = require('../lib/service-engine');
+const serviceStore = require('../lib/service-store');
 
 const router = express.Router();
-
-// 暂时硬编码测试数据（实际应从数据库读取）
-const serviceData = {
-  phrases: [
-    { id: 'p1', keyword: '退款', reply: '我们支持 30 天内无条件退款' },
-    { id: 'p2', keyword: '退货', reply: '退货流程：1. 填写申请 2. 等待审核 3. 上门取件 4. 签收确认' },
-  ],
-  synonyms: {
-    '退货': ['不想要', '能不能退', '寄回去'],
-    '退款': ['退钱', '钱啥时候到'],
-  },
-};
 
 /**
  * POST /api/service-chat/send
@@ -33,21 +23,47 @@ router.post('/send', (req, res) => {
     return res.status(400).json({ ok: false, error: '问题不能为空' });
   }
 
+  // 从持久化存储读取话术和同义词
+  const phrases = serviceStore.listPhrases();
+  const synonyms = serviceStore.listSynonyms();
+
+  // 构建同义词对象（{keyword: [variants]} 格式）
+  const synonymsMap = {};
+  for (const s of synonyms) {
+    synonymsMap[s.keyword] = s.variants || [];
+  }
+
   // 调用核心引擎
-  const result = engine.processQuestion(
-    question,
-    serviceData.synonyms,
-    serviceData.phrases
-  );
+  const result = engine.processQuestion(question, synonymsMap, phrases);
 
   // 补充完整的 phrase 信息到 matches 中
   const enrichedMatches = result.matches.map(match => {
-    const phrase = serviceData.phrases.find(p => p.id === match.id);
+    const phrase = phrases.find(p => p.id === match.id);
     return {
       ...match,
       reply: phrase?.reply || '',
     };
   });
+
+  // 记录聊天日志
+  const matched = enrichedMatches.length > 0;
+  const publicFallback = matched ? enrichedMatches.some(m => {
+    const phrase = phrases.find(p => p.id === m.id);
+    return phrase && phrase.keyword === 'public';
+  }) : false;
+
+  serviceStore.addChatLog({
+    question,
+    matched,
+    matchCount: enrichedMatches.length,
+    keyword: matched ? enrichedMatches[0].keyword : null,
+    publicFallback,
+  });
+
+  // 未命中时记录到未命中池
+  if (!matched) {
+    serviceStore.addUnmatched(question, role || 'cs');
+  }
 
   res.json({
     ok: true,

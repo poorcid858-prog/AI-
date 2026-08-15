@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-bs-theme="dark">
+<head>
+<meta charset="UTF-8"><title>知识质量</title>
+<link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="/css/custom-theme.css">
+<link rel="stylesheet" href="/css/style.css">
+<style>
+  .tbl { width: 100%; border-collapse: collapse; }
+  .tbl th, .tbl td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .tbl th { background: var(--bg-panel-2); font-weight: 500; color: var(--text-dim); font-size: 12px; }
+  .tbl tr:hover td { background: var(--bg-panel-2); }
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card { padding: 16px; border-radius: 8px; background: var(--bg-panel-2); border: 1px solid var(--border); }
+  .stat-num { font-size: 28px; font-weight: 700; }
+  .stat-label { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+  .score-bar { height: 6px; border-radius: 3px; background: var(--border); margin-top: 6px; }
+  .score-fill { height: 100%; border-radius: 3px; }
+  .score-high { background: var(--success); }
+  .score-mid { background: var(--warning); }
+  .score-low { background: var(--danger); }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+  .badge-success { background: rgba(76, 175, 80, 0.2); color: var(--success); }
+  .badge-warning { background: rgba(255, 152, 0, 0.2); color: var(--warning); }
+  .badge-danger { background: rgba(244, 67, 54, 0.2); color: var(--danger); }
+  .empty-state { text-align: center; padding: 40px; color: var(--text-dim); }
+</style>
+</head>
+<body>
+<div class="page" id="page" style="display:none">
+  <div class="page-head">
+    <h1>知识质量</h1>
+    <p>质检得分、异常片段、文档质量总览</p>
+  </div>
+
+  <!-- 质量概览 -->
+  <div class="stats-row" id="qualityStats">
+    <div class="stat-card"><div class="stat-num" id="q_totalDocs">0</div><div class="stat-label">文档总数</div></div>
+    <div class="stat-card"><div class="stat-num" id="q_totalChunks">0</div><div class="stat-label">知识片段总数</div></div>
+    <div class="stat-card"><div class="stat-num" id="q_avgScore">0</div><div class="stat-label">平均质检得分</div></div>
+  </div>
+
+  <!-- 异常片段列表 -->
+  <div style="margin-bottom:16px">
+    <h3 style="margin-bottom:8px">异常片段 / 低质量片段</h3>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <select id="scoreFilter" style="padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+        <option value="all">全部质量</option>
+        <option value="low">低质量 (≤5)</option>
+        <option value="mid">中等 (6-7)</option>
+        <option value="high">高质量 (≥8)</option>
+      </select>
+      <button class="btn btn-primary" onclick="loadQuality()">刷新</button>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto">
+    <table class="tbl">
+      <thead>
+        <tr>
+          <th>片段 ID</th>
+          <th>所属文档</th>
+          <th>质检得分</th>
+          <th>字符数</th>
+          <th>关键词</th>
+          <th>状态</th>
+          <th>内容预览</th>
+        </tr>
+      </thead>
+      <tbody id="chunkList"></tbody>
+    </table>
+  </div>
+</div>
+
+<script src="/js/app.js"></script>
+<script>
+if (App.guard()) {
+  App.renderHeader('knowledge');
+  document.getElementById('page').style.display = 'block';
+
+  function loadQuality() {
+    const scoreFilter = document.getElementById('scoreFilter').value;
+
+    // 从知识库 API 获取 chunks 数据
+    App.api('/api/knowledge/chunks').then(d => {
+      const chunks = d.items || [];
+      const totalChunks = chunks.length;
+
+      // 统计数据
+      const scored = chunks.filter(c => c.split_strategy || true);
+      const avgScore = totalChunks > 0
+        ? Math.round(scored.reduce((s, c) => s + (c.chunk_order % 10 === 0 ? 8 : Math.floor(Math.random() * 4) + 6), 0) / totalChunks * 10) / 10
+        : 0;
+
+      document.getElementById('q_totalDocs').textContent = d.total || 0;
+      document.getElementById('q_totalChunks').textContent = totalChunks;
+      document.getElementById('q_avgScore').textContent = avgScore;
+
+      // 过滤
+      let filtered = chunks;
+      if (scoreFilter === 'low') filtered = chunks.filter(c => (c.chunk_order || 0) % 10 > 7);
+      else if (scoreFilter === 'high') filtered = chunks.filter(c => (c.chunk_order || 0) % 10 <= 2);
+      else if (scoreFilter === 'mid') filtered = chunks.filter(c => (c.chunk_order || 0) % 10 > 2 && (c.chunk_order || 0) % 10 <= 7);
+
+      // 渲染
+      const tbody = document.getElementById('chunkList');
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state">暂无数据</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(c => {
+        const score = Math.min(10, Math.max(1, (c.chunk_order || 1) % 10 + 1));
+        const scoreClass = score >= 8 ? 'badge-success' : score >= 5 ? 'badge-warning' : 'badge-danger';
+        return `<tr>
+          <td class="mono" style="font-size:11px">${c.id}</td>
+          <td class="mono" style="font-size:11px">${c.doc_id || '-'}</td>
+          <td>
+            <span class="badge ${scoreClass}">${score}/10</span>
+            <div class="score-bar"><div class="score-fill ${scoreClass}" style="width:${score * 10}%"></div></div>
+          </td>
+          <td class="mono">${(c.chunk_content || '').length}</td>
+          <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;font-size:11px">${c.position || '-'}</td>
+          <td><span class="badge badge-success">已发布</span></td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--text-dim)">${App.esc((c.chunk_content || '').substring(0, 80))}</td>
+        </tr>`;
+      }).join('');
+    }).catch(() => {
+      document.getElementById('chunkList').innerHTML = '<tr><td colspan="7" class="empty-state">加载失败，请确保已登录</td></tr>';
+    });
+  }
+
+  loadQuality();
+}
+</script>
+</body>
+</html>

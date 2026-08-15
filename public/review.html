@@ -2,15 +2,21 @@
 <html lang="zh-CN" data-bs-theme="dark">
 <head>
 <meta charset="UTF-8"><title>文档审核</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
 <div class="page" id="page" style="display:none">
   <div class="page-head">
-    <h1>文档审核</h1>
+    <h1>审核中心</h1>
     <p>安全分级、是否含敏感字段、是否纳入 RAG 库——你（审核员）说了算。</p>
+  </div>
+
+  <!-- Tab 导航 -->
+  <div class="review-tabs" style="display:flex;gap:0;margin-bottom:20px;border-bottom:1px solid var(--border)">
+    <button class="review-tab" id="tabDocs" style="padding:10px 20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;font-size:14px">文档审核</button>
+    <button class="review-tab" id="tabCapability" style="padding:10px 20px;border:none;background:transparent;color:var(--text-dim);cursor:pointer;border-bottom:2px solid transparent;font-size:14px">能力审核</button>
   </div>
 
   <!-- 搜索和筛选区域（仅在列表视图显示） -->
@@ -40,6 +46,26 @@ if (App.guard()) {
   const idParam = params.get('id');
   let currentPage = 1;
   let currentSearch = '';
+  let currentTab = 'docs'; // 'docs' | 'capability'
+
+  // Tab 切换
+  function switchTab(tab) {
+    currentTab = tab;
+    document.querySelectorAll('.review-tab').forEach((el) => {
+      el.style.color = el.id === 'tab' + (tab === 'docs' ? 'Docs' : 'Capability') ? 'var(--text)' : 'var(--text-dim)';
+      el.style.borderBottomColor = el.id === 'tab' + (tab === 'docs' ? 'Docs' : 'Capability') ? 'var(--accent)' : 'transparent';
+    });
+    if (tab === 'docs') {
+      document.getElementById('filterArea').style.display = 'block';
+      loadList();
+    } else {
+      document.getElementById('filterArea').style.display = 'none';
+      loadCapabilityReview();
+    }
+  }
+
+  document.getElementById('tabDocs').onclick = () => switchTab('docs');
+  document.getElementById('tabCapability').onclick = () => switchTab('capability');
 
   function formatDate(dateStr) {
     const d = new Date(dateStr);
@@ -193,10 +219,17 @@ if (App.guard()) {
           ${canReview ? `
             <textarea id="note" placeholder="审核备注（可选）" rows="3"></textarea>
             <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn" id="approveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过并纳入 RAG 库</button>
+              <button class="btn" id="approveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过</button>
               <button class="btn" id="rejectBtn" style="background:var(--danger);border-color:var(--danger);color:#fff">驳回</button>
             </div>
-          ` : `<div class="muted">${!isPending ? '该文档已审核' : App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>`}
+          ` : (isPending ? `<div class="muted">${App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>` : '')}
+          ${doc.status === 'approved' && doc.lifecycleStatus !== 'published' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
+            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+              <p class="text-muted small">文档已审核通过，需发布后才可被 AI 检索使用</p>
+              <button class="btn" id="publishBtn" style="background:var(--accent);border-color:var(--accent);color:#fff">发布到 RAG 库</button>
+            </div>
+          ` : ''}
+          ${doc.lifecycleStatus === 'published' ? '<div class="muted" style="margin-top:8px">✅ 已发布，可被 AI 检索使用</div>' : ''}
         </div>
       `;
 
@@ -204,6 +237,18 @@ if (App.guard()) {
         document.getElementById('approveBtn').onclick = () => decide('approved');
         document.getElementById('rejectBtn').onclick = () => decide('rejected');
       }
+
+      // 发布按钮
+      const publishBtn = document.getElementById('publishBtn');
+      if (publishBtn) {
+        publishBtn.onclick = () => {
+          App.api('/api/documents/' + idParam + '/publish', { method: 'POST' }).then(() => {
+            App.toast('文档已发布到 RAG 库', 'success');
+            setTimeout(() => location.reload(), 800);
+          }).catch((e) => App.toast(e.message, 'error'));
+        };
+      }
+    });
     });
   }
 
@@ -223,10 +268,113 @@ if (App.guard()) {
     loadDetail();
   } else {
     document.getElementById('filterArea').style.display = 'block';
-    loadList();
+    // 激活文档审核Tab
+    switchTab('docs');
+  }
+
+  // ============ 能力审核 ============
+
+  function loadCapabilityReview() {
+    const box = document.getElementById('content');
+    box.innerHTML = '<div class="muted">加载待审核能力列表…</div>';
+
+    App.api('/api/capabilities/pending-review').then((d) => {
+      const list = d.capabilities || [];
+      if (list.length === 0) {
+        box.innerHTML = '<div class="alert alert-info">暂无待审核能力</div>';
+        return;
+      }
+      const rows = list.map((c) => {
+        const content = c.draft ? JSON.stringify(c.draft.content).slice(0, 200) : '';
+        return `<tr>
+          <td><strong>${App.esc(c.name)}</strong><br><span class="text-muted small">${App.esc(c.id)}</span></td>
+          <td><span class="badge bg-secondary">${App.esc(c.type)}</span></td>
+          <td>${App.esc(c.review?.submittedBy || '-')}</td>
+          <td class="mono">${c.review?.submittedAt ? new Date(c.review.submittedAt).toLocaleString('zh-CN') : '-'}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary" onclick="showCapabilityReviewDetail('${c.id}')">审核</button>
+          </td>
+        </tr>`;
+      }).join('');
+      box.innerHTML = `
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr>
+              <th>能力名称</th><th>类型</th><th>提交人</th><th>提交时间</th><th>操作</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+        <div class="text-muted small">共 ${list.length} 项待审核</div>`;
+    }).catch((e) => {
+      box.innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
+    });
+  }
+
+  function showCapabilityReviewDetail(capId) {
+    const box = document.getElementById('content');
+    box.innerHTML = '<div class="muted">加载能力详情…</div>';
+
+    Promise.all([
+      App.api('/api/capabilities/' + capId),
+      App.api('/api/capabilities/' + capId + '/versions'),
+    ]).then(([capData, versionData]) => {
+      const c = capData.capability;
+      const versions = versionData.versions || [];
+      const draftContent = c.draft ? JSON.stringify(c.draft.content, null, 2) : '(无草稿)';
+      const pubContent = c.published ? JSON.stringify(c.published.content, null, 2) : '(无生效版)';
+
+      box.innerHTML = `
+        <div class="card" style="margin-bottom:14px">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <div style="font-size:18px;font-weight:500">${App.esc(c.name)}</div>
+              <div class="muted">
+                <span class="mono">${c.id}</span> · ${App.esc(c.type)} · ${App.esc(c.description || '')}
+              </div>
+            </div>
+            <button class="btn btn-sm" onclick="switchTab('capability')">返回列表</button>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <h3>草稿内容</h3>
+          <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word">${App.esc(draftContent)}</pre>
+        </div>
+
+        <div class="card" style="margin-bottom:14px">
+          <h3>生效版（当前）</h3>
+          <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)">${App.esc(pubContent)}</pre>
+        </div>
+
+        <div class="card">
+          <h3>审核决定</h3>
+          <textarea id="capReviewNote" placeholder="审核备注（可选）" rows="3"></textarea>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button class="btn" id="capApproveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过</button>
+            <button class="btn" id="capRejectBtn" style="background:var(--danger);border-color:var(--danger);color:#fff">驳回</button>
+          </div>
+        </div>
+      `;
+      document.getElementById('capApproveBtn').onclick = () => decideCapabilityReview(capId, 'approved');
+      document.getElementById('capRejectBtn').onclick = () => decideCapabilityReview(capId, 'rejected');
+    }).catch((e) => {
+      box.innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
+    });
+  }
+
+  function decideCapabilityReview(capId, decision) {
+    const note = document.getElementById('capReviewNote')?.value || '';
+    App.api('/api/capabilities/' + capId + '/review-capability', {
+      method: 'POST',
+      body: JSON.stringify({ decision, note }),
+    }).then(() => {
+      App.toast(decision === 'approved' ? '能力审核通过' : '能力已驳回', 'success');
+      setTimeout(() => switchTab('capability'), 800);
+    }).catch((e) => App.toast(e.message, 'error'));
   }
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/js/vendor/bootstrap.bundle.min.js"></script>
 </body>
 </html>

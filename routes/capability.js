@@ -231,4 +231,39 @@ router.post('/diff', auth.requireAuth, (req, res) => {
   }
 });
 
+// ============================================================
+// 审核管理（任务 4）
+// ============================================================
+
+// 提交审核
+router.post('/:id/submit-review', requireWrite, (req, res) => {
+  try {
+    const result = cap.submitForReview(req.params.id, req.user.username);
+    res.json({ ok: true, capability: result });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
+// 待审核能力列表
+router.get('/pending-review', auth.requireAuth, auth.requireReview, (req, res) => {
+  try {
+    const list = cap.getPendingReviewCapabilities();
+    res.json({ ok: true, capabilities: list, total: list.length });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
+// 审核决定
+router.post('/:id/review-capability', auth.requireAuth, auth.requireReview, (req, res) => {
+  try {
+    const { decision, note } = req.body || {};
+    const result = cap.reviewCapability(req.params.id, decision, req.user.username, note);
+    res.json({ ok: true, capability: result });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
 module.exports = router;

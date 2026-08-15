@@ -370,6 +370,47 @@ router.get('/raw/:docId/layers', (req, res) => {
 });
 
 // ============================================================
+// 路由：下架 / 替换 / 归档操作
+// ============================================================
+
+/**
+ * POST /api/knowledge/archive/:stdId
+ * 下架文档（归档）
+ */
+router.post('/archive/:stdId', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+    const archived = kl.archiveStd(req.params.stdId);
+    res.json({ ok: true, data: { id: archived.id, status: archived.status }, message: '文档已下架' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/knowledge/replace/:rawId
+ * 替换文档（新建版本）
+ */
+router.post('/replace/:rawId', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+    const { content } = req.body;
+    if (!content) return res.status(400).json({ ok: false, error: '请提供新内容' });
+    const raw = kl.getRaw(req.params.rawId);
+    if (!raw) return res.status(404).json({ ok: false, error: '文档不存在' });
+    const std = kl.createStdVersion(raw.id, { content });
+    kl.setStdStatus(std.id, kl.STD_STATUS.PENDING);
+    res.json({ ok: true, data: { id: std.id, rawId: raw.id, status: std.status }, message: '新版本已创建，等待审核' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
 // 错误处理
 // ============================================================
 

@@ -877,3 +877,66 @@ test('T35：deleteCapability 删除创建的能力', () => {
     assert.strictEqual(inList, false, '能力应从列表中移除');
   });
 });
+
+// ============================================================
+// T38-T41. 审核流程（任务 4）
+// ============================================================
+
+test('T38：submitForReview 提交审核，草稿→待审核', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    cap.editDraft('skill_product', { title: '待审核' }, 'admin');
+    const result = cap.submitForReview('skill_product', 'admin');
+    assert.ok(result.review, '应有 review 字段');
+    assert.strictEqual(result.review.status, 'pending_review', '状态应为 pending_review');
+    assert.strictEqual(result.review.submittedBy, 'admin');
+    assert.ok(result.review.submittedAt, '应有提交时间');
+  });
+});
+
+test('T39：getPendingReviewCapabilities 返回待审核列表', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    assert.strictEqual(cap.getPendingReviewCapabilities().length, 0);
+    cap.editDraft('skill_product', { title: '待审核' }, 'admin');
+    cap.submitForReview('skill_product', 'admin');
+    const pending = cap.getPendingReviewCapabilities();
+    assert.strictEqual(pending.length, 1);
+    assert.strictEqual(pending[0].id, 'skill_product');
+  });
+});
+
+test('T40：reviewCapability 审核通过→approved，驳回→rejected', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    cap.editDraft('skill_product', { title: '待审核' }, 'admin');
+    cap.submitForReview('skill_product', 'admin');
+    const approved = cap.reviewCapability('skill_product', 'approved', 'reviewer', '内容合格');
+    assert.strictEqual(approved.review.status, 'approved');
+    assert.strictEqual(approved.review.reviewedBy, 'reviewer');
+    assert.ok(approved.review.approvedContent, '通过后应有 approvedContent 快照');
+
+    cap.discardDraft('skill_product', 'admin');
+    cap.editDraft('skill_test', { title: '待审核2' }, 'admin');
+    cap.submitForReview('skill_test', 'admin');
+    const rejected = cap.reviewCapability('skill_test', 'rejected', 'reviewer', '内容不足');
+    assert.strictEqual(rejected.review.status, 'rejected');
+    assert.strictEqual(rejected.review.note, '内容不足');
+  });
+});
+
+test('T41：边界——无草稿提交审核→400；无待审核时审核→400', () => {
+  withTempDataDir(() => {
+    const cap = require('../lib/capability-engine');
+    assert.throws(
+      () => cap.submitForReview('skill_product', 'admin'),
+      (e) => e.status === 400,
+      '无草稿提交审核应抛 400'
+    );
+    assert.throws(
+      () => cap.reviewCapability('skill_product', 'approved', 'reviewer'),
+      (e) => e.status === 400,
+      '无待审核时审核应抛 400'
+    );
+  });
+});

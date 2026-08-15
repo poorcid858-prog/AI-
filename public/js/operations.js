@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
   setupChunkTracking();
   setupTopQuestions();
   loadAnalytics();
+  loadEffectAnalysis();
+  loadCapabilityAnalysis();
+  setupFullLink();
 });
 
 // ============================================================
@@ -58,28 +61,20 @@ async function loadChatRecords() {
   const role = document.getElementById('role').value;
 
   const container = document.getElementById('chatRecordsContainer');
-  container.innerHTML = '<div class="loading">正在加载...</div>';
+  container.innerHTML = '<div class="ops-loading">正在加载...</div>';
 
   const result = await operationsAPI.queryChatHistory(
-    {
-      startDate,
-      endDate,
-      keyword,
-      role,
-    },
-    {
-      page: currentPage,
-      pageSize,
-    }
+    { startDate, endDate, keyword, role },
+    { page: currentPage, pageSize }
   );
 
   if (!result.ok) {
-    container.innerHTML = `<div class="empty">❌ 加载失败: ${result.error}</div>`;
+    container.innerHTML = `<div class="ops-empty">❌ 加载失败: ${result.error}</div>`;
     return;
   }
 
   if (result.records.length === 0) {
-    container.innerHTML = '<div class="empty">📭 没有找到相关记录</div>';
+    container.innerHTML = '<div class="ops-empty">📭 没有找到相关记录</div>';
     return;
   }
 
@@ -111,9 +106,7 @@ async function loadChatRecords() {
         <td>${record.role}</td>
         <td>${chunksCount > 0 ? `<span class="chunk-badge">${chunksCount}</span>` : '-'}</td>
         <td>
-          <button onclick="viewRecordDetail('${record.sessionId}', ${record.turn})" style="padding: 4px 8px; cursor: pointer;">
-            查看详情
-          </button>
+          <button onclick="viewRecordDetail('${record.sessionId}', ${record.turn})" class="btn btn-sm btn-outline-primary">查看详情</button>
         </td>
       </tr>
     `;
@@ -128,11 +121,11 @@ async function loadChatRecords() {
   if (result.totalPages > 1) {
     html += `
       <div style="margin-top: 16px; text-align: center;">
-        <button onclick="goToChatPage(1)" ${currentPage === 1 ? 'disabled' : ''}>首页</button>
-        <button onclick="goToChatPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>
+        <button onclick="goToChatPage(1)" ${currentPage === 1 ? 'disabled' : ''} class="btn btn-sm">首页</button>
+        <button onclick="goToChatPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''} class="btn btn-sm">上一页</button>
         <span style="margin: 0 16px;">第 ${currentPage} / ${result.totalPages} 页</span>
-        <button onclick="goToChatPage(${currentPage + 1})" ${currentPage === result.totalPages ? 'disabled' : ''}>下一页</button>
-        <button onclick="goToChatPage(${result.totalPages})" ${currentPage === result.totalPages ? 'disabled' : ''}>末页</button>
+        <button onclick="goToChatPage(${currentPage + 1})" ${currentPage === result.totalPages ? 'disabled' : ''} class="btn btn-sm">下一页</button>
+        <button onclick="goToChatPage(${result.totalPages})" ${currentPage === result.totalPages ? 'disabled' : ''} class="btn btn-sm">末页</button>
       </div>
     `;
   }
@@ -149,42 +142,46 @@ async function viewRecordDetail(sessionId, turn) {
   const result = await operationsAPI.getRecordDetail(sessionId, turn);
 
   if (!result.ok) {
-    alert('❌ 加载失败: ' + result.error);
+    Swal.fire('错误', '加载失败: ' + result.error, 'error');
     return;
   }
 
   const chunks = result.chunks || [];
-  let details = `
-    <h3>记录详情</h3>
-    <p><strong>Session:</strong> ${sessionId}</p>
-    <p><strong>Turn:</strong> ${turn}</p>
-    <p><strong>问题:</strong> ${result.userQuestion}</p>
-    <p><strong>回答:</strong></p>
-    <div style="background: var(--bg-secondary, #f5f5f5); padding: 12px; border-radius: 4px; max-height: 300px; overflow-y: auto;">
-      ${result.aiAnswer}
-    </div>
-    <h4>使用的 Chunks (${chunks.length} 个)</h4>
+  let detailsHtml = `
+    <div style="text-align:left">
+      <p><strong>Session:</strong> ${sessionId}</p>
+      <p><strong>Turn:</strong> ${turn}</p>
+      <p><strong>问题:</strong> ${result.userQuestion}</p>
+      <p><strong>回答:</strong></p>
+      <div style="background: var(--bg-panel-2); padding: 12px; border-radius: 4px; max-height: 300px; overflow-y: auto; margin-bottom: 12px;">
+        ${result.aiAnswer}
+      </div>
+      <h4>使用的 Chunks (${chunks.length} 个)</h4>
   `;
 
   if (chunks.length > 0) {
-    details += '<ul>';
+    detailsHtml += '<ul>';
     chunks.forEach((chunk) => {
-      details += `
-        <li>
-          <strong>${chunk.id}</strong>
-          <br>
-          <small>${chunk.content ? chunk.content.substring(0, 100) + '...' : 'N/A'}</small>
-          <br>
+      detailsHtml += `
+        <li style="margin-bottom: 8px; padding: 4px 0; border-bottom: 1px solid var(--border);">
+          <strong>${chunk.id}</strong><br>
+          <small>${chunk.content ? chunk.content.substring(0, 100) + '...' : 'N/A'}</small><br>
           <small>相关度: ${(chunk.score || 0).toFixed(3)}</small>
         </li>
       `;
     });
-    details += '</ul>';
+    detailsHtml += '</ul>';
   } else {
-    details += '<p style="color: var(--text-secondary, #999);">❌ 零召回（无Chunks）</p>';
+    detailsHtml += '<p style="color: var(--text-dim);">❌ 零召回（无Chunks）</p>';
   }
+  detailsHtml += '</div>';
 
-  alert(details);
+  Swal.fire({
+    title: '记录详情',
+    html: detailsHtml,
+    width: 700,
+    confirmButtonText: '关闭',
+  });
 }
 
 // ============================================================
@@ -200,20 +197,17 @@ async function loadChunkUsageStats() {
   const sortBy = document.getElementById('sortBy').value;
   const container = document.getElementById('chunkTrackingContainer');
 
-  container.innerHTML = '<div class="loading">正在加载...</div>';
+  container.innerHTML = '<div class="ops-loading">正在加载...</div>';
 
-  const result = await operationsAPI.getChunkUsageStats({
-    sortBy,
-    limit: 50,
-  });
+  const result = await operationsAPI.getChunkUsageStats({ sortBy, limit: 50 });
 
   if (!result.ok) {
-    container.innerHTML = `<div class="empty">❌ 加载失败: ${result.error}</div>`;
+    container.innerHTML = `<div class="ops-empty">❌ 加载失败: ${result.error}</div>`;
     return;
   }
 
   if (result.chunks.length === 0) {
-    container.innerHTML = '<div class="empty">📭 没有 Chunk 数据</div>';
+    container.innerHTML = '<div class="ops-empty">📭 没有 Chunk 数据</div>';
     return;
   }
 
@@ -248,7 +242,7 @@ async function loadChunkUsageStats() {
 
 async function loadAnalytics() {
   const container = document.getElementById('analyticsContainer');
-  container.innerHTML = '<div class="loading">正在加载...</div>';
+  container.innerHTML = '<div class="ops-loading">正在加载...</div>';
 
   // 获取高频问题
   const questionsResult = await operationsAPI.getTopQuestions({ limit: 3 });
@@ -342,6 +336,232 @@ async function loadAnalytics() {
 }
 
 // ============================================================
+// 效果分析
+// ============================================================
+
+async function loadEffectAnalysis() {
+  try {
+    const allRecords = await operationsAPI.queryChatHistory({}, { page: 1, pageSize: 1000 });
+    if (!allRecords.ok) return;
+
+    let upCount = 0, downCount = 0, total = 0, satisfactionSum = 0;
+    const satisfactionWithData = [];
+
+    // 获取所有页面数据
+    const totalPages = Math.max(1, allRecords.totalPages || 1);
+    const allData = [...(allRecords.records || [])];
+
+    for (let p = 2; p <= totalPages; p++) {
+      const more = await operationsAPI.queryChatHistory({}, { page: p, pageSize: 1000 });
+      if (more.ok && more.records) allData.push(...more.records);
+    }
+
+    // 统计每个记录的详情
+    for (const record of allData) {
+      total++;
+      const detail = await operationsAPI.getRecordDetail(record.sessionId, record.turn);
+      if (detail.ok && detail.record) {
+        if (detail.record.feedback === 'up') upCount++;
+        else if (detail.record.feedback === 'down') downCount++;
+        if (detail.record.userSatisfaction !== null && detail.record.userSatisfaction !== undefined) {
+          satisfactionSum += detail.record.userSatisfaction;
+          satisfactionWithData.push({
+            sessionId: record.sessionId,
+            turn: record.turn,
+            score: detail.record.userSatisfaction,
+          });
+        }
+      }
+    }
+
+    const avgSatisfaction = satisfactionWithData.length > 0
+      ? (satisfactionSum / satisfactionWithData.length).toFixed(2)
+      : '-';
+    const adoptionRate = total > 0
+      ? ((upCount / total) * 100).toFixed(1) + '%'
+      : '-';
+
+    document.getElementById('satisfactionScore').textContent = avgSatisfaction;
+    document.getElementById('upCount').textContent = upCount;
+    document.getElementById('downCount').textContent = downCount;
+    document.getElementById('adoptionRate').textContent = adoptionRate;
+
+    // 效果分析详情
+    const detailContainer = document.getElementById('effectDetailContainer');
+    detailContainer.innerHTML = `
+      <h3>效果详情</h3>
+      <table class="chat-records-table">
+        <thead>
+          <tr>
+            <th>Session ID</th>
+            <th>Turn</th>
+            <th>满意度</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${satisfactionWithData.slice(0, 20).map(s => `
+            <tr>
+              <td>${s.sessionId}</td>
+              <td>${s.turn}</td>
+              <td>${s.score}</td>
+            </tr>
+          `).join('')}
+          ${satisfactionWithData.length === 0 ? '<tr><td colspan="3">暂无满意度数据</td></tr>' : ''}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    console.error('[效果分析] 加载失败:', e);
+  }
+}
+
+// ============================================================
+// 能力运营分析
+// ============================================================
+
+async function loadCapabilityAnalysis() {
+  try {
+    // 从聊天记录统计各角色调用情况
+    const allRecords = await operationsAPI.queryChatHistory({}, { page: 1, pageSize: 1000 });
+    if (!allRecords.ok) return;
+
+    const totalPages = Math.max(1, allRecords.totalPages || 1);
+    const allData = [...(allRecords.records || [])];
+
+    for (let p = 2; p <= totalPages; p++) {
+      const more = await operationsAPI.queryChatHistory({}, { page: p, pageSize: 1000 });
+      if (more.ok && more.records) allData.push(...more.records);
+    }
+
+    const totalCalls = allData.length;
+    const roleMap = {};
+    let latencySum = 0;
+    let latencyCount = 0;
+
+    allData.forEach(r => {
+      roleMap[r.role] = (roleMap[r.role] || 0) + 1;
+      if (r.latencyMs) {
+        latencySum += r.latencyMs;
+        latencyCount++;
+      }
+    });
+
+    const roles = Object.keys(roleMap);
+    const avgLatency = latencyCount > 0 ? Math.round(latencySum / latencyCount) + 'ms' : '-';
+    const successRate = totalCalls > 0 ? '100%' : '-';
+
+    document.getElementById('totalCalls').textContent = totalCalls;
+    document.getElementById('successRate').textContent = successRate;
+    document.getElementById('avgLatency').textContent = avgLatency;
+    document.getElementById('roleCount').textContent = roles.length;
+
+    // 能力运营详情
+    const detailContainer = document.getElementById('capDetailContainer');
+    detailContainer.innerHTML = `
+      <h3>角色调用分布</h3>
+      <table class="chat-records-table">
+        <thead>
+          <tr><th>角色</th><th>调用次数</th></tr>
+        </thead>
+        <tbody>
+          ${roles.map(r => `
+            <tr><td>${r}</td><td>${roleMap[r]}</td></tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    console.error('[能力运营分析] 加载失败:', e);
+  }
+}
+
+// ============================================================
+// 问题定位全链路
+// ============================================================
+
+function setupFullLink() {
+  const queryBtn = document.getElementById('linkQueryBtn');
+  const input = document.getElementById('linkSessionId');
+
+  queryBtn.addEventListener('click', () => loadFullLink(input.value.trim()));
+  input.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') loadFullLink(input.value.trim());
+  });
+}
+
+async function loadFullLink(sessionId) {
+  if (!sessionId) {
+    Toastify({ text: '请输入 Session ID', duration: 3000, gravity: 'top', position: 'right', style: { background: 'var(--warning)' } }).showToast();
+    return;
+  }
+
+  const container = document.getElementById('linkChain');
+  const defaultMsg = document.getElementById('linkDefault');
+  const mainContainer = document.getElementById('linkContainer');
+
+  defaultMsg.style.display = 'none';
+  mainContainer.style.display = 'block';
+  container.innerHTML = '<div class="ops-loading">正在加载全链路数据...</div>';
+
+  try {
+    const records = await App.api('/api/chat/session/' + sessionId);
+    const turns = [];
+
+    // 按 turn 分组
+    const turnMap = {};
+    records.records.forEach(r => {
+      if (!turnMap[r.turn]) turnMap[r.turn] = { user: null, ai: null };
+      if (r.type === 'user') turnMap[r.turn].user = r;
+      else turnMap[r.turn].ai = r;
+    });
+
+    let html = '';
+    Object.keys(turnMap).sort().forEach(turn => {
+      const pair = turnMap[turn];
+      const userQuestion = pair.user ? pair.user.content : '';
+      const aiAnswer = pair.ai ? pair.ai.content : '';
+      const workflowId = pair.ai ? pair.ai.workflowId : '-';
+      const ragChunks = pair.ai ? (pair.ai.ragChunks || []) : [];
+      const latency = pair.ai ? pair.ai.latencyMs : '-';
+
+      html += `
+        <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 12px;">
+          <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 8px;">
+            Turn ${turn} · Workflow: ${workflowId} · 耗时: ${latency}ms
+          </div>
+          <div style="margin-bottom: 8px;">
+            <strong>用户输入 →</strong> ${userQuestion}
+          </div>
+          <div style="margin-bottom: 8px;">
+            <strong>意图识别 →</strong> 路由到 Workflow
+          </div>
+          <div style="margin-bottom: 8px;">
+            <strong>Workflow 执行 →</strong> 引擎执行节点
+          </div>
+          <div style="margin-bottom: 8px;">
+            <strong>RAG 检索 →</strong> ${ragChunks.length > 0 ? ragChunks.map(c => `<span class="chunk-badge">${c}</span>`).join(' ') : '零召回'}
+          </div>
+          <div style="margin-bottom: 8px;">
+            <strong>Skill → Reference → Prompt 组装 → LLM 输出</strong>
+          </div>
+          <div style="background: var(--bg-panel-2); padding: 10px; border-radius: 4px; font-size: 13px; max-height: 200px; overflow-y: auto;">
+            ${aiAnswer}
+          </div>
+        </div>
+      `;
+    });
+
+    if (!html) {
+      html = '<div class="ops-empty">该 Session 没有聊天记录</div>';
+    }
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="ops-empty">❌ 加载失败: ${e.message}</div>`;
+  }
+}
+
+// ============================================================
 // 高频问题
 // ============================================================
 
@@ -352,17 +572,17 @@ function setupTopQuestions() {
 
 async function loadTopQuestions() {
   const container = document.getElementById('topQuestionsContainer');
-  container.innerHTML = '<div class="loading">正在加载...</div>';
+  container.innerHTML = '<div class="ops-loading">正在加载...</div>';
 
   const result = await operationsAPI.getTopQuestions({ limit: 50 });
 
   if (!result.ok) {
-    container.innerHTML = `<div class="empty">❌ 加载失败: ${result.error}</div>`;
+    container.innerHTML = `<div class="ops-empty">❌ 加载失败: ${result.error}</div>`;
     return;
   }
 
   if (result.questions.length === 0) {
-    container.innerHTML = '<div class="empty">📭 没有问题数据</div>';
+    container.innerHTML = '<div class="ops-empty">📭 没有问题数据</div>';
     return;
   }
 

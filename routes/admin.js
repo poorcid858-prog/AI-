@@ -6,6 +6,7 @@ const docs = require('../lib/documents');
 const qa = require('../lib/qa-store');
 const promptTemplates = require('../lib/prompt-templates');
 const adminConfig = require('../lib/admin-config');
+const config = require('../config');
 const router = express.Router();
 
 router.get('/users', auth.requireAuth, (req, res) => {
@@ -305,6 +306,140 @@ router.delete('/system-config/:key', auth.requireAuth, (req, res) => {
   const success = adminConfig.deleteSystemConfig(key);
   if (!success) return res.status(404).json({ ok: false, error: '配置项不存在' });
   res.json({ ok: true });
+});
+
+// ========== 模型配置 API ==========
+
+router.get('/models', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const models = adminConfig.listModels();
+  res.json({ ok: true, models });
+});
+
+router.get('/models/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const model = adminConfig.getModel(req.params.id);
+  if (!model) return res.status(404).json({ ok: false, error: '模型不存在' });
+  res.json({ ok: true, model });
+});
+
+router.post('/models', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可创建' });
+  const { name, type, apiUrl, apiKey, temperature, maxTokens, enabled } = req.body;
+  if (!name) return res.status(400).json({ ok: false, error: '模型名称不能为空' });
+  const model = adminConfig.createModel({ name, type, apiUrl, apiKey, temperature, maxTokens, enabled });
+  res.status(201).json({ ok: true, model });
+});
+
+router.put('/models/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const model = adminConfig.updateModel(req.params.id, req.body);
+  if (!model) return res.status(404).json({ ok: false, error: '模型不存在' });
+  res.json({ ok: true, model });
+});
+
+router.delete('/models/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除' });
+  const success = adminConfig.deleteModel(req.params.id);
+  if (!success) return res.status(404).json({ ok: false, error: '模型不存在' });
+  res.json({ ok: true });
+});
+
+// ========== AI 日志 API ==========
+
+router.get('/ai-logs', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const limit = parseInt(req.query.limit) || 100;
+  const offset = parseInt(req.query.offset) || 0;
+  const logs = adminConfig.listAiLogs(limit, offset);
+  res.json({ ok: true, logs, total: adminConfig.getAllAiLogs().length });
+});
+
+router.get('/ai-logs/stats', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看' });
+  const stats = adminConfig.getAiLogStats();
+  res.json({ ok: true, stats });
+});
+
+// ========== 用户管理 API ==========
+
+router.post('/users', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可创建' });
+  const { username, password, name, role, bizLine, department } = req.body;
+  if (!username || !password || !name || !role) {
+    return res.status(400).json({ ok: false, error: '用户名、密码、姓名、角色为必填项' });
+  }
+  const validRoles = Object.keys(config.roles);
+  if (!validRoles.includes(role)) {
+    return res.status(400).json({ ok: false, error: `角色非法，可选: ${validRoles.join(', ')}` });
+  }
+  const users = auth.loadUsers();
+  if (users.find(u => u.username === username)) {
+    return res.status(409).json({ ok: false, error: '用户名已存在' });
+  }
+  const maxId = users.reduce((m, u) => Math.max(m, parseInt((u.id || 'u_000').replace('u_', '')) || 0), 0);
+  const newId = `u_${String(maxId + 1).padStart(3, '0')}`;
+  const newUser = {
+    id: newId,
+    username,
+    password,
+    name,
+    role,
+    bizLine: bizLine || 'all',
+    department: department || '',
+    avatar: name[0] || 'U',
+    readonly: false,
+  };
+  users.push(newUser);
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(config.paths.users, JSON.stringify(users, null, 2), 'utf8');
+    auth.clearUsersCache();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: '写入用户文件失败: ' + e.message });
+  }
+  res.status(201).json({ ok: true, user: auth.publicView(newUser) });
+});
+
+router.put('/users/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
+  const users = auth.loadUsers();
+  const idx = users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ ok: false, error: '用户不存在' });
+  const { name, role, bizLine, department, password } = req.body;
+  if (name !== undefined) users[idx].name = name;
+  if (role !== undefined) {
+    const validRoles = Object.keys(config.roles);
+    if (!validRoles.includes(role)) return res.status(400).json({ ok: false, error: `角色非法` });
+    users[idx].role = role;
+  }
+  if (bizLine !== undefined) users[idx].bizLine = bizLine;
+  if (department !== undefined) users[idx].department = department;
+  if (password !== undefined) users[idx].password = password;
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(config.paths.users, JSON.stringify(users, null, 2), 'utf8');
+    auth.clearUsersCache();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: '写入用户文件失败: ' + e.message });
+  }
+  res.json({ ok: true, user: auth.publicView(users[idx]) });
+});
+
+router.delete('/users/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除' });
+  const users = auth.loadUsers();
+  const idx = users.findIndex(u => u.id === req.params.id);
+  if (idx === -1) return res.status(404).json({ ok: false, error: '用户不存在' });
+  const deleted = users.splice(idx, 1);
+  try {
+    const fs = require('fs');
+    fs.writeFileSync(config.paths.users, JSON.stringify(users, null, 2), 'utf8');
+    auth.clearUsersCache();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: '写入用户文件失败: ' + e.message });
+  }
+  res.json({ ok: true, deleted: auth.publicView(deleted[0]) });
 });
 
 module.exports = router;

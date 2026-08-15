@@ -1,7 +1,7 @@
 /**
- * 能力中心前端功能测试 - TDD
+ * 能力中心前端功能测试 - 更新为聚合视图+创建向导
  *
- * 流程：先写测试，确认失败 → 创建文件 → 运行测试通过
+ * 验证新 capability.html 的结构和功能
  */
 
 const test = require('node:test');
@@ -14,80 +14,64 @@ test('ability-center: HTML 文件应该存在', (t) => {
   assert(fs.existsSync(htmlPath), 'public/capability.html 应该存在');
 });
 
-test('ability-center: JS 文件应该存在', (t) => {
-  const jsPath = path.join(__dirname, '../public/js/capability.js');
-  assert(fs.existsSync(jsPath), 'public/js/capability.js 应该存在');
+test('ability-center: HTML 应该包含聚合视图结构', (t) => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/capability.html'), 'utf-8');
+
+  assert(html.includes('能力中心'), '页面标题应含能力中心');
+  assert(html.includes('新建能力'), '应有新建能力按钮');
+  assert(html.includes('newCapBtn'), '应有新建按钮 ID');
+  assert(html.includes('capabilityListArea'), '应有能力列表区域');
+  assert(html.includes('detailPanel'), '应有详情面板');
+  assert(html.includes('newCapModal'), '应有新建能力模态框');
+  assert(html.includes('loadCapabilities'), '应有 loadCapabilities 函数');
+  assert(html.includes('showCapabilityDetail'), '应有 showCapabilityDetail 函数');
+  assert(html.includes('/api/capabilities'), '应调用后端 API');
+  assert(html.includes('App.guard'), '应有登录守卫');
+  assert(html.includes('App.renderHeader'), '应渲染导航栏');
 });
 
-test('ability-center: CSS 文件应该存在', (t) => {
-  const cssPath = path.join(__dirname, '../public/css/capability.css');
-  assert(fs.existsSync(cssPath), 'public/css/capability.css 应该存在');
+test('ability-center: 新建能力向导三步结构', (t) => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/capability.html'), 'utf-8');
+
+  assert(html.includes('step1'), '应有步骤1区域');
+  assert(html.includes('step2'), '应有步骤2区域');
+  assert(html.includes('step3'), '应有步骤3区域');
+  assert(html.includes('nextStepBtn'), '应有下一步按钮');
+  assert(html.includes('prevStepBtn'), '应有上一步按钮');
+  assert(html.includes('createBtn'), '应有创建按钮');
+  assert(html.includes('newCapType'), '应有类型选择');
+  assert(html.includes('newCapName'), '应有名称输入');
+  assert(html.includes('newCapContent'), '应有内容输入');
 });
 
-test('ability-center: HTML 应该包含左侧菜单', (t) => {
-  const htmlPath = path.join(__dirname, '../public/capability.html');
-  const html = fs.readFileSync(htmlPath, 'utf-8');
+test('ability-center: 能力聚合视图按类型分组', (t) => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/capability.html'), 'utf-8');
 
-  assert(html.includes('<div class="sidebar">'), 'sidebar div 应该存在');
-  assert(html.includes('data-type="workflow"'), 'workflow 菜单项应该存在');
-  assert(html.includes('data-type="skill"'), 'skill 菜单项应该存在');
-  assert(html.includes('data-type="reference"'), 'reference 菜单项应该存在');
-  assert(html.includes('data-type="script"'), 'script 菜单项应该存在');
-  assert(html.includes('data-type="tool"'), 'tool 菜单项应该存在');
+  assert(html.includes('workflow'), 'workflow 类型应存在');
+  assert(html.includes('skill'), 'skill 类型应存在');
+  assert(html.includes('reference'), 'reference 类型应存在');
+  assert(html.includes('script'), 'script 类型应存在');
+  assert(html.includes('tool'), 'tool 类型应存在');
+  assert(html.includes('renderCapabilityList'), '应有列表渲染函数');
+  assert(html.includes('typeOrder'), '应有类型排序逻辑');
 });
 
-test('ability-center: HTML 应该包含列表区域', (t) => {
-  const htmlPath = path.join(__dirname, '../public/capability.html');
-  const html = fs.readFileSync(htmlPath, 'utf-8');
+test('ability-center: 能力详情面板含审核操作', (t) => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/capability.html'), 'utf-8');
 
-  assert(html.includes('<div class="list-area">'), 'list-area div 应该存在');
-  assert(html.includes('id="search"'), 'search 输入框应该存在');
-  assert(html.includes('id="capability-list"'), '列表表格应该存在');
+  assert(html.includes('submitReviewBtn'), '应有提交审核按钮');
+  assert(html.includes('publishCapBtn'), '应有发布按钮');
+  assert(html.includes('review'), '应有审核相关逻辑');
+  assert(html.includes('pending_review'), '应有待审核状态');
+  assert(html.includes('approved'), '应有审核通过状态');
+  assert(html.includes('rejected'), '应有审核驳回状态');
 });
 
-test('ability-center: HTML 应该包含详情区域', (t) => {
-  const htmlPath = path.join(__dirname, '../public/capability.html');
-  const html = fs.readFileSync(htmlPath, 'utf-8');
+test('ability-center: 使用 Bootstrap 深色主题', (t) => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/capability.html'), 'utf-8');
 
-  assert(html.includes('<div class="detail-area">'), 'detail-area div 应该存在');
-  assert(html.includes('id="detail-content"'), '详情内容区应该存在');
-});
-
-test('ability-center: JS 应该定义 loadCapabilities 函数', (t) => {
-  const jsPath = path.join(__dirname, '../public/js/capability.js');
-  const js = fs.readFileSync(jsPath, 'utf-8');
-
-  assert(js.includes('loadCapabilities'), 'loadCapabilities 函数应该被定义');
-  assert(js.includes('async'), '应该使用 async 函数');
-});
-
-test('ability-center: JS 应该定义 showDetail 函数', (t) => {
-  const jsPath = path.join(__dirname, '../public/js/capability.js');
-  const js = fs.readFileSync(jsPath, 'utf-8');
-
-  assert(js.includes('showDetail'), 'showDetail 函数应该被定义');
-});
-
-test('ability-center: JS 应该定义 saveCapability 函数', (t) => {
-  const jsPath = path.join(__dirname, '../public/js/capability.js');
-  const js = fs.readFileSync(jsPath, 'utf-8');
-
-  assert(js.includes('saveCapability'), 'saveCapability 函数应该被定义');
-});
-
-test('ability-center: JS 应该定义 deleteCapability 函数', (t) => {
-  const jsPath = path.join(__dirname, '../public/js/capability.js');
-  const js = fs.readFileSync(jsPath, 'utf-8');
-
-  assert(js.includes('deleteCapability'), 'deleteCapability 函数应该被定义');
-});
-
-test('ability-center: CSS 应该定义样式', (t) => {
-  const cssPath = path.join(__dirname, '../public/css/capability.css');
-  const css = fs.readFileSync(cssPath, 'utf-8');
-
-  assert(css.includes('.capability-container'), '.capability-container 样式应该存在');
-  assert(css.includes('.sidebar'), '.sidebar 样式应该存在');
-  assert(css.includes('.list-area'), '.list-area 样式应该存在');
-  assert(css.includes('.detail-area'), '.detail-area 样式应该存在');
+  assert(html.includes('bootstrap.min.css'), '应引用 Bootstrap CSS');
+  assert(html.includes('custom-theme.css'), '应引用深色主题');
+  assert(html.includes('bootstrap.bundle.min.js'), '应引用 Bootstrap JS');
+  assert(html.includes('data-bs-theme="dark"'), '应为深色主题');
 });
