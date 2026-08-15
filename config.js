@@ -37,6 +37,19 @@ module.exports = {
    */
   readonlyMode: process.env.READONLY_MODE === 'true',
 
+  // ---------- 双口令（部署传阅） ----------
+  /**
+   * 双口令模式：
+   * - 访客口令（GUEST_PASSWORD）：演示模式，登录后 readonnly=true，写不落库
+   * - 调试口令（DEBUG_PASSWORD））：真实模式，PM 用，可写库
+   * 未设置时回退到账号密码登录（默认行为）。
+   */
+  dualPassword: {
+    enabled: process.env.DUAL_PASSWORD === 'true',
+    guest: process.env.GUEST_PASSWORD || '',
+    debug: process.env.DEBUG_PASSWORD || '',
+  },
+
   // ---------- 路径 ----------
   paths: {
     root: ROOT,

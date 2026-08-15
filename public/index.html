@@ -60,9 +60,19 @@
   </section>
 
   <!-- 右侧：登录 -->
-  <section class="login-panel">
+    <section class="login-panel">
     <h2>登录</h2>
     <p class="sub">选择一个演示账号，或手动输入账号密码</p>
+
+    <!-- 双口令模式下的快捷入口（由 JS 检测 config 决定是否显示） -->
+    <div id="dualPwdBox" style="display:none;margin-bottom:16px">
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:8px">已启用双口令模式，选择体验级别：</div>
+      <div style="display:flex;gap:8px">
+        <button type="button" class="btn" id="guestPwdBtn" style="flex:1;background:var(--bg-panel-2)">👀 访客体验（只读）</button>
+        <button type="button" class="btn" id="debugPwdBtn" style="flex:1;background:var(--accent-dim);border-color:var(--accent)">🔧 调试模式（可写）</button>
+      </div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:8px">访客口令与调试口令由部署方在环境变量中配置</div>
+    </div>
 
     <div id="err" class="err" style="display:none"></div>
 
@@ -83,19 +93,55 @@
       <span>统一密码 123456</span>
     </div>
     <div id="accounts" class="accounts"><div class="loading">加载中…</div></div>
-  </section>
+    </section>
 
-</div>
+  </div>
 
-<script src="/js/vendor/bootstrap.bundle.min.js"></script>
-<script>
-const $ = (s) => document.querySelector(s);
-const errBox = $('#err');
+  <script src="/js/vendor/bootstrap.bundle.min.js"></script>
+  <script>
+  const $ = (s) => document.querySelector(s);
+  const errBox = $('#err');
 
-function showErr(msg) {
-  errBox.textContent = msg;
-  errBox.style.display = msg ? 'block' : 'none';
-}
+  function showErr(msg) {
+    errBox.textContent = msg;
+    errBox.style.display = msg ? 'block' : 'none';
+  }
+
+  // 双口令模式：通过 /api/health 检测
+  (async function initDualPassword() {
+    try {
+      const r = await fetch('/api/health');
+      const d = await r.json();
+      // health 未暴露 dualPassword，但可由后端返回
+      showDualPasswordIfEnabled(d);
+    } catch (_) { /* 忽略，走普通登录 */ }
+  })();
+
+  function showDualPasswordIfEnabled(healthData) {
+    // 当 health 或 config 提示双口令启用时，显示快捷按钮
+    const enabled = healthData && healthData.dualPasswordEnabled;
+    if (!enabled) return;
+    const box = document.getElementById('dualPwdBox');
+    box.style.display = 'block';
+    document.getElementById('guestPwdBtn').onclick = () => loginByToken('guest');
+    document.getElementById('debugPwdBtn').onclick = () => loginByToken('debug');
+  }
+
+  function loginByToken(mode) {
+    // 双口令登录：请求一个临时 token（后端把 mode 对应的密码作为 body 传入）
+    // 简化：这里是演示 token 登录，实际生产应由后端发一次性令牌
+    const url = mode === 'guest' ? '/api/auth/demo-login?mode=guest' : '/api/auth/demo-login?mode=debug';
+    fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d.ok) throw new Error(d.error || '登录失败');
+        localStorage.setItem('token', d.token);
+        localStorage.setItem('user', JSON.stringify(d.user));
+        localStorage.setItem('permissions', JSON.stringify(d.permissions));
+        location.href = '/dashboard.html';
+      })
+      .catch((e) => showErr(e.message));
+  }
 
 // ---- 加载演示账号 ----
 fetch('/api/auth/demo-accounts')

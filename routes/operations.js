@@ -149,4 +149,53 @@ router.get('/zero-recall', auth.requireAuth, requireOpsAccess, (req, res) => {
   res.json(result);
 });
 
+// ============================================================
+// GET /api/operations/effect-analysis - 效果分析
+// ============================================================
+router.get('/effect-analysis', auth.requireAuth, requireOpsAccess, (req, res) => {
+  const filters = {
+    startDate: req.query.startDate,
+    endDate: req.query.endDate,
+    role: req.query.role,
+  };
+
+  const result = engine.getEffectAnalysis(filters);
+  if (!result.ok) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ============================================================
+// GET /api/operations/capability-analysis - 能力运营分析
+// ============================================================
+router.get('/capability-analysis', auth.requireAuth, requireOpsAccess, (req, res) => {
+  const filters = {
+    startDate: req.query.startDate,
+    endDate: req.query.endDate,
+  };
+
+  const result = engine.getCapabilityAnalysis(filters);
+  if (!result.ok) {
+    return res.status(400).json(result);
+  }
+
+  res.json(result);
+});
+
+// ============================================================
+// GET /api/operations/full-link/:sessionId/:turn - 问题定位全链路
+// ============================================================
+router.get('/full-link/:sessionId/:turn', auth.requireAuth, requireOpsAccess, (req, res) => {
+  const { sessionId, turn } = req.params;
+
+  const result = engine.getFullLinkChain(sessionId, turn);
+  if (!result.ok) {
+    return res.status(404).json(result);
+  }
+
+  res.json(result);
+});
+
 module.exports = router;

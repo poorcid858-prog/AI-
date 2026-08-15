@@ -69,7 +69,7 @@ test('T1: listSessions 返回 session 列表（倒序）', () => {
   createTestSession(sid1, '用户A', 'product', 'trade', t1, '问题1');
   createTestSession(sid2, '用户B', 'test', 'membership', t2, '问题2');
 
-  // 用大 limit 确保能拿到数据（json 里已有 180+ 测试垃圾 session）
+  // 清缓存确保读到最新数据
   const store = require('../lib/store');
   store.clearCache();
 

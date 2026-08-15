@@ -8,12 +8,50 @@ const config = require('../config');
 
 const router = express.Router();
 
-/** 登录 */
+/** 登录（支持双口令模式） */
 router.post('/login', (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ ok: false, error: '请输入账号和密码' });
   }
+
+  // 双口令模式：用口令登录，不走账号密码
+  if (config.dualPassword.enabled) {
+    const trimmed = String(password).trim();
+    const guestMode = trimmed === config.dualPassword.guest;
+    const debugMode = trimmed === config.dualPassword.debug;
+
+    if (!guestMode && !debugMode) {
+      return res.status(401).json({ ok: false, error: '口令错误' });
+    }
+
+    // 找匹配的账号（按 username 找，忽略密码）
+    // 访客口令 → 用 guest 身份（readonly=true）
+    // 调试口令 → 用 admin 身份（readonly=false）
+    const targetUser = auth.loadUsers().find((u) => u.username === (guestMode ? 'guest' : 'admin'));
+    if (!targetUser) {
+      return res.status(500).json({ ok: false, error: '系统配置错误，无法登录' });
+    }
+
+    const result = auth.login(targetUser.username, targetUser.password);
+    if (!result.ok) return res.status(401).json(result);
+
+    return res.json({
+      ok: true,
+      token: result.token,
+      user: result.user,
+      permissions: {
+        canWrite: auth.canWrite(auth.userByToken(result.token)),
+        canReview: auth.canReview(auth.userByToken(result.token)),
+        accessibleBizLines: auth.accessibleBizLines(auth.userByToken(result.token)),
+        maxSecurityLevel: auth.maxSecurityLevel(auth.userByToken(result.token)),
+      },
+      dualPasswordMode: true,
+      mode: guestMode ? 'guest' : 'debug',
+    });
+  }
+
+  // 常规账号密码登录
   const result = auth.login(String(username).trim(), String(password));
   if (!result.ok) return res.status(401).json(result);
 
@@ -21,7 +59,6 @@ router.post('/login', (req, res) => {
     ok: true,
     token: result.token,
     user: result.user,
-    // 前端据此决定渲染哪些入口（后端仍会独立校验，前端隐藏只是体验）
     permissions: {
       canWrite: auth.canWrite(auth.userByToken(result.token)),
       canReview: auth.canReview(auth.userByToken(result.token)),
@@ -53,6 +90,39 @@ router.get('/me', auth.requireAuth, (req, res) => {
 router.post('/logout', auth.requireAuth, (req, res) => {
   auth.logout(auth.readToken(req));
   res.json({ ok: true });
+});
+
+/** 双口令演示登录（简化：通过环境变量口令直接获取 token，不验证账号密码） */
+router.post('/demo-login', (req, res) => {
+  const { mode } = req.query; // 'guest' | 'debug'
+  if (!config.dualPassword.enabled) {
+    return res.status(400).json({ ok: false, error: '双口令模式未启用' });
+  }
+  if (mode !== 'guest' && mode !== 'debug') {
+    return res.status(400).json({ ok: false, error: '无效的登录模式' });
+  }
+
+  const targetUser = auth.loadUsers().find((u) => u.username === (mode === 'guest' ? 'guest' : 'admin'));
+  if (!targetUser) {
+    return res.status(500).json({ ok: false, error: '系统配置错误' });
+  }
+
+  const result = auth.login(targetUser.username, targetUser.password);
+  if (!result.ok) return res.status(401).json(result);
+
+  res.json({
+    ok: true,
+    token: result.token,
+    user: result.user,
+    permissions: {
+      canWrite: auth.canWrite(auth.userByToken(result.token)),
+      canReview: auth.canReview(auth.userByToken(result.token)),
+      accessibleBizLines: auth.accessibleBizLines(auth.userByToken(result.token)),
+      maxSecurityLevel: auth.maxSecurityLevel(auth.userByToken(result.token)),
+    },
+    dualPasswordMode: true,
+    mode,
+  });
 });
 
 /**

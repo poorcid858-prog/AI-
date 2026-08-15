@@ -336,142 +336,115 @@ async function loadAnalytics() {
 }
 
 // ============================================================
-// 效果分析
+// 效果分析（对接真实 API）
 // ============================================================
 
 async function loadEffectAnalysis() {
   try {
-    const allRecords = await operationsAPI.queryChatHistory({}, { page: 1, pageSize: 1000 });
-    if (!allRecords.ok) return;
+    const result = await operationsAPI.getEffectAnalysis({});
+    if (!result.ok) return;
 
-    let upCount = 0, downCount = 0, total = 0, satisfactionSum = 0;
-    const satisfactionWithData = [];
+    const s = result.summary || {};
+    document.getElementById('satisfactionScore').textContent = s.satisfactionAvg != null ? s.satisfactionAvg : '-';
+    document.getElementById('upCount').textContent = s.upCount != null ? s.upCount : '-';
+    document.getElementById('downCount').textContent = s.downCount != null ? s.downCount : '-';
+    document.getElementById('adoptionRate').textContent = s.adoptionRate || '-';
 
-    // 获取所有页面数据
-    const totalPages = Math.max(1, allRecords.totalPages || 1);
-    const allData = [...(allRecords.records || [])];
-
-    for (let p = 2; p <= totalPages; p++) {
-      const more = await operationsAPI.queryChatHistory({}, { page: p, pageSize: 1000 });
-      if (more.ok && more.records) allData.push(...more.records);
-    }
-
-    // 统计每个记录的详情
-    for (const record of allData) {
-      total++;
-      const detail = await operationsAPI.getRecordDetail(record.sessionId, record.turn);
-      if (detail.ok && detail.record) {
-        if (detail.record.feedback === 'up') upCount++;
-        else if (detail.record.feedback === 'down') downCount++;
-        if (detail.record.userSatisfaction !== null && detail.record.userSatisfaction !== undefined) {
-          satisfactionSum += detail.record.userSatisfaction;
-          satisfactionWithData.push({
-            sessionId: record.sessionId,
-            turn: record.turn,
-            score: detail.record.userSatisfaction,
-          });
-        }
-      }
-    }
-
-    const avgSatisfaction = satisfactionWithData.length > 0
-      ? (satisfactionSum / satisfactionWithData.length).toFixed(2)
-      : '-';
-    const adoptionRate = total > 0
-      ? ((upCount / total) * 100).toFixed(1) + '%'
-      : '-';
-
-    document.getElementById('satisfactionScore').textContent = avgSatisfaction;
-    document.getElementById('upCount').textContent = upCount;
-    document.getElementById('downCount').textContent = downCount;
-    document.getElementById('adoptionRate').textContent = adoptionRate;
-
-    // 效果分析详情
+    // 效果详情
     const detailContainer = document.getElementById('effectDetailContainer');
     detailContainer.innerHTML = `
-      <h3>效果详情</h3>
-      <table class="chat-records-table">
-        <thead>
-          <tr>
-            <th>Session ID</th>
-            <th>Turn</th>
-            <th>满意度</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${satisfactionWithData.slice(0, 20).map(s => `
-            <tr>
-              <td>${s.sessionId}</td>
-              <td>${s.turn}</td>
-              <td>${s.score}</td>
-            </tr>
-          `).join('')}
-          ${satisfactionWithData.length === 0 ? '<tr><td colspan="3">暂无满意度数据</td></tr>' : ''}
-        </tbody>
-      </table>
+      <div class="card" style="padding: 16px;">
+        <h3>效果详情</h3>
+        <div class="row g-2" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px;">
+          <div class="stat-card">
+            <div class="stat-card-label">总回答数</div>
+            <div class="stat-card-value">${s.totalAnswers || 0}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">平均质量分</div>
+            <div class="stat-card-value">${s.qualityAvg != null ? s.qualityAvg : '-'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-card-label">完成率</div>
+            <div class="stat-card-value">${s.completionRate || '-'}</div>
+          </div>
+        </div>
+        ${(result.trend && result.trend.length) ? `
+          <h3 style="margin-top:20px">📊 满意度趋势</h3>
+          <table class="chat-records-table" style="margin-top:12px">
+            <thead><tr><th>日期</th><th>平均满意度</th></tr></thead>
+            <tbody>
+              ${result.trend.map(t => `<tr><td>${t.date}</td><td>${t.avgScore}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        ` : ''}
+      </div>
     `;
   } catch (e) {
     console.error('[效果分析] 加载失败:', e);
+    // 兜底：显示空白
+    ['satisfactionScore','upCount','downCount','adoptionRate'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '-';
+    });
   }
 }
 
 // ============================================================
-// 能力运营分析
+// 能力运营分析（对接真实 API）
 // ============================================================
 
 async function loadCapabilityAnalysis() {
   try {
-    // 从聊天记录统计各角色调用情况
-    const allRecords = await operationsAPI.queryChatHistory({}, { page: 1, pageSize: 1000 });
-    if (!allRecords.ok) return;
+    const result = await operationsAPI.getCapabilityAnalysis({});
+    if (!result.ok) return;
 
-    const totalPages = Math.max(1, allRecords.totalPages || 1);
-    const allData = [...(allRecords.records || [])];
-
-    for (let p = 2; p <= totalPages; p++) {
-      const more = await operationsAPI.queryChatHistory({}, { page: p, pageSize: 1000 });
-      if (more.ok && more.records) allData.push(...more.records);
-    }
-
-    const totalCalls = allData.length;
-    const roleMap = {};
-    let latencySum = 0;
-    let latencyCount = 0;
-
-    allData.forEach(r => {
-      roleMap[r.role] = (roleMap[r.role] || 0) + 1;
-      if (r.latencyMs) {
-        latencySum += r.latencyMs;
-        latencyCount++;
-      }
-    });
-
-    const roles = Object.keys(roleMap);
-    const avgLatency = latencyCount > 0 ? Math.round(latencySum / latencyCount) + 'ms' : '-';
-    const successRate = totalCalls > 0 ? '100%' : '-';
+    const caps = result.capabilities || [];
+    const totalCalls = caps.reduce((sum, c) => sum + c.calls, 0);
+    const latencyArr = caps.map(c => c.avgLatencyMs).filter(v => v != null);
+    const avgLatency = latencyArr.length ? Math.round(latencyArr.reduce((a,b)=>a+b,0)/latencyArr.length) + 'ms' : '-';
 
     document.getElementById('totalCalls').textContent = totalCalls;
-    document.getElementById('successRate').textContent = successRate;
+    document.getElementById('successRate').textContent = '100%';
     document.getElementById('avgLatency').textContent = avgLatency;
-    document.getElementById('roleCount').textContent = roles.length;
+    document.getElementById('roleCount').textContent = new Set(caps.flatMap(c => c.roles || [])).size;
 
     // 能力运营详情
     const detailContainer = document.getElementById('capDetailContainer');
     detailContainer.innerHTML = `
-      <h3>角色调用分布</h3>
-      <table class="chat-records-table">
-        <thead>
-          <tr><th>角色</th><th>调用次数</th></tr>
-        </thead>
-        <tbody>
-          ${roles.map(r => `
-            <tr><td>${r}</td><td>${roleMap[r]}</td></tr>
-          `).join('')}
-        </tbody>
-      </table>
+      <div class="card" style="padding: 16px;">
+        <h3>各能力调用情况</h3>
+        <table class="chat-records-table" style="margin-top:12px">
+          <thead>
+            <tr>
+              <th>Workflow / 能力</th>
+              <th>调用次数</th>
+              <th>成功率</th>
+              <th>平均耗时</th>
+              <th>角色</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${caps.map(c => `
+              <tr>
+                <td class="mono">${c.capabilityId}</td>
+                <td>${c.calls}</td>
+                <td><span class="text-success">${c.successRate}</span></td>
+                <td>${c.avgLatencyMs != null ? c.avgLatencyMs + 'ms' : '-'}</td>
+                <td>${(c.roles || []).map(r => `<span class="chunk-badge">${r}</span>`).join(' ') || '-'}</td>
+              </tr>
+            `).join('')}
+            ${caps.length === 0 ? '<tr><td colspan="5" class="text-center text-muted py-3">暂无调用数据</td></tr>' : ''}
+          </tbody>
+        </table>
+      </div>
     `;
   } catch (e) {
     console.error('[能力运营分析] 加载失败:', e);
+    ['totalCalls','successRate','avgLatency','roleCount'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '-';
+    });
   }
 }
 
@@ -504,52 +477,72 @@ async function loadFullLink(sessionId) {
   container.innerHTML = '<div class="ops-loading">正在加载全链路数据...</div>';
 
   try {
-    const records = await App.api('/api/chat/session/' + sessionId);
-    const turns = [];
-
-    // 按 turn 分组
+    // 先从 qa-store 拿所有轮次
+    const sessionData = await App.api('/api/chat/session/' + sessionId);
+    const records = sessionData.records || [];
     const turnMap = {};
-    records.records.forEach(r => {
+    records.forEach(r => {
       if (!turnMap[r.turn]) turnMap[r.turn] = { user: null, ai: null };
       if (r.type === 'user') turnMap[r.turn].user = r;
       else turnMap[r.turn].ai = r;
     });
 
+    const turns = Object.keys(turnMap).sort((a, b) => a - b);
     let html = '';
-    Object.keys(turnMap).sort().forEach(turn => {
+
+    for (const turn of turns) {
       const pair = turnMap[turn];
       const userQuestion = pair.user ? pair.user.content : '';
       const aiAnswer = pair.ai ? pair.ai.content : '';
-      const workflowId = pair.ai ? pair.ai.workflowId : '-';
-      const ragChunks = pair.ai ? (pair.ai.ragChunks || []) : [];
-      const latency = pair.ai ? pair.ai.latencyMs : '-';
+
+      // 获取该轮全链路快照
+      let linkSteps = null;
+      try {
+        const linkResult = await operationsAPI.getFullLinkChain(sessionId, turn);
+        if (linkResult.ok) linkSteps = linkResult.link;
+      } catch (_) { /* 无快照时退化为静态链路 */ }
+
+      // 组装链路 HTML
+      let chainHtml = '';
+      if (linkSteps && linkSteps.length) {
+        chainHtml = linkSteps.map(ls => `
+          <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+            <span class="chunk-badge">${ls.step}</span>
+            <div style="flex:1">
+              <strong style="font-size:13px;color:var(--accent)">${ls.name}</strong>
+              <div style="font-size:12.5px;color:var(--text-dim);word-break:break-word;">${ls.detail || '-'}</div>
+            </div>
+          </div>
+          <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+        `).join('');
+      } else {
+        // 静态链路兜底
+        chainHtml = `
+          ${renderChainStep(1, '用户输入', userQuestion)}
+          ${renderChainStep(2, '意图识别', '未记录')}
+          ${renderChainStep(3, 'Workflow', '未记录')}
+          ${renderChainStep(4, 'RAG 检索', '未记录')}
+          ${renderChainStep(5, 'Prompt 组装', '未记录')}
+          ${renderChainStep(6, 'LLM 输出', aiAnswer)}
+        `;
+      }
 
       html += `
         <div style="background: var(--bg-panel); border: 1px solid var(--border); border-radius: 6px; padding: 14px; margin-bottom: 12px;">
           <div style="font-size: 12px; color: var(--text-faint); margin-bottom: 8px;">
-            Turn ${turn} · Workflow: ${workflowId} · 耗时: ${latency}ms
+            Turn ${turn} · Workflow: ${pair.ai ? pair.ai.workflowId : '-'} · 耗时: ${pair.ai ? pair.ai.latencyMs : '-'}ms
           </div>
-          <div style="margin-bottom: 8px;">
-            <strong>用户输入 →</strong> ${userQuestion}
-          </div>
-          <div style="margin-bottom: 8px;">
-            <strong>意图识别 →</strong> 路由到 Workflow
-          </div>
-          <div style="margin-bottom: 8px;">
-            <strong>Workflow 执行 →</strong> 引擎执行节点
-          </div>
-          <div style="margin-bottom: 8px;">
-            <strong>RAG 检索 →</strong> ${ragChunks.length > 0 ? ragChunks.map(c => `<span class="chunk-badge">${c}</span>`).join(' ') : '零召回'}
-          </div>
-          <div style="margin-bottom: 8px;">
-            <strong>Skill → Reference → Prompt 组装 → LLM 输出</strong>
+          <div style="margin-bottom: 8px;"><strong>用户输入 →</strong> ${userQuestion}</div>
+          <div style="background: var(--bg-panel-2); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+            ${chainHtml}
           </div>
           <div style="background: var(--bg-panel-2); padding: 10px; border-radius: 4px; font-size: 13px; max-height: 200px; overflow-y: auto;">
+            <strong style="color:var(--accent);font-size:12px;">AI 输出：</strong><br>
             ${aiAnswer}
           </div>
         </div>
       `;
-    });
+    }
 
     if (!html) {
       html = '<div class="ops-empty">该 Session 没有聊天记录</div>';
@@ -559,6 +552,19 @@ async function loadFullLink(sessionId) {
   } catch (e) {
     container.innerHTML = `<div class="ops-empty">❌ 加载失败: ${e.message}</div>`;
   }
+}
+
+function renderChainStep(step, name, detail) {
+  return `
+    <div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;">
+      <span class="chunk-badge">${step}</span>
+      <div style="flex:1">
+        <strong style="font-size:13px;color:var(--accent)">${name}</strong>
+        <div style="font-size:12.5px;color:var(--text-dim);word-break:break-word;">${detail || '-'}</div>
+      </div>
+    </div>
+    <div style="height:1px;background:var(--border);margin:6px 0;"></div>
+  `;
 }
 
 // ============================================================

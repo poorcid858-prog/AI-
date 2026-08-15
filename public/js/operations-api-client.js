@@ -105,6 +105,30 @@ class OperationsAPIClient {
     const path = `/zero-recall${queryStr ? '?' + queryStr : ''}`;
     return this.request(path);
   }
+
+  // 效果分析
+  async getEffectAnalysis(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    if (filters.role) params.append('role', filters.role);
+    const queryStr = params.toString();
+    return this.request(`/effect-analysis${queryStr ? '?' + queryStr : ''}`);
+  }
+
+  // 能力运营分析
+  async getCapabilityAnalysis(filters = {}) {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.append('startDate', filters.startDate);
+    if (filters.endDate) params.append('endDate', filters.endDate);
+    const queryStr = params.toString();
+    return this.request(`/capability-analysis${queryStr ? '?' + queryStr : ''}`);
+  }
+
+  // 问题定位全链路
+  async getFullLinkChain(sessionId, turn) {
+    return this.request(`/full-link/${sessionId}/${turn}`);
+  }
 }
 
 // 创建全局实例

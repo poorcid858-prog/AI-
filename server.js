@@ -30,6 +30,7 @@ app.get('/api/health', (req, res) => {
     ok: true,
     llmMode: config.llm.mode,
     readonlyMode: config.readonlyMode,
+    dualPasswordEnabled: Boolean(config.dualPassword && config.dualPassword.enabled),
     time: new Date().toISOString(),
   });
 });
