@@ -321,8 +321,9 @@ function createNewSession() {
   location.reload();
 }
 
-function clearCurrentSession() {
-  if (confirm('确定要清空当前会话吗？')) {
+async function clearCurrentSession() {
+  const ok = await App.confirm('确定要清空当前会话吗？');
+  if (ok) {
     // TODO: 如果需要后端支持删除，可调用 DELETE /api/chat/session/:id
     createNewSession();
   }

@@ -268,7 +268,8 @@ function editPhrase(id) {
 }
 
 async function deletePhrase(id) {
-  if (!confirm('确认删除此话术？')) return;
+  const ok = await App.confirm('确认删除此话术？');
+  if (!ok) return;
   try {
     const res = await fetch('/api/service-admin/phrases/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
@@ -352,7 +353,8 @@ function editSynonym(id) {
 }
 
 async function deleteSynonym(keyword) {
-  if (!confirm('确认删除此同义词？')) return;
+  const ok = await App.confirm('确认删除此同义词？');
+  if (!ok) return;
   try {
     const res = await fetch('/api/service-admin/synonyms/' + encodeURIComponent(keyword), { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
@@ -417,7 +419,8 @@ async function deleteUnmatch(id) {
 }
 
 document.getElementById('clearUnmatchBtn').addEventListener('click', async () => {
-  if (!confirm('确认清空全部未命中问题？')) return;
+  const ok = await App.confirm('确认清空全部未命中问题？');
+  if (!ok) return;
   try {
     const res = await fetch('/api/service-admin/unmatched', { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();

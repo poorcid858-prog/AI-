@@ -261,7 +261,7 @@ if (App.guard()) {
       const submitBtn = document.getElementById('submitReviewBtn');
       if (submitBtn) {
         submitBtn.onclick = () => {
-          if (!confirm('确认提交审核？提交后能力将进入待审核状态。')) return;
+          if (!(await App.confirm('确认提交审核？提交后能力将进入待审核状态。'))) return;
           App.api('/api/capabilities/' + id + '/submit-review', { method: 'POST' }).then(() => {
             App.toast('已提交审核', 'success');
             showCapabilityDetail(id);
@@ -272,7 +272,7 @@ if (App.guard()) {
       const publishBtn = document.getElementById('publishCapBtn');
       if (publishBtn) {
         publishBtn.onclick = () => {
-          if (!confirm('确认发布？草稿将替换为生效版。')) return;
+          if (!(await App.confirm('确认发布？草稿将替换为生效版。'))) return;
           App.api('/api/capabilities/' + id + '/publish', { method: 'POST' }).then(() => {
             App.toast('能力已发布', 'success');
             showCapabilityDetail(id);

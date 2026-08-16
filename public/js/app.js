@@ -93,6 +93,25 @@ const App = {
       ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   },
 
+  /** 确认弹窗（使用 SweetAlert2 如果可用，否则回退到原生 confirm） */
+  confirm(msg) {
+    if (typeof Swal !== 'undefined') {
+      return Swal.fire({
+        title: '确认操作',
+        text: msg,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: '确认',
+        cancelButtonText: '取消',
+        background: '#171d24',
+        color: '#e4e9ef',
+      }).then((result) => result.isConfirmed);
+    }
+    return Promise.resolve(confirm(msg));
+  },
+
   toast(msg, type = 'info') {
     const el = document.createElement('div');
     el.className = `toast ${type}`;

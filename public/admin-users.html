@@ -222,8 +222,8 @@ if (App.guard()) {
     document.getElementById('editModal').classList.remove('active');
   }
 
-  function deleteUser(id, username) {
-    if (!confirm(`确认删除用户「${username}」？`)) return;
+  async function deleteUser(id, username) {
+    if (!(await App.confirm(`确认删除用户「${username}」？`))) return;
     App.api('/api/admin/users/' + id, { method: 'DELETE' }).then(() => {
       showNotice('用户已删除');
       loadUsers();

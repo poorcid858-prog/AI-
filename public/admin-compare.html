@@ -289,7 +289,8 @@ async function addQuestion() {
 }
 
 async function deleteQuestion(id) {
-  if (!confirm('确定删除该问题？')) return;
+  const ok = await App.confirm('确定删除该问题？');
+  if (!ok) return;
   const res = await fetch(`/api/compare/questions/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (!data.ok) { showMsg('删除失败', 'error'); return; }
@@ -402,7 +403,8 @@ async function generateSnapshot(label) {
 }
 
 async function deleteSnapshot(id) {
-  if (!confirm('确定删除该快照？')) return;
+  const ok = await App.confirm('确定删除该快照？');
+  if (!ok) return;
   const res = await fetch(`/api/compare/snapshots/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (!data.ok) { showMsg('删除失败', 'error'); return; }

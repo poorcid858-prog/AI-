@@ -355,8 +355,8 @@ if (App.guard()) {
     }).catch(err => showNotice('保存失败：' + err.message, 'error'));
   }
 
-  function deletePromptLayer(id) {
-    if (!confirm('确定删除此配置？')) return;
+  async function deletePromptLayer(id) {
+    if (!(await App.confirm('确定删除此配置？'))) return;
     App.api('/api/admin/prompt-layers/' + id, { method: 'DELETE' }).then(() => {
       showNotice('配置已删除');
       loadPromptLayers();
@@ -411,8 +411,8 @@ if (App.guard()) {
     }).catch(err => showNotice('保存失败：' + err.message, 'error'));
   }
 
-  function deleteSysConfig(key) {
-    if (!confirm('确定删除此参数？')) return;
+  async function deleteSysConfig(key) {
+    if (!(await App.confirm('确定删除此参数？'))) return;
     App.api('/api/admin/system-config/' + key, { method: 'DELETE' }).then(() => {
       showNotice('参数已删除');
       loadSysConfigs();

@@ -210,7 +210,7 @@ async function saveCapability(event, id) {
  * 调用 DELETE /api/capabilities/:id
  */
 async function deleteCapability(id) {
-  if (!confirm('确定要删除这个能力吗？')) {
+  if (!(await App.confirm('确定要删除这个能力吗？'))) {
     return;
   }
 

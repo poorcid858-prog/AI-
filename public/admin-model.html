@@ -167,8 +167,8 @@ if (App.guard()) {
     }).catch(err => showNotice('加载失败: ' + err.message, 'error'));
   }
 
-  function deleteModel(id) {
-    if (!confirm('确认删除此模型配置？')) return;
+  async function deleteModel(id) {
+    if (!(await App.confirm('确认删除此模型配置？'))) return;
     App.api('/api/admin/models/' + id, { method: 'DELETE' }).then(() => {
       showNotice('模型已删除');
       loadModels();

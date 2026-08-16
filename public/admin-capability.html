@@ -298,7 +298,7 @@ if (App.guard()) {
   // ============ 发布 ============
   document.getElementById('publishBtn').onclick = async () => {
     if (!currentCapId) return;
-    if (!confirm('确认发布草稿？生效版将被替换为草稿内容，旧版进入历史。')) return;
+    if (!(await App.confirm('确认发布草稿？生效版将被替换为草稿内容，旧版进入历史。'))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/publish`, { method: 'POST' });
       currentCap = d.capability;
@@ -317,7 +317,7 @@ if (App.guard()) {
   // ============ 弃稿 ============
   document.getElementById('discardBtn').onclick = async () => {
     if (!currentCapId) return;
-    if (!confirm('确认丢弃草稿？未保存的修改将丢失。')) return;
+    if (!(await App.confirm('确认丢弃草稿？未保存的修改将丢失。'))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/draft`, { method: 'DELETE' });
       currentCap = d.capability;
@@ -429,7 +429,7 @@ if (App.guard()) {
 
   async function rollbackTo(version) {
     if (!currentCapId) return;
-    if (!confirm(`确认回滚到 v${version}？这将创建一个基于 v${version} 的新草稿，需手动发布。`)) return;
+    if (!(await App.confirm(`确认回滚到 v${version}？这将创建一个基于 v${version} 的新草稿，需手动发布。`))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/rollback`, {
         method: 'POST',

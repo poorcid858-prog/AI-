@@ -60,8 +60,10 @@ function createTestSession(sessionId, userName, role, bizLine, timestamp, conten
 }
 
 test('T1: listSessions 返回 session 列表（倒序）', () => {
-  const t1 = new Date('2026-08-12T10:00:00Z').toISOString();
-  const t2 = new Date('2026-08-12T11:00:00Z').toISOString();
+  // 使用当前时间（保证数据在 listSessions 列表顶部）
+  const now = Date.now();
+  const t1 = new Date(now).toISOString();
+  const t2 = new Date(now + 1000).toISOString(); // t2 比 t1 新
 
   const sid1 = `s_test1_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const sid2 = `s_test2_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
@@ -73,10 +75,8 @@ test('T1: listSessions 返回 session 列表（倒序）', () => {
   const store = require('../lib/store');
   store.clearCache();
 
+  // 用大 limit，且过滤出我们刚创建的 session
   const sessions = qa.listSessions(500);
-  assert(sessions.length >= 2, `应至少有 2 个 session, 实际 ${sessions.length}`);
-
-  // 用精确 sid 查找
   const s1 = sessions.find((s) => s.sessionId === sid1);
   const s2 = sessions.find((s) => s.sessionId === sid2);
 
