@@ -8,15 +8,34 @@
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/sidebar.css">
+<link rel="stylesheet" href="/css/admin-ui.css">
+<link rel="stylesheet" href="/css/capability-ui.css">
 </head>
 <body>
 <div class="page" id="page" style="display:none">
-  <div class="page-head" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-    <div>
-      <h1>能力中心</h1>
-      <p>以 AI 能力为单位的聚合视图，每条能力关联一个 Workflow 及其全部要素</p>
+  <div class="page-head">
+    <h1>能力中心</h1>
+    <p>以 AI 能力为单位的聚合视图，每条能力关联一个 Workflow 及其全部要素</p>
+  </div>
+
+  <!-- 能力子类型横向菜单 -->
+  <div class="cap-tabs" id="capTypeTabs">
+    <button class="cap-tab active" data-cap-type="aggregate">AI 能力</button>
+    <button class="cap-tab" data-cap-type="workflow">Workflow</button>
+    <button class="cap-tab" data-cap-type="skill">Skill</button>
+    <button class="cap-tab" data-cap-type="reference">Reference</button>
+    <button class="cap-tab" data-cap-type="prompt">Prompt</button>
+    <button class="cap-tab" data-cap-type="tool">Tool / Script</button>
+  </div>
+
+  <!-- 操作栏 -->
+  <div class="action-bar">
+    <div class="action-bar-left">
+      <span class="muted" id="capCount">加载中…</span>
     </div>
-    <button class="btn btn-primary" id="newCapBtn" style="background:var(--accent);border-color:var(--accent);color:#fff;white-space:nowrap">+ 新建能力</button>
+    <div class="action-bar-right">
+      <button class="btn btn-primary" id="newCapBtn">+ 新建能力</button>
+    </div>
   </div>
 
   <!-- 能力列表区域 -->
@@ -26,6 +45,75 @@
 
   <!-- 详情面板 -->
   <div id="detailPanel" style="display:none;margin-top:18px"></div>
+
+  <!-- Prompt 分层配置面板 -->
+  <div id="promptPanel" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <span>分层 Prompt 配置</span>
+        <button class="btn btn-sm btn-primary" id="addPromLayerBtn">+ 新增 Prompt</button>
+      </div>
+      <div class="card-body">
+        <p class="card-sub">
+          按 全局 → 角色 → Workflow → Skill → 用户输入 的分层顺序组装提示词。层级越高越优先覆盖下层默认值。
+        </p>
+        <div id="promLayerList">
+          <div class="text-muted">加载中…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 新增/编辑 Prompt 分层配置模态框 -->
+<div class="modal fade" id="promLayerModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="background:var(--bg-panel);border:1px solid var(--border)">
+      <div class="modal-header">
+        <h5 class="modal-title" id="promLayerModalTitle">新增 Prompt</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label">层级 (level) *</label>
+          <select class="form-select" id="promLayerLevel">
+            <option value="global">global（全局）</option>
+            <option value="role">role（角色）</option>
+            <option value="workflow">workflow（工作流）</option>
+            <option value="skill">skill（技能）</option>
+            <option value="user">user（用户输入）</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">角色名 (role_name)</label>
+          <select class="form-select" id="promLayerRole">
+            <option value="">（不限）</option>
+            <option value="product">product（产品）</option>
+            <option value="test">test（测试）</option>
+            <option value="frontend">frontend（前端）</option>
+            <option value="cs">cs（客服）</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">业务线 (business_line)</label>
+          <select class="form-select" id="promLayerBiz">
+            <option value="">（不限）</option>
+            <option value="trade">trade（交易线）</option>
+            <option value="membership">membership（会员线）</option>
+            <option value="all">all（全业务线）</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Prompt 内容 *</label>
+          <textarea class="form-control" id="promLayerText" rows="6" placeholder="输入该层级的提示词内容…"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn" data-bs-dismiss="modal">取消</button>
+        <button class="btn btn-primary" id="savePromLayerBtn" style="background:var(--accent);color:#fff">保存</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- 新建能力模态框 -->
@@ -119,6 +207,148 @@ if (App.guard()) {
 
   let capabilities = [];
   let currentStep = 1;
+  let editingPromLayerId = null;
+  const promLayerModal = new bootstrap.Modal(document.getElementById('promLayerModal'));
+
+  // ============ 二级子菜单切换 ============
+  const capTypeTabs = document.getElementById('capTypeTabs');
+
+  // 从 URL hash 恢复当前 tab（如 #prompt）
+  const initialType = (location.hash || '#aggregate').replace('#', '');
+
+  function switchCapType(type) {
+    // 高亮 tab
+    capTypeTabs.querySelectorAll('.cap-tab').forEach((btn) => {
+      btn.classList.toggle('active', btn.dataset.capType === type);
+    });
+    const showPrompt = type === 'prompt';
+    document.getElementById('capabilityListArea').style.display = showPrompt ? 'none' : 'block';
+    document.getElementById('detailPanel').style.display = 'none';
+    document.getElementById('promptPanel').style.display = showPrompt ? 'block' : 'none';
+    // 更新侧边栏激活子项
+    App.renderSidebar('capability', showPrompt ? 'prompt' : (type === 'aggregate' ? 'aggregate' : type === 'workflow' ? 'workflow' : type === 'skill' ? 'skill' : type === 'reference' ? 'reference' : 'tool'));
+    // 更新 hash（不影响页面重载）
+    history.replaceState(null, '', '#/' + type);
+
+    if (showPrompt) {
+      // 仅 admin 可配置 Prompt
+      if (App.user && App.user.role !== 'admin') {
+        document.getElementById('promptPanel').innerHTML = '<div class="alert alert-info">仅管理员可配置分层 Prompt</div>';
+        return;
+      }
+      loadPromLayers();
+    } else {
+      loadCapabilities();
+    }
+  }
+
+  capTypeTabs.querySelectorAll('.cap-tab').forEach((btn) => {
+    btn.addEventListener('click', () => switchCapType(btn.dataset.capType));
+  });
+
+  // ============ 分层 Prompt 配置 ============
+  function loadPromLayers() {
+    document.getElementById('promLayerList').innerHTML = '<div class="text-muted">加载中…</div>';
+    App.api('/api/admin/prompt-layers').then((d) => {
+      const layers = d.layers || [];
+      if (layers.length === 0) {
+        document.getElementById('promLayerList').innerHTML =
+          '<div class="prompt-empty"><div class="prompt-empty-icon">📝</div>暂无分层 Prompt 配置，点击「+ 新增 Prompt」添加。</div>';
+        return;
+      }
+      const levelLabels = { global: '全局', role: '角色', workflow: 'Workflow', skill: 'Skill', user: '用户' };
+      const html = `<div class="table-responsive">
+        <table class="table table-hover" id="promLayerTable">
+          <thead>
+            <tr>
+              <th style="width:100px">层级</th>
+              <th style="width:120px">角色名</th>
+              <th style="width:110px">业务线</th>
+              <th>Prompt 内容</th>
+              <th style="width:130px">操作</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${layers.map((l) => `
+              <tr>
+                <td><span class="prompt-layer-level ${l.level || ''}">${levelLabels[l.level] || l.level || '-'}</span></td>
+                <td>${l.role_name || '（不限）'}</td>
+                <td>${l.business_line || '（不限）'}</td>
+                <td><div class="prompt-layer-text" title="${App.esc(l.prompt_text || '')}">${App.esc(l.prompt_text || '')}</div></td>
+                <td>
+                  <button class="btn btn-sm btn-outline-primary" onclick="window.editPromLayer('${l.id}')">编辑</button>
+                  <button class="btn btn-sm btn-outline-danger" onclick="window.deletePromLayer('${l.id}')">删除</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+      document.getElementById('promLayerList').innerHTML = html;
+
+      // 若 DataTables 可用则升级表格
+      if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
+        $('#promLayerTable').DataTable({
+          ordering: true,
+          pageLength: 10,
+          lengthChange: false,
+          language: { search: '搜索:', lengthMenu: '显示 _MENU_ 条', info: '共 _TOTAL_ 条', paginate: { next: '下一页', previous: '上一页' } },
+        });
+      }
+    }).catch((e) => {
+      document.getElementById('promLayerList').innerHTML =
+        '<div class="alert alert-danger">加载失败: ' + App.esc(e.message) + '</div>';
+    });
+  }
+
+  window.editPromLayer = function (id) {
+    App.api('/api/admin/prompt-layers').then((d) => {
+      const layer = (d.layers || []).find((l) => String(l.id) === String(id));
+      if (!layer) { App.toast('未找到该配置', 'error'); return; }
+      editingPromLayerId = id;
+      document.getElementById('promLayerModalTitle').textContent = '编辑 Prompt';
+      document.getElementById('promLayerLevel').value = layer.level || '';
+      document.getElementById('promLayerRole').value = layer.role_name || '';
+      document.getElementById('promLayerBiz').value = layer.business_line || '';
+      document.getElementById('promLayerText').value = layer.prompt_text || '';
+      promLayerModal.show();
+    }).catch((e) => App.toast(e.message, 'error'));
+  };
+
+  window.deletePromLayer = async function (id) {
+    if (!(await App.confirm('确定删除该分层 Prompt 配置？'))) return;
+    App.api('/api/admin/prompt-layers/' + id, { method: 'DELETE' }).then(() => {
+      App.toast('已删除', 'success');
+      loadPromLayers();
+    }).catch((e) => App.toast(e.message, 'error'));
+  };
+
+  document.getElementById('addPromLayerBtn').onclick = () => {
+    editingPromLayerId = null;
+    document.getElementById('promLayerModalTitle').textContent = '新增 Prompt';
+    document.getElementById('promLayerLevel').value = 'global';
+    document.getElementById('promLayerRole').value = '';
+    document.getElementById('promLayerBiz').value = '';
+    document.getElementById('promLayerText').value = '';
+    promLayerModal.show();
+  };
+
+  document.getElementById('savePromLayerBtn').onclick = () => {
+    const level = document.getElementById('promLayerLevel').value;
+    const role_name = document.getElementById('promLayerRole').value;
+    const business_line = document.getElementById('promLayerBiz').value;
+    const prompt_text = document.getElementById('promLayerText').value.trim();
+    if (!level) { App.toast('请选择层级', 'error'); return; }
+    if (!prompt_text) { App.toast('请输入 Prompt 内容', 'error'); return; }
+
+    const body = { level, role_name, business_line, prompt_text };
+    const url = editingPromLayerId ? '/api/admin/prompt-layers/' + editingPromLayerId : '/api/admin/prompt-layers';
+    const method = editingPromLayerId ? 'PUT' : 'POST';
+    App.api(url, { method, body }).then(() => {
+      App.toast(editingPromLayerId ? '已更新' : '已新增', 'success');
+      promLayerModal.hide();
+      loadPromLayers();
+    }).catch((e) => App.toast(e.message, 'error'));
+  };
 
   // ============ 加载能力列表 ============
   function loadCapabilities() {
@@ -126,6 +356,7 @@ if (App.guard()) {
 
     App.api('/api/capabilities').then((d) => {
       capabilities = d.capabilities || [];
+      document.getElementById('capCount').textContent = '共 ' + capabilities.length + ' 项能力';
       renderCapabilityList(capabilities);
     }).catch((e) => {
       document.getElementById('capabilityListArea').innerHTML = '<div class="alert alert-danger">加载失败: ' + App.esc(e.message) + '</div>';
@@ -153,10 +384,11 @@ if (App.guard()) {
       const items = grouped[type] || [];
       if (items.length === 0) continue;
       const typeLabels = { workflow: '工作流', skill: '技能', reference: '参考', script: '脚本', tool: '工具' };
-      html += `<div class="card" style="margin-bottom:14px">
-        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-          <h3 style="margin:0;font-size:15px">${typeLabels[type] || type}</h3>
-          <span class="badge bg-secondary">${items.length}</span>
+      const icons = { workflow: '⚙️', skill: '🧠', reference: '📚', script: '🔧', tool: '🔌' };
+      html += `<div class="cap-group-card">
+        <div class="cap-group-head">
+          <span class="cap-group-title">${icons[type] || ''} ${typeLabels[type] || type}</span>
+          <span class="cap-group-count">${items.length} 项</span>
         </div>
         <div class="table-responsive">
           <table class="table table-hover" style="margin:0">
@@ -165,8 +397,8 @@ if (App.guard()) {
                 <th>名称</th>
                 <th style="width:80px">版本</th>
                 <th style="width:100px">状态</th>
-                <th style="width:120px">更新时间</th>
-                <th style="width:80px">操作</th>
+                <th style="width:130px">更新时间</th>
+                <th style="width:90px">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -174,11 +406,11 @@ if (App.guard()) {
                 const hasReview = c.review && c.review.status === 'pending_review';
                 const reviewApproved = c.review && c.review.status === 'approved';
                 const statusText = hasReview ? '待审核' : reviewApproved ? '审核通过' : c.hasDraft ? '有草稿' : '已发布';
-                const statusColor = hasReview ? 'var(--warning)' : reviewApproved ? 'var(--success)' : c.hasDraft ? 'var(--warning)' : 'var(--text-dim)';
+                const statusClass = hasReview ? 'badge-warning' : reviewApproved ? 'badge-success' : c.hasDraft ? 'badge-warning' : 'badge-secondary';
                 return `<tr onclick="showCapabilityDetail('${c.id}')" style="cursor:pointer">
                   <td><strong>${App.esc(c.name)}</strong><br><span class="text-muted small">${c.id}</span></td>
                   <td class="mono">v${c.publishedVersion || '-'}</td>
-                  <td><span style="color:${statusColor}">${statusText}</span></td>
+                  <td><span class="badge ${statusClass}">${statusText}</span></td>
                   <td class="mono small">${c.updatedAt ? new Date(c.updatedAt).toLocaleString('zh-CN') : '-'}</td>
                   <td><button class="btn btn-sm btn-outline-primary" onclick="event.stopPropagation();showCapabilityDetail('${c.id}')">详情</button></td>
                 </tr>`;
@@ -401,7 +633,10 @@ if (App.guard()) {
   };
 
   // ============ 初始化 ============
-  loadCapabilities();
+  // 根据 URL hash 选择初始 tab（#prompt 等）
+  const validTypes = ['aggregate', 'workflow', 'skill', 'reference', 'prompt', 'tool'];
+  const initType = validTypes.includes(location.hash.replace('#', '')) ? location.hash.replace('#', '') : 'aggregate';
+  switchCapType(initType);
 }
 </script>
 </body>

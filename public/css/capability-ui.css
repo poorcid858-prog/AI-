@@ -1,0 +1,159 @@
+/* ===== 能力中心专用 UI 样式 ===== */
+
+/* 能力子类型横向菜单 */
+.cap-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0;
+  overflow-x: auto;
+}
+
+.cap-tab {
+  padding: 9px 18px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+
+.cap-tab:hover {
+  color: var(--text);
+  background: var(--bg-panel-2);
+  border-radius: 6px 6px 0 0;
+}
+
+.cap-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+/* 能力分组卡片 */
+.cap-group-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.cap-group-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: var(--bg-panel-2);
+  border-bottom: 1px solid var(--border);
+}
+
+.cap-group-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.cap-group-count {
+  font-size: 12px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+}
+
+/* 操作栏 */
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.action-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Prompt 分层配置样式 */
+.prompt-layer-level {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.prompt-layer-level.global { background: rgba(59,130,246,0.15); color: #7cb2ff; }
+.prompt-layer-level.role { background: rgba(139,92,246,0.15); color: #b89dfb; }
+.prompt-layer-level.workflow { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+.prompt-layer-level.skill { background: rgba(245,158,11,0.15); color: #fcd34d; }
+.prompt-layer-level.user { background: rgba(239,68,68,0.15); color: #fca5a5; }
+
+.prompt-layer-text {
+  max-width: 400px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--text-dim);
+  font-family: var(--mono);
+}
+
+.prompt-empty {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-faint);
+}
+
+.prompt-empty-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+/* 详情面板样式 */
+.detail-header {
+  margin-bottom: 16px;
+}
+
+.detail-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.detail-meta {
+  font-size: 12px;
+  color: var(--text-faint);
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* 状态 Badge 库 */
+.badge-success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+.badge-warning { background: rgba(245,158,11,0.15); color: #fcd34d; }
+.badge-danger { background: rgba(239,68,68,0.15); color: #fca5a5; }
+.badge-secondary { background: rgba(139,152,168,0.15); color: #8b98a8; }
+
+/* 新建能力模态框步骤指示器 */
+.step-badge {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.step-badge.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.step-badge.inactive {
+  background: var(--text-faint);
+  color: var(--text-dim);
+}

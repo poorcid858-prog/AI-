@@ -43,7 +43,7 @@
         { key: 'workflow', label: 'Workflow', href: '/capability.html#workflow', roles: ['admin', 'reviewer'] },
         { key: 'skill', label: 'Skill', href: '/capability.html#skill', roles: ['admin', 'reviewer'] },
         { key: 'reference', label: 'Reference', href: '/capability.html#reference', roles: ['admin', 'reviewer'] },
-        { key: 'prompt', label: 'Prompt', href: '/admin-config.html?tab=prompts', roles: ['admin'] },
+        { key: 'prompt', label: 'Prompt', href: '/capability.html#prompt', roles: ['admin'] },
         { key: 'tool', label: 'Tool/Script', href: '/capability.html#tool', roles: ['admin', 'reviewer'] },
       ],
     },

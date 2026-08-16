@@ -336,6 +336,7 @@ router.get('/prompt-layers', auth.requireAuth, (req, res) => {
 router.post('/prompt-layers', auth.requireAuth, (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可创建' });
   const { level, role_name, business_line, prompt_text } = req.body;
+  if (!level || !prompt_text) return res.status(400).json({ ok: false, error: 'level 与 prompt_text 必填' });
   const layer = adminConfig.createPromptLayer({
     level,
     role_name,
@@ -349,7 +350,7 @@ router.put('/prompt-layers/:id', auth.requireAuth, (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改' });
   const { id } = req.params;
   const { level, role_name, business_line, prompt_text } = req.body;
-  const layer = adminConfig.updatePromptLayer(parseInt(id, 10), {
+  const layer = adminConfig.updatePromptLayer(id, {
     level,
     role_name,
     business_line,
@@ -362,7 +363,7 @@ router.put('/prompt-layers/:id', auth.requireAuth, (req, res) => {
 router.delete('/prompt-layers/:id', auth.requireAuth, (req, res) => {
   if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除' });
   const { id } = req.params;
-  const success = adminConfig.deletePromptLayer(parseInt(id, 10));
+  const success = adminConfig.deletePromptLayer(id);
   if (!success) return res.status(404).json({ ok: false, error: 'Prompt 配置不存在' });
   res.json({ ok: true });
 });

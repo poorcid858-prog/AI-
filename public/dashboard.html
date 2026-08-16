@@ -8,30 +8,31 @@
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
 <link rel="stylesheet" href="/css/sidebar.css">
+<link rel="stylesheet" href="/css/admin-ui.css">
 </head>
 <body>
 <div class="page" id="page" style="display:none">
 
-  <!-- 身份卡：让你一眼确认"我是谁、系统给了我什么权限" -->
-  <div class="identity">
-    <div class="avatar" id="avatar"></div>
-    <div>
-      <div class="identity-name" id="uname"></div>
-      <div class="identity-meta" id="umeta"></div>
+  <!-- 身份卡 -->
+  <div class="card" style="display:flex;flex-direction:row;align-items:center;gap:16px;margin-bottom:20px;background:linear-gradient(120deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%)">
+    <div class="avatar" id="avatar" style="width:48px;height:48px;font-size:20px;border-radius:10px;flex-shrink:0"></div>
+    <div style="flex:1">
+      <div class="identity-name" id="uname" style="font-size:17px;font-weight:600"></div>
+      <div class="identity-meta" id="umeta" style="font-size:12.5px;color:var(--text-dim);margin-top:4px"></div>
     </div>
-    <div class="identity-tags" id="utags"></div>
+    <div class="identity-tags" id="utags" style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
   <div id="notices"></div>
 
-  <div class="page-head">
+  <div class="page-head" style="margin-top:30px">
     <h1>快捷入口</h1>
     <p>企业产品不应只有对话框。按岗位提供提问模板入口，用户点进来就知道能问什么。</p>
   </div>
 
   <div class="grid grid-4" id="entries"></div>
 
-  <div class="page-head" style="margin-top:32px">
+  <div class="page-head" style="margin-top:30px">
     <h1>你的权限范围</h1>
     <p>这不是展示用的标签 —— 它决定了你提问时，系统实际会去检索哪些知识。</p>
   </div>

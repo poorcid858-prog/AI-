@@ -6,9 +6,10 @@
   <title>知识库 - 四层管理</title>
   <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
   <link rel="stylesheet" href="/css/custom-theme.css">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/sidebar.css">
-  <link rel="stylesheet" href="css/knowledge.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="/css/admin-ui.css">
+  <link rel="stylesheet" href="/css/knowledge.css">
 </head>
 <body>
   <div class="page-container">
@@ -19,38 +20,40 @@
 
     <main class="knowledge-container">
       <!-- 上传文档区域（仅 admin） -->
-      <div id="uploadArea" class="card" style="margin-bottom:16px;padding:16px;display:none">
-        <h3 style="margin-bottom:8px">上传新文档</h3>
-        <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
-        <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
-          <div><label>文档标题</label><input id="uploadTitle" placeholder="如：售后政策 v1.0" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)"></div>
-          <div><label>选择文件 (.md, .txt)</label>
-            <input type="file" id="uploadFile" accept=".md,.txt" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)">
-            <div class="text-muted small" style="margin-top:4px">选择文件后，内容将自动填入下方编辑框。支持 .md 和 .txt 格式。</div>
-          </div>
-          <div><label>Markdown 内容</label>
-            <textarea id="uploadContent" rows="8" placeholder="选文件后自动填入，也可手动编辑..." style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:monospace;font-size:12px"></textarea>
-          </div>
-          <div class="grid grid-3" style="gap:10px;display:grid;grid-template-columns:1fr 1fr 1fr">
-            <div><label>业务线</label>
-              <select id="uploadBizLine" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)">
-                <option value="trade">交易线</option>
-                <option value="membership">会员线</option>
-                <option value="all">全业务线</option>
-              </select>
+      <div id="uploadArea" class="cap-group-card" style="margin-bottom:16px;display:none">
+        <div class="cap-group-head"><span class="cap-group-title">📤 上传新文档</span></div>
+        <div class="card-body" style="padding:16px">
+          <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
+          <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
+            <div><label class="form-label fw-500" style="margin-bottom:5px">文档标题</label><input id="uploadTitle" class="form-control" placeholder="如：售后政策 v1.0"></div>
+            <div><label class="form-label fw-500" style="margin-bottom:5px">选择文件 (.md, .txt)</label>
+              <input type="file" id="uploadFile" accept=".md,.txt" class="form-control" style="padding:8px">
+              <div class="text-muted small" style="margin-top:4px">选择文件后，内容将自动填入下方编辑框。支持 .md 和 .txt 格式。</div>
             </div>
-            <div><label>安全分级</label>
-              <select id="uploadSec" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)">
-                <option value="public">public 对外</option>
-                <option value="internal" selected>internal 内部</option>
-                <option value="confidential">confidential 机密</option>
-                <option value="secret">secret 绝密</option>
-              </select>
+            <div><label class="form-label fw-500" style="margin-bottom:5px">Markdown 内容</label>
+              <textarea id="uploadContent" class="form-control" rows="8" placeholder="选文件后自动填入，也可手动编辑..." style="font-family:monospace;font-size:12px"></textarea>
             </div>
-            <div><label>标签（逗号分隔）</label><input id="uploadTags" placeholder="退款,售后" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)"></div>
-          </div>
-          <div><button class="btn btn-primary" style="background:var(--accent);color:#fff" id="uploadBtn">上传并预处理</button></div>
-        </form>
+            <div class="grid grid-3" style="gap:10px;display:grid;grid-template-columns:1fr 1fr 1fr">
+              <div><label class="form-label fw-500" style="margin-bottom:5px">业务线</label>
+                <select id="uploadBizLine" class="form-select">
+                  <option value="trade">交易线</option>
+                  <option value="membership">会员线</option>
+                  <option value="all">全业务线</option>
+                </select>
+              </div>
+              <div><label class="form-label fw-500" style="margin-bottom:5px">安全分级</label>
+                <select id="uploadSec" class="form-select">
+                  <option value="public">public 对外</option>
+                  <option value="internal" selected>internal 内部</option>
+                  <option value="confidential">confidential 机密</option>
+                  <option value="secret">secret 绝密</option>
+                </select>
+              </div>
+              <div><label class="form-label fw-500" style="margin-bottom:5px">标签（逗号分隔）</label><input id="uploadTags" class="form-control" placeholder="退款,售后"></div>
+            </div>
+            <div><button class="btn btn-primary" id="uploadBtn">上传并预处理</button></div>
+          </form>
+        </div>
       </div>
       <!-- 追踪面包屑 -->
       <div id="breadcrumb" class="breadcrumb" style="display: none;">
@@ -131,9 +134,9 @@
   </div>
 
   <script src="/js/vendor/bootstrap.bundle.min.js"></script>
-  <script src="js/app.js"></script>
-  <script src="js/sidebar.js"></script>
-  <script src="js/knowledge.js"></script>
+  <script src="/js/app.js"></script>
+  <script src="/js/sidebar.js"></script>
+  <script src="/js/knowledge.js"></script>
   <script>
   if (App.guard()) App.renderSidebar('knowledge', 'kb');
   // 管理员在上传区显示

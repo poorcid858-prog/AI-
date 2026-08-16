@@ -1,0 +1,184 @@
+/* ===== 管理后台/系统配置 UI 样式 ===== */
+
+/* 配置 Tab 导航 */
+.config-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.config-tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.config-tab:hover {
+  color: var(--text);
+  background: var(--bg-panel-2);
+}
+
+.config-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+/* 配置表单卡片 */
+.config-card {
+  max-width: 640px;
+}
+
+.config-card .form-group {
+  margin-bottom: 16px;
+}
+
+.config-card label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+/* 表单样式微调 */
+.form-control, .form-select {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+/* 表格操作按钮 */
+.table-actions {
+  white-space: nowrap;
+}
+
+.table-actions .btn {
+  margin-right: 4px;
+}
+
+/* 审核中心 Tab 样式 */
+.review-tab {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 14px;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.review-tab:hover {
+  color: var(--text);
+  background: var(--bg-panel-2);
+}
+
+.review-tab.active {
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  font-weight: 500;
+}
+
+/* 空状态 */
+.empty-state-ui {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-state-ui .empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.empty-state-ui .empty-text {
+  font-size: 14px;
+  color: var(--text-faint);
+}
+
+/* 加载状态 */
+.loading-ui {
+  text-align: center;
+  padding: 40px;
+  color: var(--text-faint);
+  font-size: 13px;
+}
+
+/* 数字统计卡片 */
+.stat-card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px 20px;
+}
+
+.stat-card .stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--mono);
+}
+
+.stat-card .stat-label {
+  font-size: 12px;
+  color: var(--text-faint);
+  margin-top: 4px;
+}
+
+/* 审核详情卡片 */
+.review-detail-card {
+  margin-bottom: 14px;
+}
+
+.review-detail-card .detail-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+/* 运营中心统计网格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+/* 操作按钮组 */
+.btn-group-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+/* 页面头部调整 */
+.page-head-compact {
+  margin-bottom: 20px;
+}
+
+.page-head-compact h1 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.page-head-compact p {
+  font-size: 13px;
+  color: var(--text-dim);
+}
