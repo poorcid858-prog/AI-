@@ -216,19 +216,19 @@ if (App.guard()) {
         <div class="card">
           <h3>审核决定</h3>
           ${canReview ? `
-            <textarea id="note" placeholder="审核备注（可选）" rows="3"></textarea>
-            <div style="display:flex;gap:8px;margin-top:10px">
-              <button class="btn" id="approveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过</button>
-              <button class="btn" id="rejectBtn" style="background:var(--danger);border-color:var(--danger);color:#fff">驳回</button>
+            <textarea class="form-control" id="note" placeholder="审核备注（可选）" rows="3" style="min-height:60px;margin-bottom:10px"></textarea>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-success" id="approveBtn">通过</button>
+              <button class="btn btn-danger" id="rejectBtn">驳回</button>
             </div>
           ` : (isPending ? `<div class="muted">${App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>` : '')}
           ${doc.status === 'approved' && doc.lifecycleStatus !== 'published' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
-            <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)">
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
               <p class="text-muted small">文档已审核通过，需发布后才可被 AI 检索使用</p>
-              <button class="btn" id="publishBtn" style="background:var(--accent);border-color:var(--accent);color:#fff">发布到 RAG 库</button>
+              <button class="btn btn-primary" id="publishBtn">发布到 RAG 库</button>
             </div>
           ` : ''}
-          ${doc.lifecycleStatus === 'published' ? '<div class="muted" style="margin-top:8px">✅ 已发布，可被 AI 检索使用</div>' : ''}
+          ${doc.lifecycleStatus === 'published' ? '<div class="alert alert-success" style="margin-top:8px">✅ 已发布，可被 AI 检索使用</div>' : ''}
         </div>
       `;
 
