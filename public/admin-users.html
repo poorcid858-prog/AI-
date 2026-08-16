@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/sidebar.css">
 <style>
   .tbl { width: 100%; border-collapse: collapse; }
   .tbl th, .tbl td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -154,9 +155,10 @@
 </div>
 
 <script src="/js/app.js"></script>
+<script src="/js/sidebar.js"></script>
 <script>
 if (App.guard()) {
-  App.renderHeader('admin');
+  App.renderSidebar('admin', 'users');
   document.getElementById('page').style.display = 'block';
 
   const ROLE_LABELS = { admin:'系统管理员', reviewer:'审核专员', product:'产品经理', test:'测试工程师', frontend:'前端工程师', cs:'客服专员', guest:'演示访客' };

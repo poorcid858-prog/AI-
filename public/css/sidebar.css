@@ -1,0 +1,350 @@
+/* ============================================================
+   全局左侧边栏导航 —— Ant Design Pro 风格深色侧栏
+   结构：
+     .app-shell                整体壳（flex: sidebar + content）
+       .app-sidebar-area       侧边栏容器
+         .app-sidebar          侧边栏本体
+           .sidebar-collapse-btn   折叠按钮
+           .sidebar-nav            菜单
+             .sidebar-module         一级菜单(可折叠)
+               .sidebar-module-head     一级标题
+               .sidebar-children        二级子菜单
+                 .sidebar-item            子项
+       .app-content-area       主内容区
+         .app-topbar           顶部（品牌 + 用户区）
+         .app-page-body        页面正文
+   ============================================================ */
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ---------- 侧边栏容器 ---------- */
+.app-sidebar-area {
+  flex-shrink: 0;
+  width: var(--sidebar-width, 228px);
+  transition: width 0.25s ease;
+  overflow: visible;
+}
+
+/* 折叠后：侧栏只留图标区 */
+.app-shell.sidebar-collapsed .app-sidebar-area {
+  width: var(--sidebar-collapsed-width, 58px);
+}
+
+.app-sidebar-area .app-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: var(--sidebar-width, 228px);
+  background: var(--sidebar-bg, #0d1216);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  z-index: 100;
+  transition: width 0.25s ease, transform 0.25s ease;
+}
+
+.app-shell.sidebar-collapsed .app-sidebar {
+  width: var(--sidebar-collapsed-width, 58px);
+}
+
+/* 折叠按钮 */
+.sidebar-collapse-btn {
+  flex-shrink: 0;
+  align-self: flex-end;
+  margin: 10px 10px 6px 0;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel);
+  color: var(--text-dim);
+  cursor: pointer;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  transition: all 0.15s;
+}
+
+.sidebar-collapse-btn:hover {
+  background: var(--bg-panel-2);
+  color: var(--text);
+}
+
+.app-shell.sidebar-collapsed .sidebar-collapse-btn {
+  align-self: center;
+  margin: 10px auto 6px;
+}
+
+/* 菜单滚动区 */
+.sidebar-nav {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 4px 0 16px;
+}
+
+/* ---------- 一级菜单 ---------- */
+.sidebar-module {
+  margin-bottom: 2px;
+}
+
+.sidebar-module-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  border-radius: 6px;
+  margin: 1px 8px;
+  color: var(--text-dim);
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 0.15s, color 0.15s;
+  user-select: none;
+}
+
+.sidebar-module-head:hover {
+  background: var(--bg-panel-2);
+  color: var(--text);
+}
+
+/* 当前激活模块高亮 */
+.sidebar-module.active > .sidebar-module-head {
+  background: var(--accent-dim);
+  color: var(--text);
+  border-left: 3px solid var(--accent);
+  margin-left: 5px;
+}
+
+.sidebar-module-icon {
+  flex-shrink: 0;
+  width: 18px;
+  text-align: center;
+  font-size: 15px;
+}
+
+.sidebar-module-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-module-arrow {
+  flex-shrink: 0;
+  font-size: 12px;
+  color: var(--text-faint);
+  transition: transform 0.2s;
+}
+
+.sidebar-module.open > .sidebar-module-head .sidebar-module-arrow {
+  transform: rotate(180deg);
+}
+
+/* ---------- 二级子菜单 ---------- */
+.sidebar-children {
+  display: none;
+}
+
+.sidebar-module.open .sidebar-children {
+  display: block;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px 8px 46px;
+  font-size: 13px;
+  color: var(--text-dim);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+  border-left: 3px solid transparent;
+  margin: 0 8px;
+  border-radius: 4px;
+}
+
+.sidebar-item:hover {
+  background: var(--bg-panel-2);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.sidebar-item.active {
+  color: #7cb2ff;
+  background: var(--bg-panel-2);
+  border-left-color: var(--accent);
+  font-weight: 500;
+}
+
+.sidebar-item-dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-light);
+  transition: background 0.15s;
+}
+
+.sidebar-item.active .sidebar-item-dot {
+  background: var(--accent);
+}
+
+.sidebar-item:hover .sidebar-item-dot {
+  background: var(--text-faint);
+}
+
+/* 折叠侧栏时：只显示一级标题图标 */
+.app-shell.sidebar-collapsed .sidebar-module-label,
+.app-shell.sidebar-collapsed .sidebar-module-arrow,
+.app-shell.sidebar-collapsed .sidebar-children,
+.app-shell.sidebar-collapsed .sidebar-collapse-btn .collapse-icon-text {
+  display: none;
+}
+
+.app-shell.sidebar-collapsed .sidebar-module-head {
+  justify-content: center;
+  padding: 11px 6px;
+}
+
+.app-shell.sidebar-collapsed .sidebar-module-icon {
+  font-size: 17px;
+}
+
+/* ---------- 主内容区 ---------- */
+.app-content-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  margin-left: 0;
+}
+
+/* 顶部栏 */
+.app-topbar {
+  flex-shrink: 0;
+  height: 54px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  position: sticky;
+  top: 0;
+  z-index: 90;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.app-topbar .brand {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.app-topbar .brand:hover {
+  color: var(--accent);
+}
+
+/* 顶部汉堡按钮（移动端显示） */
+.topbar-menu-btn {
+  display: none;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-panel-2);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.topbar-menu-btn:hover {
+  background: var(--border);
+}
+
+.app-topbar .topuser {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-shrink: 0;
+}
+
+.app-topbar .uname {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+/* 页面正文 */
+.app-page-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 页面容器内放宽最大宽度，兼容原 max-width 1400 布局 */
+.app-page-body .page {
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 26px 24px 60px;
+}
+
+/* 工作台（聊天）特殊处理 —— 让 chat 撑满 */
+.app-page-body .workspace {
+  height: calc(100vh - 54px);
+}
+
+/* ---------- 响应式 ---------- */
+@media (max-width: 992px) {
+  /* 中等屏幕：侧栏可折叠触发 */
+  .topbar-menu-btn {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .app-sidebar-area {
+    width: 0;
+  }
+
+  .app-sidebar {
+    transform: translateX(-100%);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  }
+
+  .app-shell.sidebar-mobile-open .app-sidebar {
+    transform: translateX(0);
+  }
+
+  .sidebar-mask {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    z-index: 95;
+  }
+
+  .app-shell.sidebar-collapsed .app-sidebar-area {
+    width: 0;
+  }
+}
+
+/* 小屏：隐藏用户名称 */
+@media (max-width: 640px) {
+  .app-topbar .uname {
+    display: none;
+  }
+}

@@ -27,7 +27,7 @@ test('ability-center: HTML 应该包含聚合视图结构', (t) => {
   assert(html.includes('showCapabilityDetail'), '应有 showCapabilityDetail 函数');
   assert(html.includes('/api/capabilities'), '应调用后端 API');
   assert(html.includes('App.guard'), '应有登录守卫');
-  assert(html.includes('App.renderHeader'), '应渲染导航栏');
+  assert(html.includes('App.renderSidebar'), '应渲染导航栏');
 });
 
 test('ability-center: 新建能力向导三步结构', (t) => {

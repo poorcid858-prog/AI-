@@ -49,42 +49,42 @@ const App = {
     return data;
   },
 
-  /** 渲染顶栏 */
-  renderHeader(activeKey) {
-    const u = this.user;
-    const p = this.permissions;
-    const nav = [
-      { key: 'dashboard', label: '首页', href: '/dashboard.html', show: true },
-      { key: 'workspace', label: '工作台', href: '/workspace.html', show: true },
-      { key: 'knowledge', label: '知识库', href: '/knowledge.html', show: true },
-      { key: 'knowledge-quality', label: '知识质量', href: '/knowledge-quality.html', show: u.role === 'admin' || u.role === 'reviewer' },
-      { key: 'capability', label: '能力中心', href: '/capability.html', show: true },
-      { key: 'operations', label: '运营中心', href: '/operations.html', show: u.role === 'admin' || u.role === 'reviewer' },
-      { key: 'review', label: '审核', href: '/review.html', show: u.role === 'reviewer' || u.role === 'admin' || u.role === 'guest' },
-      { key: 'admin', label: '管理后台', href: '/admin.html', show: u.role === 'admin' || u.role === 'guest' },
-      { key: 'admin-config', label: '系统配置', href: '/admin-config.html', show: u.role === 'admin' },
-      { key: 'admin-model', label: '模型配置', href: '/admin-model.html', show: u.role === 'admin' },
-      { key: 'admin-logs', label: 'AI 日志', href: '/admin-logs.html', show: u.role === 'admin' },
-      { key: 'admin-users', label: '用户管理', href: '/admin-users.html', show: u.role === 'admin' },
-    ].filter((n) => n.show);
+  /**
+   * 渲染左侧边栏导航（K1 重构）。
+   * @param {string} moduleKey 一级模块 key（如 'knowledge'）
+   * @param {string} itemKey   二级子项 key（可省略）
+   */
+  renderSidebar(moduleKey, itemKey) {
+    // 兼容：若 sidebar.js 已加载并以 App.renderSidebar 注入，则优先用它
+    if (typeof Sidebar !== 'undefined' && Sidebar.render) {
+      return Sidebar.render(moduleKey, itemKey);
+    }
+    // 兜底：如果 sidebar.js 尚未加载，给出可读错误提示
+    // eslint-disable-next-line no-console
+    console.warn('[sidebar] 未加载 sidebar.js，无法渲染侧边栏');
+    return null;
+  },
 
-    const el = document.createElement('header');
-    el.className = 'topbar';
-    el.innerHTML = `
-      <div class="topbar-inner">
-        <a class="brand" href="/dashboard.html">企业 AI 辅助工具</a>
-        <nav class="topnav">
-          ${nav.map((n) => `<a href="${n.href}" class="${n.key === activeKey ? 'on' : ''}">${n.label}</a>`).join('')}
-        </nav>
-        <div class="topuser">
-          ${u.readonly ? '<span class="tag ro">只读演示</span>' : ''}
-          <span class="tag ${u.bizLine}">${u.bizLineLabel || u.bizLine}</span>
-          <div class="avatar ${u.role}" title="${u.roleLabel || u.role}">${u.avatar || u.name[0]}</div>
-          <span class="uname">${u.name}</span>
-          <button class="btn btn-sm" onclick="App.logout()">退出</button>
-        </div>
-      </div>`;
-    document.body.prepend(el);
+  /** 渲染顶栏（兼容保留，实际转发到 renderSidebar，避免老调用直接失效） */
+  renderHeader(activeKey) {
+    // 旧顶栏扁平导航已移除，改为左侧边栏。
+    // 为兼容历史页面残留调用，把旧参数映射到新模块结构：
+    //   旧 activeKey → 新 moduleKey
+    const MAP = {
+      dashboard: 'workbench',
+      workspace: 'workbench',
+      knowledge: 'knowledge',
+      'knowledge-quality': 'knowledge',
+      capability: 'capability',
+      review: 'review',
+      operations: 'operations',
+      admin: 'admin',
+      'admin-config': 'admin',
+      'admin-model': 'admin',
+      'admin-logs': 'admin',
+      'admin-users': 'admin',
+    };
+    return this.renderSidebar(MAP[activeKey] || activeKey, '');
   },
 
   /** HTML 转义，防止模拟文档内容里的尖括号破坏页面 */

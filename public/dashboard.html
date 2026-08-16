@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
+<link rel="stylesheet" href="/css/sidebar.css">
 </head>
 <body>
 <div class="page" id="page" style="display:none">
@@ -60,12 +61,13 @@
 </div>
 
 <script src="/js/app.js"></script>
+<script src="/js/sidebar.js"></script>
 <script>
 if (App.guard()) {
   const u = App.user;
   const p = App.permissions;
 
-  App.renderHeader('dashboard');
+  App.renderSidebar('workbench', '');
   document.getElementById('page').style.display = 'block';
 
   // ---- 身份卡 ----
