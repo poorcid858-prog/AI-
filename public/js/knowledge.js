@@ -59,8 +59,6 @@ class DataLoader {
       const url = `/api/knowledge/${layer}${params.toString() ? '?' + params : ''}`;
       const response = await App.api(url);
 
-      if (!response.ok) throw new Error(response.error || '加载失败');
-
       pageState.items = response.items || [];
       pageState.error = null;
       renderEngine.render(layer, pageState.items);
@@ -495,8 +493,12 @@ function clearDetail() {
 
 function showError(message) {
   console.error(message);
-  // 可选：显示toast或alert
-  alert('❌ ' + message);
+  // 使用 Toast 代替 alert（如果可用），避免阻塞型弹窗导致白屏感
+  var el = document.createElement('div');
+  el.className = 'toast error';
+  el.textContent = '❌ ' + message;
+  document.body.appendChild(el);
+  setTimeout(function() { el.classList.add('out'); setTimeout(function() { el.remove(); }, 300); }, 4000);
 }
 
 function escapeHtml(text) {

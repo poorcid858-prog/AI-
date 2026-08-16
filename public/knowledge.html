@@ -24,8 +24,12 @@
         <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
         <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
           <div><label>文档标题</label><input id="uploadTitle" placeholder="如：售后政策 v1.0" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)"></div>
+          <div><label>选择文件 (.md, .txt)</label>
+            <input type="file" id="uploadFile" accept=".md,.txt" style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text)">
+            <div class="text-muted small" style="margin-top:4px">选择文件后，内容将自动填入下方编辑框。支持 .md 和 .txt 格式。</div>
+          </div>
           <div><label>Markdown 内容</label>
-            <textarea id="uploadContent" rows="8" placeholder="输入文档内容..." style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:monospace;font-size:12px"></textarea>
+            <textarea id="uploadContent" rows="8" placeholder="选文件后自动填入，也可手动编辑..." style="width:100%;padding:8px;background:var(--bg-input);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:monospace;font-size:12px"></textarea>
           </div>
           <div class="grid grid-3" style="gap:10px;display:grid;grid-template-columns:1fr 1fr 1fr">
             <div><label>业务线</label>
@@ -138,14 +142,36 @@
   }
 
   // 上传表单提交
+  document.getElementById('uploadFile').addEventListener('change', (ev) => {
+    const file = ev.target.files && ev.target.files[0];
+    if (!file) return;
+    // 若标题为空，用文件名（去扩展名）当标题
+    const titleInput = document.getElementById('uploadTitle');
+    if (!titleInput.value.trim()) {
+      titleInput.value = file.name.replace(/\.[^.]+$/, '');
+    }
+    // 用 FileReader 读 .md/.txt 文本
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      document.getElementById('uploadContent').value = e.target.result || '';
+      App.toast('已读取文件内容，可检查或直接上传', 'success');
+    };
+    reader.onerror = () => App.toast('文件读取失败，请重试', 'error');
+    reader.readAsText(file, 'utf-8');
+  });
+
   document.getElementById('uploadForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
+    if (!document.getElementById('uploadContent').value.trim()) {
+      App.toast('请先选择文件或填写内容', 'error');
+      return;
+    }
     const btn = document.getElementById('uploadBtn');
     btn.disabled = true; btn.textContent = '预处理中…';
     try {
       const body = {
         title: document.getElementById('uploadTitle').value,
-        fileName: (document.getElementById('uploadTitle').value || 'new-doc') + '.md',
+        fileName: (document.getElementById('uploadFile').files[0]?.name) || (document.getElementById('uploadTitle').value || 'new-doc') + '.md',
         content: document.getElementById('uploadContent').value,
         bizLine: document.getElementById('uploadBizLine').value,
         securityLevel: document.getElementById('uploadSec').value,
@@ -155,6 +181,7 @@
       App.toast('已上传并预处理：' + (d.document.chunkCount || 0) + ' 个切片，等待审核', 'success');
       document.getElementById('uploadContent').value = '';
       document.getElementById('uploadTitle').value = '';
+      document.getElementById('uploadFile').value = '';
       // 刷新文档列表
       if (window.dataLoader) window.dataLoader.load('documents');
     } catch (e) {

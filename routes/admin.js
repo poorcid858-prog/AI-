@@ -181,12 +181,95 @@ router.get('/qa-history/:sessionId', auth.requireAuth, (req, res) => {
   });
 });
 
-// ---------- GET /api/admin/prompt-templates 获取提问模板 ----------
+// ========== 提问模板 CRUD（任务包 K2）==========
 
+// 角色白名单：全部 / 产品 / 测试 / 前端 / 客服
+const PROMPT_TEMPLATE_ROLES = ['all', 'product', 'test', 'frontend', 'cs'];
+const MAX_PROMPT_TEMPLATES = 10;
+
+/** 校验 role 是否合法 */
+function validPromptRole(role) {
+  return PROMPT_TEMPLATE_ROLES.includes(role);
+}
+
+// GET /api/admin/prompt-templates 获取提问模板（admin 传 ?all=1 时含禁用项，供管理界面用）
 router.get('/prompt-templates', auth.requireAuth, (req, res) => {
+  if (req.query.all === '1') {
+    if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可查看全部模板' });
+    const templates = promptTemplates.list() || [];
+    res.json({ ok: true, templates });
+    return;
+  }
   const role = req.query.role || 'all';
   const templates = promptTemplates.listEnabled(role);
   res.json({ ok: true, templates });
+});
+
+// POST /api/admin/prompt-templates 新增提问模板（仅 admin）
+router.post('/prompt-templates', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可创建提问模板' });
+
+  const { name, content, role = 'all', priority = 1, enabled = true } = req.body || {};
+  if (!name || !name.trim()) return res.status(400).json({ ok: false, error: '模板名称不能为空' });
+  if (!content || !content.trim()) return res.status(400).json({ ok: false, error: '模板内容不能为空' });
+  if (!validPromptRole(role)) {
+    return res.status(400).json({ ok: false, error: `适用角色非法，可选: ${PROMPT_TEMPLATE_ROLES.join(', ')}` });
+  }
+
+  const existing = promptTemplates.list() || [];
+  if (existing.length >= MAX_PROMPT_TEMPLATES) {
+    return res.status(400).json({ ok: false, error: `最多只能配置 ${MAX_PROMPT_TEMPLATES} 条提问模板` });
+  }
+
+  const template = promptTemplates.create({
+    name: name.trim(),
+    content: content.trim(),
+    role,
+    priority: Number(priority) || 1,
+    enabled: enabled !== false,
+  });
+  res.status(201).json({ ok: true, template });
+});
+
+// PUT /api/admin/prompt-templates/:id 更新提问模板（仅 admin）
+router.put('/prompt-templates/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可修改提问模板' });
+
+  const id = req.params.id;
+  const { name, content, role, priority, enabled } = req.body || {};
+
+  if (name !== undefined && (!name || !name.trim())) {
+    return res.status(400).json({ ok: false, error: '模板名称不能为空' });
+  }
+  if (content !== undefined && (!content || !content.trim())) {
+    return res.status(400).json({ ok: false, error: '模板内容不能为空' });
+  }
+  if (role !== undefined && !validPromptRole(role)) {
+    return res.status(400).json({ ok: false, error: `适用角色非法，可选: ${PROMPT_TEMPLATE_ROLES.join(', ')}` });
+  }
+
+  const patch = {};
+  if (name !== undefined) patch.name = name.trim();
+  if (content !== undefined) patch.content = content.trim();
+  if (role !== undefined) patch.role = role;
+  if (priority !== undefined) patch.priority = Number(priority) || 1;
+  if (enabled !== undefined) patch.enabled = !!enabled;
+
+  const template = promptTemplates.update(id, patch);
+  if (!template) return res.status(404).json({ ok: false, error: '提问模板不存在' });
+
+  res.json({ ok: true, template });
+});
+
+// DELETE /api/admin/prompt-templates/:id 删除提问模板（仅 admin）
+router.delete('/prompt-templates/:id', auth.requireAuth, (req, res) => {
+  if (req.user.role !== 'admin') return res.status(403).json({ ok: false, error: '仅管理员可删除提问模板' });
+
+  const id = req.params.id;
+  const success = promptTemplates.remove(id);
+  if (!success) return res.status(404).json({ ok: false, error: '提问模板不存在' });
+
+  res.json({ ok: true });
 });
 
 // ========== 密码配置 API ==========

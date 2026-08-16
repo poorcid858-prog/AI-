@@ -43,7 +43,7 @@
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>系统配置</h1>
-    <p>管理密码配置、Chunk 切分、分层提示词、系统参数等</p>
+    <p>管理密码配置、Chunk 切分、提问模板</p>
   </div>
 
   <div id="notice"></div>
@@ -51,8 +51,7 @@
   <div class="config-tabs">
     <button class="tab-btn active" data-tab="password">密码配置</button>
     <button class="tab-btn" data-tab="chunking">Chunk 切分</button>
-    <button class="tab-btn" data-tab="prompts">分层提示词</button>
-    <button class="tab-btn" data-tab="system">系统参数</button>
+    <button class="tab-btn" data-tab="prompt-templates">提问模板</button>
   </div>
 
   <!-- 密码配置 -->
@@ -135,73 +134,49 @@
     </div>
   </div>
 
-  <!-- 分层提示词 -->
-  <div id="prompts" class="tab-content">
+  <!-- 提问模板 -->
+  <div id="prompt-templates" class="tab-content">
     <div class="card">
-      <h3>分层提示词配置</h3>
-      <p class="card-sub">为不同角色和业务线配置不同的提示词</p>
-      <div style="margin-bottom:16px">
-        <button class="btn btn-primary" onclick="showAddPromptForm()">添加新配置</button>
+      <h3>提问模板管理</h3>
+      <p class="card-sub">为 AI 聊天配置快速提问模板，最多 10 条。可配置适用角色（全部/产品/测试/前端/客服）</p>
+      <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center">
+        <button class="btn btn-primary" onclick="showAddPromptTemplate()">新增模板</button>
+        <span class="muted" id="ptCount">已用 0 / 10 条</span>
       </div>
 
-      <div id="addPromptForm" style="display:none;margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:4px">
-        <h4>新增分层提示词</h4>
+      <div id="addPtForm" style="display:none;margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:4px">
+        <h4 id="ptFormTitle">新增提问模板</h4>
         <form style="display:grid;gap:12px;max-width:600px">
           <div class="form-group">
-            <label>层级</label>
-            <input type="text" id="prompt_level" placeholder="如：basic、advanced">
+            <label>模板名称</label>
+            <input type="text" id="pt_name" placeholder="如：编写产品需求文档">
           </div>
           <div class="form-group">
-            <label>角色名称</label>
-            <input type="text" id="prompt_role" placeholder="如：客服、产品经理">
+            <label>模板内容</label>
+            <textarea id="pt_content" placeholder="输入 AI 快速提问的内容" style="min-height:120px"></textarea>
           </div>
           <div class="form-group">
-            <label>业务线</label>
-            <input type="text" id="prompt_bizline" placeholder="如：交易线、会员线">
+            <label>适用角色</label>
+            <select id="pt_role">
+              <option value="all">全部</option>
+              <option value="product">产品</option>
+              <option value="test">测试</option>
+              <option value="frontend">前端</option>
+              <option value="cs">客服</option>
+            </select>
           </div>
           <div class="form-group">
-            <label>提示词内容</label>
-            <textarea id="prompt_text" placeholder="输入提示词内容"></textarea>
+            <label>优先级（数字越小越靠前）</label>
+            <input type="number" id="pt_priority" min="1" max="100" value="1">
           </div>
           <div style="display:flex;gap:8px">
-            <button type="button" class="btn btn-secondary" onclick="savePromptLayer()">保存</button>
-            <button type="button" class="btn btn-secondary" onclick="hideAddPromptForm()">取消</button>
+            <button type="button" class="btn btn-primary" onclick="savePromptTemplate()">保存</button>
+            <button type="button" class="btn btn-secondary" onclick="hideAddPromptTemplate()">取消</button>
           </div>
         </form>
       </div>
 
-      <div id="promptList" class="table-container">加载中…</div>
-    </div>
-  </div>
-
-  <!-- 系统参数 -->
-  <div id="system" class="tab-content">
-    <div class="card">
-      <h3>系统参数配置</h3>
-      <p class="card-sub">通用系统参数</p>
-      <div style="margin-bottom:16px">
-        <button class="btn btn-primary" onclick="showAddSysConfigForm()">添加新参数</button>
-      </div>
-
-      <div id="addSysConfigForm" style="display:none;margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:4px">
-        <h4>新增系统参数</h4>
-        <form style="display:grid;gap:12px;max-width:600px">
-          <div class="form-group">
-            <label>参数名</label>
-            <input type="text" id="syscfg_key" placeholder="如：max_file_size">
-          </div>
-          <div class="form-group">
-            <label>参数值</label>
-            <input type="text" id="syscfg_value" placeholder="输入值">
-          </div>
-          <div style="display:flex;gap:8px">
-            <button type="button" class="btn btn-secondary" onclick="saveSysConfig()">保存</button>
-            <button type="button" class="btn btn-secondary" onclick="hideAddSysConfigForm()">取消</button>
-          </div>
-        </form>
-      </div>
-
-      <div id="sysConfigList" class="table-container">加载中…</div>
+      <div id="ptList" class="table-container">加载中…</div>
     </div>
   </div>
 </div>
@@ -326,128 +301,112 @@ if (App.guard()) {
     }).catch(err => showNotice('保存失败：' + err.message, 'error'));
   }
 
-  // ===== 分层提示词 =====
-  function showAddPromptForm() {
-    document.getElementById('addPromptForm').style.display = 'block';
+  // ===== 提问模板 CRUD =====
+  // 全局暂存编辑中的模板 id（null = 新增）
+  let editingPtId = null;
+
+  function showAddPromptTemplate() {
+    editingPtId = null;
+    document.getElementById('ptFormTitle').textContent = '新增提问模板';
+    document.getElementById('pt_name').value = '';
+    document.getElementById('pt_content').value = '';
+    document.getElementById('pt_role').value = 'all';
+    document.getElementById('pt_priority').value = '1';
+    document.getElementById('addPtForm').style.display = 'block';
   }
 
-  function hideAddPromptForm() {
-    document.getElementById('addPromptForm').style.display = 'none';
-    document.getElementById('prompt_level').value = '';
-    document.getElementById('prompt_role').value = '';
-    document.getElementById('prompt_bizline').value = '';
-    document.getElementById('prompt_text').value = '';
+  function hideAddPromptTemplate() {
+    document.getElementById('addPtForm').style.display = 'none';
   }
 
-  function savePromptLayer() {
-    const data = {
-      level: document.getElementById('prompt_level').value,
-      role_name: document.getElementById('prompt_role').value,
-      business_line: document.getElementById('prompt_bizline').value,
-      prompt_text: document.getElementById('prompt_text').value,
-    };
-    if (!data.level || !data.role_name || !data.prompt_text) {
-      showNotice('请填写所有必填项', 'error');
-      return;
-    }
-    App.api('/api/admin/prompt-layers', { method: 'POST', body: data }).then(() => {
-      showNotice('分层提示词已保存');
-      hideAddPromptForm();
-      loadPromptLayers();
+  function editPromptTemplate(tpl) {
+    editingPtId = tpl.id;
+    document.getElementById('ptFormTitle').textContent = '编辑提问模板';
+    document.getElementById('pt_name').value = tpl.name || '';
+    document.getElementById('pt_content').value = tpl.content || '';
+    document.getElementById('pt_role').value = tpl.role || 'all';
+    document.getElementById('pt_priority').value = tpl.priority || 1;
+    document.getElementById('addPtForm').style.display = 'block';
+  }
+
+  function savePromptTemplate() {
+    const name = document.getElementById('pt_name').value.trim();
+    const content = document.getElementById('pt_content').value.trim();
+    const role = document.getElementById('pt_role').value;
+    const priority = parseInt(document.getElementById('pt_priority').value, 10) || 1;
+
+    if (!name) { showNotice('请输入模板名称', 'error'); return; }
+    if (!content) { showNotice('请输入模板内容', 'error'); return; }
+
+    const url = editingPtId ? `/api/admin/prompt-templates/${editingPtId}` : '/api/admin/prompt-templates';
+    const method = editingPtId ? 'PUT' : 'POST';
+    const body = { name, content, role, priority };
+
+    App.api(url, { method, body }).then(() => {
+      showNotice(editingPtId ? '模板已更新' : '模板已新增');
+      hideAddPromptTemplate();
+      loadPromptTemplates();
     }).catch(err => showNotice('保存失败：' + err.message, 'error'));
   }
 
-  async function deletePromptLayer(id) {
-    if (!(await App.confirm('确定删除此配置？'))) return;
-    App.api('/api/admin/prompt-layers/' + id, { method: 'DELETE' }).then(() => {
-      showNotice('配置已删除');
-      loadPromptLayers();
+  async function deletePromptTemplate(id) {
+    if (!(await App.confirm('确定删除此提问模板？'))) return;
+    App.api('/api/admin/prompt-templates/' + id, { method: 'DELETE' }).then(() => {
+      showNotice('模板已删除');
+      if (editingPtId === id) hideAddPromptTemplate();
+      loadPromptTemplates();
     }).catch(err => showNotice('删除失败：' + err.message, 'error'));
   }
 
-  function loadPromptLayers() {
-    App.api('/api/admin/prompt-layers').then(d => {
-      const layers = d.layers || [];
-      if (layers.length === 0) {
-        document.getElementById('promptList').innerHTML = '<div class="muted">暂无配置</div>';
+  async function togglePromptTemplate(tpl) {
+    const body = { enabled: !tpl.enabled };
+    App.api('/api/admin/prompt-templates/' + tpl.id, { method: 'PUT', body }).then(() => {
+      showNotice(tpl.enabled ? '模板已停用' : '模板已启用');
+      loadPromptTemplates();
+    }).catch(err => showNotice('操作失败：' + err.message, 'error'));
+  }
+
+  const ROLE_LABELS = { all: '全部', product: '产品', test: '测试', frontend: '前端', cs: '客服' };
+
+  function loadPromptTemplates() {
+    App.api('/api/admin/prompt-templates?all=1').then(d => {
+      const templates = d.templates || [];
+      document.getElementById('ptCount').textContent = `已用 ${templates.length} / 10 条`;
+      if (templates.length === 0) {
+        document.getElementById('ptList').innerHTML = '<div class="muted">暂无模板，点击"新增模板"开始配置</div>';
         return;
       }
       const html = `<table class="tbl">
-        <tr><th>层级</th><th>角色</th><th>业务线</th><th>提示词</th><th>操作</th></tr>
-        ${layers.map(l => `<tr>
-          <td>${l.level}</td>
-          <td>${l.role_name}</td>
-          <td>${l.business_line || '-'}</td>
-          <td><code style="max-width:200px;overflow:hidden;text-overflow:ellipsis;display:block">${l.prompt_text.substring(0, 50)}</code></td>
-          <td><button class="btn btn-sm btn-danger" onclick="deletePromptLayer(${l.id})">删除</button></td>
-        </tr>`).join('')}
+        <tr><th>名称</th><th>内容</th><th>适用角色</th><th>优先级</th><th>状态</th><th>操作</th></tr>
+        ${templates.map(t => {
+          const roleLabel = ROLE_LABELS[t.role] || t.role || '全部';
+          const statusHtml = t.enabled
+            ? '<span class="badge badge-success">启用</span>'
+            : '<span class="badge badge-warning">停用</span>';
+          return `<tr>
+            <td style="min-width:130px">${t.name || '-'}</td>
+            <td style="max-width:300px"><code style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(t.content || '').substring(0, 60)}</code></td>
+            <td>${roleLabel}</td>
+            <td>${t.priority || 1}</td>
+            <td>${statusHtml}</td>
+            <td style="white-space:nowrap">
+              <button class="btn btn-sm btn-secondary" onclick="editPromptTemplate(${JSON.stringify(t).replace(/"/g, '&quot;')})">编辑</button>
+              <button class="btn btn-sm btn-secondary" onclick="togglePromptTemplate(${JSON.stringify(t).replace(/"/g, '&quot;')})">${t.enabled ? '停用' : '启用'}</button>
+              <button class="btn btn-sm btn-danger" onclick="deletePromptTemplate('${t.id}')">删除</button>
+            </td>
+          </tr>`;
+        }).join('')}
       </table>`;
-      document.getElementById('promptList').innerHTML = html;
+      document.getElementById('ptList').innerHTML = html;
     }).catch(() => {
-      document.getElementById('promptList').innerHTML = '<div class="muted">加载失败</div>';
+      document.getElementById('ptList').innerHTML = '<div class="muted">加载失败</div>';
     });
   }
 
-  // ===== 系统参数 =====
-  function showAddSysConfigForm() {
-    document.getElementById('addSysConfigForm').style.display = 'block';
-  }
-
-  function hideAddSysConfigForm() {
-    document.getElementById('addSysConfigForm').style.display = 'none';
-    document.getElementById('syscfg_key').value = '';
-    document.getElementById('syscfg_value').value = '';
-  }
-
-  function saveSysConfig() {
-    const key = document.getElementById('syscfg_key').value;
-    const value = document.getElementById('syscfg_value').value;
-    if (!key || !value) {
-      showNotice('请填写参数名和参数值', 'error');
-      return;
-    }
-    App.api('/api/admin/system-config/' + key, { method: 'PUT', body: { value } }).then(() => {
-      showNotice('系统参数已保存');
-      hideAddSysConfigForm();
-      loadSysConfigs();
-    }).catch(err => showNotice('保存失败：' + err.message, 'error'));
-  }
-
-  async function deleteSysConfig(key) {
-    if (!(await App.confirm('确定删除此参数？'))) return;
-    App.api('/api/admin/system-config/' + key, { method: 'DELETE' }).then(() => {
-      showNotice('参数已删除');
-      loadSysConfigs();
-    }).catch(err => showNotice('删除失败：' + err.message, 'error'));
-  }
-
-  function loadSysConfigs() {
-    App.api('/api/admin/system-config').then(d => {
-      const configs = d.configs || [];
-      if (configs.length === 0) {
-        document.getElementById('sysConfigList').innerHTML = '<div class="muted">暂无参数</div>';
-        return;
-      }
-      const html = `<table class="tbl">
-        <tr><th>参数名</th><th>参数值</th><th>更新时间</th><th>操作</th></tr>
-        ${configs.map(c => `<tr>
-          <td><code>${c.key}</code></td>
-          <td>${c.value}</td>
-          <td>${c.updatedAt ? c.updatedAt.split('T')[0] : '-'}</td>
-          <td><button class="btn btn-sm btn-danger" onclick="deleteSysConfig('${c.key}')">删除</button></td>
-        </tr>`).join('')}
-      </table>`;
-      document.getElementById('sysConfigList').innerHTML = html;
-    }).catch(() => {
-      document.getElementById('sysConfigList').innerHTML = '<div class="muted">加载失败</div>';
-    });
-  }
-
-  // 初始化
+  // 初始化（分层提示词与系统参数 Tab 已在 K3 移除，Prompt 配置移入能力中心 K4 维护）
   loadPwdConfig();
   loadChunkConfig();
-  loadPromptLayers();
-  loadSysConfigs();
+  loadPromptTemplates();
 }
 </script>
 </body>
