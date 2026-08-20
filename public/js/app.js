@@ -3,6 +3,15 @@
  */
 
 const App = {
+  /** 自动检测 base path（适配 /ai/ 反代和根路径两种部署方式） */
+  get base() {
+    const p = location.pathname; // e.g. "/ai/knowledge.html" or "/index.html"
+    const idx = p.indexOf('/', 1);
+    if (idx === -1) return '';
+    const seg = p.substring(0, idx); // "/ai" or ""
+    return (seg === '/ai' || seg === '/ai/') ? '/ai' : '';
+  },
+
   get token() { return localStorage.getItem('token') || ''; },
   get user() {
     try { return JSON.parse(localStorage.getItem('user') || 'null'); } catch { return null; }
@@ -21,7 +30,7 @@ const App = {
   },
 
   logout() {
-    fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${this.token}` } })
+    fetch(this.base + '/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${this.token}` } })
       .catch(() => {})
       .finally(() => {
         localStorage.clear();
@@ -31,7 +40,8 @@ const App = {
 
   /** 带 token 的 fetch，统一处理 401 与错误提示 */
   async api(path, options = {}) {
-    const res = await fetch(path, {
+    const url = path.startsWith('http') ? path : this.base + path;
+    const res = await fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',

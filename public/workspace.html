@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>工作台 - 企业 AI 辅助工具</title>
+<title>工作�?- 企业 AI 辅助工具</title>
 <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="/css/custom-theme.css">
 <link rel="stylesheet" href="/css/style.css">
@@ -14,15 +14,15 @@
 <body>
 
 <div class="workspace" id="workspace" style="display:none">
-  <!-- 左栏：历史聊天列表 -->
+  <!-- 左栏：历史聊天列�?-->
   <div class="chat-sidebar-left">
     <div class="sidebar-head">
       <h3>聊天历史</h3>
     </div>
     <div class="session-list" id="sessionList">
-      <div class="loading">加载中…</div>
+      <div class="loading">加载中�?/div>
     </div>
-    <button class="btn btn-primary btn-block" id="newSessionBtn" style="display: block !important;">+ 新会话</button>
+    <button class="btn btn-primary btn-block" id="newSessionBtn" style="display: block !important;">+ 新会�?/button>
   </div>
 
   <!-- 中栏：对话流 -->
@@ -35,11 +35,11 @@
     </div>
     <div class="input-area">
       <textarea id="userInput" class="user-input" placeholder="输入你的问题... (Shift+Enter 换行)" rows="1"></textarea>
-      <button class="btn btn-primary" id="sendBtn" style="display: block !important;">发送</button>
+      <button class="btn btn-primary" id="sendBtn" style="display: block !important;">发�?/button>
     </div>
   </div>
 
-  <!-- 右栏：设置 + 常用问题 -->
+  <!-- 右栏：设�?+ 常用问题 -->
   <div class="chat-sidebar-right">
     <div class="sidebar-head">
       <h3>设置</h3>
@@ -53,8 +53,8 @@
     <div class="setting-group">
       <label class="setting-label">🔽 业务线选择</label>
       <select id="bizLineSelect" class="setting-select">
-        <option value="trade">交易线</option>
-        <option value="membership">会员线</option>
+        <option value="trade">交易�?/option>
+        <option value="membership">会员�?/option>
         <option value="all">全业务线</option>
       </select>
     </div>
@@ -62,12 +62,12 @@
     <div class="setting-group">
       <label class="setting-label">🔽 常用问题</label>
       <select id="frequentSelect" class="setting-select">
-        <option value="">选择常用问题…</option>
+        <option value="">选择常用问题�?/option>
       </select>
     </div>
 
     <div class="setting-group">
-      <label class="setting-label">⚡ 快速提问</label>
+      <label class="setting-label">�?快速提�?/label>
       <div id="templatesContainer" class="template-list"></div>
     </div>
 
@@ -91,9 +91,9 @@ const bizLineSelect = document.getElementById('bizLineSelect');
 const frequentSelect = document.getElementById('frequentSelect');
 const templatesContainer = document.getElementById('templatesContainer');
 
-// ============ 状态管理 ============
+// ============ 状态管�?============
 
-// 从 sessionStorage 恢复或初始化状态
+// �?sessionStorage 恢复或初始化状�?
 function getOrCreateSessionId() {
   let id = sessionStorage.getItem('currentSessionId');
   if (!id) {
@@ -104,8 +104,8 @@ function getOrCreateSessionId() {
 }
 
 const currentSessionId = getOrCreateSessionId();
-// 从登录用户信息读取 role，登录时由后端返回 user.role
-	// 登录时已存了 userRole 到 sessionStorage:
+// 从登录用户信息读�?role，登录时由后端返�?user.role
+	// 登录时已存了 userRole �?sessionStorage:
 	const userRole = sessionStorage.getItem('userRole') || 'product';
 	let currentRole = sessionStorage.getItem('currentRole') || userRole;
 let currentBizLine = sessionStorage.getItem('currentBizLine') || 'trade';
@@ -113,8 +113,8 @@ let currentBizLine = sessionStorage.getItem('currentBizLine') || 'trade';
 // 显示当前岗位名称
 const roleNameMap = {
   product: '产品经理',
-  test: '测试工程师',
-  frontend: '前端工程师',
+  test: '测试工程�?,
+  frontend: '前端工程�?,
   cs: '客服代表'
 };
 roleDisplay.textContent = roleNameMap[currentRole] || currentRole;
@@ -153,7 +153,7 @@ function showLoading() {
   div.id = 'loadingMsg';
   div.innerHTML = `
     <div class="msg-bubble">
-      <div class="msg-content">🤖 正在思考...</div>
+      <div class="msg-content">🤖 正在思�?..</div>
     </div>`;
   return div;
 }
@@ -162,7 +162,7 @@ function showLoading() {
 
 async function loadHistory() {
   try {
-    const d = await fetch('/api/chat/history').then(r => r.json());
+    const d = await fetch(App.base + '/api/chat/history').then(r => r.json());
     if (!d.ok) throw new Error(d.error);
 
     sessionList.innerHTML = '';
@@ -174,8 +174,8 @@ async function loadHistory() {
     for (const sess of d.sessions) {
       const div = document.createElement('div');
       div.className = `session-item ${sess.sessionId === currentSessionId ? 'active' : ''}`;
-      // 截取首条用户消息前 50 字
-      const summary = sess.summary ? sess.summary.slice(0, 50) : '(无内容)';
+      // 截取首条用户消息�?50 �?
+      const summary = sess.summary ? sess.summary.slice(0, 50) : '(无内�?';
       div.innerHTML = `
         <div class="session-name">${summary}</div>
         <div class="session-time">${timeFormat(sess.lastTimestamp)}</div>`;
@@ -214,7 +214,7 @@ async function loadFrequency() {
     const d = await fetch(`/api/chat/frequency?role=${currentRole}`).then(r => r.json());
     if (!d.ok) throw new Error(d.error);
 
-    frequentSelect.innerHTML = '<option value="">选择常用问题…</option>';
+    frequentSelect.innerHTML = '<option value="">选择常用问题�?/option>';
     for (const item of d.frequency) {
       const opt = document.createElement('option');
       opt.value = item.text;  // 返回的是 text 字段（已归一化）
@@ -260,7 +260,7 @@ async function sendMessage(question) {
   if (!question.trim()) return;
 
   try {
-    // 添加用户消息到 UI
+    // 添加用户消息�?UI
     const userRecord = {
       id: generateUUID(),
       type: 'user',
@@ -275,7 +275,7 @@ async function sendMessage(question) {
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
     // 调用 API
-    const res = await fetch('/api/chat/send', {
+    const res = await fetch(App.base + '/api/chat/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -290,25 +290,25 @@ async function sendMessage(question) {
     });
 
     const d = await res.json();
-    if (!d.ok) throw new Error(d.error || '发送失败');
+    if (!d.ok) throw new Error(d.error || '发送失�?);
 
-    // 删除 loading，添加 AI 回答
+    // 删除 loading，添�?AI 回答
     loadingEl.remove();
     const aiRecord = {
       id: generateUUID(),
       type: 'ai',
-      content: d.result,  // d.result 是 AI 的回答文本
+      content: d.result,  // d.result �?AI 的回答文�?
       timestamp: new Date().toISOString(),
     };
     messagesContainer.appendChild(renderMessage(aiRecord));
     messagesContainer.scrollTop = messagesContainer.scrollHeight;
 
-    // 刷新历史和常用问题
+    // 刷新历史和常用问�?
     loadHistory();
     loadFrequency();
 
   } catch (e) {
-    App.toast(`发送失败: ${e.message}`, 'error');
+    App.toast(`发送失�? ${e.message}`, 'error');
     const loadingEl = document.getElementById('loadingMsg');
     if (loadingEl) loadingEl.remove();
   }
@@ -325,9 +325,9 @@ function createNewSession() {
 }
 
 async function clearCurrentSession() {
-  const ok = await App.confirm('确定要清空当前会话吗？');
+  const ok = await App.confirm('确定要清空当前会话吗�?);
   if (ok) {
-    // TODO: 如果需要后端支持删除，可调用 DELETE /api/chat/session/:id
+    // TODO: 如果需要后端支持删除，可调�?DELETE /api/chat/session/:id
     createNewSession();
   }
 }
@@ -343,7 +343,7 @@ function selectFrequentQuestion() {
     userInput.value = question;
     frequentSelect.value = '';
     userInput.focus();
-    // 不自动发送，等用户按 Enter 或点发送按钮
+    // 不自动发送，等用户按 Enter 或点发送按�?
   }
 }
 
@@ -375,7 +375,7 @@ clearSessionBtn.onclick = clearCurrentSession;
 bizLineSelect.addEventListener('change', switchBizLine);
 frequentSelect.addEventListener('change', selectFrequentQuestion);
 
-// ============ 初始化 ============
+// ============ 初始�?============
 
 if (App.guard()) {
   App.renderSidebar('workbench', 'chat');
@@ -391,9 +391,9 @@ if (App.guard()) {
   const params = new URLSearchParams(location.search);
   const q = params.get('q');
   if (q) {
-    // 清除 URL 中的 q 参数，避免刷新后重复发送
+    // 清除 URL 中的 q 参数，避免刷新后重复发�?
     history.replaceState(null, '', location.pathname);
-    // 短期延迟确保页面渲染完成后再发送
+    // 短期延迟确保页面渲染完成后再发�?
     setTimeout(() => sendMessage(q), 500);
   }
 

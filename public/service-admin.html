@@ -62,12 +62,12 @@
 <div class="page">
   <div class="page-head">
     <h1>⚙️ 客服管理后台</h1>
-    <p>话术库管理、同义词表、未命中问题池、效果指标看板</p>
+    <p>话术库管理、同义词表、未命中问题池、效果指标看�?/p>
   </div>
 
   <div class="tabs">
     <button class="tab-btn active" data-tab="metrics">效果指标</button>
-    <button class="tab-btn" data-tab="phrases">话术库</button>
+    <button class="tab-btn" data-tab="phrases">话术�?/button>
     <button class="tab-btn" data-tab="synonyms">同义词表</button>
     <button class="tab-btn" data-tab="unmatch">未命中池</button>
   </div>
@@ -75,21 +75,21 @@
   <!-- 效果指标 -->
   <div class="tab-content active" id="metrics-tab">
     <div class="metrics-grid" id="metricsGrid">
-      <div class="metric-card"><div class="metric-num" id="m_hitRate">0%</div><div class="metric-label">命中率</div><div class="metric-sub" id="m_hitCount">0 次命中</div></div>
-      <div class="metric-card"><div class="metric-num" id="m_fallbackRate">0%</div><div class="metric-label">兜底率</div><div class="metric-sub" id="m_fallbackCount">0 次兜底</div></div>
+      <div class="metric-card"><div class="metric-num" id="m_hitRate">0%</div><div class="metric-label">命中�?/div><div class="metric-sub" id="m_hitCount">0 次命�?/div></div>
+      <div class="metric-card"><div class="metric-num" id="m_fallbackRate">0%</div><div class="metric-label">兜底�?/div><div class="metric-sub" id="m_fallbackCount">0 次兜�?/div></div>
       <div class="metric-card"><div class="metric-num" id="m_transferRate">0%</div><div class="metric-label">转人工率</div><div class="metric-sub" id="m_unmatchedCount">0 次未命中</div></div>
-      <div class="metric-card"><div class="metric-num" id="m_avgHits">0</div><div class="metric-label">平均命中关键字数</div><div class="metric-sub" id="m_totalRequests">总请求: 0</div></div>
+      <div class="metric-card"><div class="metric-num" id="m_avgHits">0</div><div class="metric-label">平均命中关键字数</div><div class="metric-sub" id="m_totalRequests">总请�? 0</div></div>
     </div>
   </div>
 
-  <!-- 话术库 -->
+  <!-- 话术�?-->
   <div class="tab-content" id="phrases-tab">
     <div class="section-header">
-      <h2 class="section-title">话术库管理</h2>
+      <h2 class="section-title">话术库管�?/h2>
       <button class="btn btn-primary" id="addPhraseBtn">+ 新增话术</button>
     </div>
     <table class="tbl">
-      <thead><tr><th>关键词</th><th>回复内容</th><th>优先级</th><th>操作</th></tr></thead>
+      <thead><tr><th>关键�?/th><th>回复内容</th><th>优先�?/th><th>操作</th></tr></thead>
       <tbody id="phrasesList"></tbody>
     </table>
   </div>
@@ -97,11 +97,11 @@
   <!-- 同义词表 -->
   <div class="tab-content" id="synonyms-tab">
     <div class="section-header">
-      <h2 class="section-title">同义词管理</h2>
-      <button class="btn btn-primary" id="addSynonymBtn">+ 新增同义词</button>
+      <h2 class="section-title">同义词管�?/h2>
+      <button class="btn btn-primary" id="addSynonymBtn">+ 新增同义�?/button>
     </div>
     <table class="tbl">
-      <thead><tr><th>标准词</th><th>同义词</th><th>操作</th></tr></thead>
+      <thead><tr><th>标准�?/th><th>同义�?/th><th>操作</th></tr></thead>
       <tbody id="synonymsList"></tbody>
     </table>
   </div>
@@ -115,7 +115,7 @@
       </div>
     </div>
     <table class="tbl">
-      <thead><tr><th>问题</th><th>时间</th><th>状态</th><th>操作</th></tr></thead>
+      <thead><tr><th>问题</th><th>时间</th><th>状�?/th><th>操作</th></tr></thead>
       <tbody id="unmatchList"></tbody>
     </table>
   </div>
@@ -127,15 +127,15 @@
     <div class="modal-header" id="phraseModalTitle">新增话术</div>
     <form id="phraseForm">
       <div class="form-group">
-        <label>关键词 *</label>
-        <input type="text" id="p_keyword" placeholder="e.g. 退款" required>
+        <label>关键�?*</label>
+        <input type="text" id="p_keyword" placeholder="e.g. 退�? required>
       </div>
       <div class="form-group">
         <label>回复内容 *</label>
         <textarea id="p_reply" placeholder="输入回复内容..." required></textarea>
       </div>
       <div class="form-group">
-        <label>优先级 (1-10，越小越高)</label>
+        <label>优先�?(1-10，越小越�?</label>
         <input type="number" id="p_priority" min="1" max="10" value="1">
       </div>
       <div class="modal-footer">
@@ -149,15 +149,15 @@
 <!-- 同义词模态框 -->
 <div class="modal" id="synonymModal">
   <div class="modal-content">
-    <div class="modal-header" id="synonymModalTitle">新增同义词</div>
+    <div class="modal-header" id="synonymModalTitle">新增同义�?/div>
     <form id="synonymForm">
       <div class="form-group">
-        <label>标准词 *</label>
-        <input type="text" id="s_keyword" placeholder="e.g. 退货" required>
+        <label>标准�?*</label>
+        <input type="text" id="s_keyword" placeholder="e.g. 退�? required>
       </div>
       <div class="form-group">
-        <label>同义词（用逗号分隔）</label>
-        <textarea id="s_variants" placeholder="e.g. 不想要,能不能退,寄回去" required></textarea>
+        <label>同义词（用逗号分隔�?/label>
+        <textarea id="s_variants" placeholder="e.g. 不想�?能不能退,寄回�? required></textarea>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" onclick="closeSynonymModal()">取消</button>
@@ -204,27 +204,27 @@ function loadTab(tab) {
 
 // ============ 效果指标 ============
 function loadMetrics() {
-  fetch('/api/service-admin/metrics', {
+  fetch(App.base + '/api/service-admin/metrics', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     if (!d.ok) return;
     const m = d.data;
     document.getElementById('m_hitRate').textContent = m.hitRate + '%';
-    document.getElementById('m_hitCount').textContent = m.hitCount + ' 次命中';
+    document.getElementById('m_hitCount').textContent = m.hitCount + ' 次命�?;
     document.getElementById('m_fallbackRate').textContent = m.fallbackRate + '%';
-    document.getElementById('m_fallbackCount').textContent = m.fallbackCount + ' 次兜底';
+    document.getElementById('m_fallbackCount').textContent = m.fallbackCount + ' 次兜�?;
     document.getElementById('m_transferRate').textContent = m.transferRate + '%';
     document.getElementById('m_unmatchedCount').textContent = m.unmatchedCount + ' 次未命中';
     document.getElementById('m_avgHits').textContent = m.avgKeywordHits || 0;
-    document.getElementById('m_totalRequests').textContent = '总请求: ' + m.totalRequests;
+    document.getElementById('m_totalRequests').textContent = '总请�? ' + m.totalRequests;
   }).catch(() => {});
 }
 
-// ============ 话术库 ============
+// ============ 话术�?============
 let editingPhraseId = null;
 
 function loadPhrases() {
-  fetch('/api/service-admin/phrases?limit=100', {
+  fetch(App.base + '/api/service-admin/phrases?limit=100', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     const list = document.getElementById('phrasesList');
@@ -258,11 +258,11 @@ function closePhraseModal() {
 }
 
 function editPhrase(id) {
-  fetch('/api/service-admin/phrases?limit=200', {
+  fetch(App.base + '/api/service-admin/phrases?limit=200', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     const p = (d.data || []).find(x => x.id === id);
-    if (!p) { toast('话术不存在', 'error'); return; }
+    if (!p) { toast('话术不存�?, 'error'); return; }
     editingPhraseId = p.id;
     document.getElementById('phraseModalTitle').textContent = '编辑话术';
     document.getElementById('p_keyword').value = p.keyword || '';
@@ -276,9 +276,9 @@ async function deletePhrase(id) {
   const ok = await App.confirm('确认删除此话术？');
   if (!ok) return;
   try {
-    const res = await fetch('/api/service-admin/phrases/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
+    const res = await fetch(App.base + '/api/service-admin/phrases/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
-    if (d.ok) { toast('已删除'); loadPhrases(); }
+    if (d.ok) { toast('已删�?); loadPhrases(); }
     else toast(d.error, 'error');
   } catch(e) { toast('删除失败', 'error'); }
 }
@@ -303,7 +303,7 @@ document.getElementById('phraseForm').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }, body: JSON.stringify(data) });
     const d = await res.json();
-    if (d.ok) { toast(editingPhraseId ? '已更新' : '已新增'); closePhraseModal(); loadPhrases(); }
+    if (d.ok) { toast(editingPhraseId ? '已更�? : '已新�?); closePhraseModal(); loadPhrases(); }
     else toast(d.error, 'error');
   } catch(e) { toast('操作失败', 'error'); }
 });
@@ -312,12 +312,12 @@ document.getElementById('phraseForm').addEventListener('submit', async (e) => {
 let editingSynonymId = null;
 
 function loadSynonyms() {
-  fetch('/api/service-admin/synonyms', {
+  fetch(App.base + '/api/service-admin/synonyms', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     const list = document.getElementById('synonymsList');
     if (!d.ok || !d.data || d.data.length === 0) {
-      list.innerHTML = '<tr><td colspan="3" class="empty-state">暂无同义词</td></tr>';
+      list.innerHTML = '<tr><td colspan="3" class="empty-state">暂无同义�?/td></tr>';
       return;
     }
     list.innerHTML = d.data.map(s => `
@@ -340,17 +340,17 @@ function closeSynonymModal() {
   document.getElementById('synonymModal').classList.remove('active');
   document.getElementById('synonymForm').reset();
   editingSynonymId = null;
-  document.getElementById('synonymModalTitle').textContent = '新增同义词';
+  document.getElementById('synonymModalTitle').textContent = '新增同义�?;
 }
 
 function editSynonym(id) {
-  fetch('/api/service-admin/synonyms', {
+  fetch(App.base + '/api/service-admin/synonyms', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     const s = (d.data || []).find(x => x.id === id);
     if (!s) { toast('同义词不存在', 'error'); return; }
     editingSynonymId = s.id;
-    document.getElementById('synonymModalTitle').textContent = '编辑同义词';
+    document.getElementById('synonymModalTitle').textContent = '编辑同义�?;
     document.getElementById('s_keyword').value = s.keyword || '';
     document.getElementById('s_variants').value = (s.variants || []).join(', ');
     openSynonymModal();
@@ -358,19 +358,19 @@ function editSynonym(id) {
 }
 
 async function deleteSynonym(keyword) {
-  const ok = await App.confirm('确认删除此同义词？');
+  const ok = await App.confirm('确认删除此同义词�?);
   if (!ok) return;
   try {
-    const res = await fetch('/api/service-admin/synonyms/' + encodeURIComponent(keyword), { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
+    const res = await fetch(App.base + '/api/service-admin/synonyms/' + encodeURIComponent(keyword), { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
-    if (d.ok) { toast('已删除'); loadSynonyms(); }
+    if (d.ok) { toast('已删�?); loadSynonyms(); }
     else toast(d.error, 'error');
   } catch(e) { toast('删除失败', 'error'); }
 }
 
 document.getElementById('addSynonymBtn').addEventListener('click', () => {
   editingSynonymId = null;
-  document.getElementById('synonymModalTitle').textContent = '新增同义词';
+  document.getElementById('synonymModalTitle').textContent = '新增同义�?;
   document.getElementById('synonymForm').reset();
   openSynonymModal();
 });
@@ -385,26 +385,26 @@ document.getElementById('synonymForm').addEventListener('submit', async (e) => {
   try {
     const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }, body: JSON.stringify(data) });
     const d = await res.json();
-    if (d.ok) { toast(editingSynonymId ? '已更新' : '已新增'); closeSynonymModal(); loadSynonyms(); }
+    if (d.ok) { toast(editingSynonymId ? '已更�? : '已新�?); closeSynonymModal(); loadSynonyms(); }
     else toast(d.error, 'error');
   } catch(e) { toast('操作失败', 'error'); }
 });
 
 // ============ 未命中池 ============
 function loadUnmatch() {
-  fetch('/api/service-admin/unmatched', {
+  fetch(App.base + '/api/service-admin/unmatched', {
     headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') }
   }).then(r => r.json()).then(d => {
     const list = document.getElementById('unmatchList');
     if (!d.ok || !d.data || d.data.length === 0) {
-      list.innerHTML = '<tr><td colspan="4" class="empty-state">暂无未命中问题</td></tr>';
+      list.innerHTML = '<tr><td colspan="4" class="empty-state">暂无未命中问�?/td></tr>';
       return;
     }
     list.innerHTML = d.data.map(u => `
       <tr>
         <td style="max-width:400px;overflow:hidden;text-overflow:ellipsis">${App.esc(u.question)}</td>
         <td style="font-size:11px">${u.timestamp ? u.timestamp.replace('T',' ').slice(0,19) : '-'}</td>
-        <td><span class="badge badge-warning">${u.status === 'pending' ? '待处理' : u.status}</span></td>
+        <td><span class="badge badge-warning">${u.status === 'pending' ? '待处�? : u.status}</span></td>
         <td>
           <button class="btn btn-sm btn-danger" onclick="deleteUnmatch('${u.id}')">删除</button>
         </td>
@@ -417,9 +417,9 @@ function loadUnmatch() {
 
 async function deleteUnmatch(id) {
   try {
-    const res = await fetch('/api/service-admin/unmatched/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
+    const res = await fetch(App.base + '/api/service-admin/unmatched/' + id, { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
-    if (d.ok) { toast('已删除'); loadUnmatch(); }
+    if (d.ok) { toast('已删�?); loadUnmatch(); }
   } catch(e) { toast('删除失败', 'error'); }
 }
 
@@ -427,13 +427,13 @@ document.getElementById('clearUnmatchBtn').addEventListener('click', async () =>
   const ok = await App.confirm('确认清空全部未命中问题？');
   if (!ok) return;
   try {
-    const res = await fetch('/api/service-admin/unmatched', { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
+    const res = await fetch(App.base + '/api/service-admin/unmatched', { method: 'DELETE', headers: { Authorization: 'Bearer ' + (localStorage.getItem('token') || '') } });
     const d = await res.json();
-    if (d.ok) { toast('已清空'); loadUnmatch(); }
+    if (d.ok) { toast('已清�?); loadUnmatch(); }
   } catch(e) { toast('清空失败', 'error'); }
 });
 
-// 初始化
+// 初始�?
 loadMetrics();
 </script>
 </body>

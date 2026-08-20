@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>QA 审计页</title>
+  <title>QA 审计�?/title>
   <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
   <link rel="stylesheet" href="/css/custom-theme.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -285,7 +285,7 @@
     <!-- 详情视图 -->
     <div id="detailView" class="detail-view">
       <div class="detail-header">
-        <button class="back-btn" onclick="goBack()">← 返回列表</button>
+        <button class="back-btn" onclick="goBack()">�?返回列表</button>
         <div>
           <div id="detailTitle" style="font-size: 18px; font-weight: 600; margin-bottom: 4px;"></div>
           <div id="detailMeta" style="font-size: 12px; color: var(--text-dim);"></div>
@@ -304,10 +304,10 @@
 
     async function loadSessions() {
       try {
-        const response = await fetch('/api/admin/qa-history?limit=1000');
+        const response = await fetch(App.base + '/api/admin/qa-history?limit=1000');
         if (!response.ok) {
           if (response.status === 403) {
-            showError('您没有权限访问此页面，仅管理员可见');
+            showError('您没有权限访问此页面，仅管理员可�?);
           } else if (response.status === 401) {
             showError('请先登录');
           } else {
@@ -355,7 +355,7 @@
             <div class="session-item-meta">
               <span>${new Date(s.lastTimestamp).toLocaleString('zh-CN')}</span>
               <span>${s.userName || '未知'} · ${s.role || '-'} · ${s.bizLine || '-'}</span>
-              <span>${s.recordCount} 条记录</span>
+              <span>${s.recordCount} 条记�?/span>
             </div>
           </div>
         `
@@ -410,7 +410,7 @@
     function renderDetail(session) {
       const { sessionId, records } = session;
 
-      // 查找第一条 user record 获取 meta 信息
+      // 查找第一�?user record 获取 meta 信息
       const firstUserRecord = records.find((r) => r.type === 'user');
       const title = firstUserRecord?.content || '无题';
       const meta = firstUserRecord
@@ -438,14 +438,14 @@
             const chunks = r.ragChunks || [];
             const ragHtml =
               chunks.length === 0
-                ? '<div class="no-chunks">本次检索未命中知识库中的相关片段</div>'
+                ? '<div class="no-chunks">本次检索未命中知识库中的相关片�?/div>'
                 : chunks
                     .map(
                       (chunk, idx) => `
                 <div class="rag-chunk">
                   <div class="chunk-header">
-                    <span class="chunk-source">① ${escapeHtml(chunk.source)} · ${escapeHtml(chunk.sectionPath || '')}</span>
-                    <span class="chunk-similarity">相似度 ${Math.round(chunk.similarity * 100)}%</span>
+                    <span class="chunk-source">�?${escapeHtml(chunk.source)} · ${escapeHtml(chunk.sectionPath || '')}</span>
+                    <span class="chunk-similarity">相似�?${Math.round(chunk.similarity * 100)}%</span>
                   </div>
                   <div class="chunk-content">${escapeHtml(chunk.content)}</div>
                 </div>
@@ -457,10 +457,10 @@
           <div class="message-bubble ai">
             <div class="message-header">
               <span>AI</span>
-              <span>${new Date(r.timestamp).toLocaleTimeString('zh-CN')} · ⏱ ${r.latencyMs}ms</span>
+              <span>${new Date(r.timestamp).toLocaleTimeString('zh-CN')} · �?${r.latencyMs}ms</span>
             </div>
             <div class="message-content">${escapeHtml(r.content)}</div>
-            <div class="quality-score">质量分: ${r.qualityScore !== null ? r.qualityScore + '/10' : '-'}</div>
+            <div class="quality-score">质量�? ${r.qualityScore !== null ? r.qualityScore + '/10' : '-'}</div>
             ${chunks.length > 0 ? '<div class="rag-chunks"><div class="rag-chunks-title">── 召回详情 ──</div>' + ragHtml + '</div>' : '<div class="rag-chunks"><div class="rag-chunks-title">── 召回详情 ──</div>' + ragHtml + '</div>'}
           </div>
         `;
@@ -497,7 +497,7 @@
       }
     }
 
-    // 初始化
+    // 初始�?
     document.getElementById('searchInput').addEventListener('input', applyFilters);
     document.getElementById('roleFilter').addEventListener('change', applyFilters);
 

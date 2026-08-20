@@ -17,7 +17,7 @@ let currentCapabilities = [];
  */
 async function loadCapabilities(type = currentType, page = 1) {
   try {
-    const response = await fetch('/api/capabilities');
+    const response = await fetch(App.base + '/api/capabilities');
 
     if (!response.ok) {
       console.error('加载列表失败:', response.statusText);
@@ -102,7 +102,7 @@ function renderPagination(total, currentPage, pageSize) {
  */
 async function showDetail(id) {
   try {
-    const response = await fetch(`/api/capabilities/${id}`);
+    const response = await fetch(App.base + `/api/capabilities/${id}`);
 
     if (!response.ok) {
       console.error('加载详情失败');
@@ -183,7 +183,7 @@ async function saveCapability(event, id) {
   };
 
   try {
-    const response = await fetch(`/api/capabilities/${id}/draft`, {
+    const response = await fetch(App.base + `/api/capabilities/${id}/draft`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -215,7 +215,7 @@ async function deleteCapability(id) {
   }
 
   try {
-    const response = await fetch(`/api/capabilities/${id}`, {
+    const response = await fetch(App.base + `/api/capabilities/${id}`, {
       method: 'DELETE',
     });
 
