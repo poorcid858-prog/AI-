@@ -2,18 +2,18 @@
 <html lang="zh-CN" data-bs-theme="dark">
 <head>
 <meta charset="UTF-8"><title>系统配置</title>
-<link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
-<link rel="stylesheet" href="/css/custom-theme.css">
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/sidebar.css">
-<link rel="stylesheet" href="/css/admin-ui.css">
+<link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="css/custom-theme.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/admin-ui.css">
 </head>
 </head>
 <body>
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>系统配置</h1>
-    <p>管理密码配置、Chunk 切分、提问模板</p>
+    <p>管理密码配置、Chunk 切分、提问模�?/p>
   </div>
 
   <div id="notice"></div>
@@ -28,7 +28,7 @@
   <div id="password" class="tab-content active">
     <div class="card">
       <h3>密码配置</h3>
-      <p class="card-sub">为临时用户配置访问密码规则</p>
+      <p class="card-sub">为临时用户配置访问密码规�?/p>
       <form id="pwdForm" style="display:grid;gap:12px;max-width:600px">
         <div class="form-group">
           <label>
@@ -40,15 +40,15 @@
           <input type="number" id="pwd_default_expire" min="1" max="10080" value="120">
         </div>
         <div class="form-group">
-          <label>最大过期时间（分钟）</label>
+          <label>最大过期时间（分钟�?/label>
           <input type="number" id="pwd_max_expire" min="1" max="10080" value="1440">
         </div>
         <div class="form-group">
-          <label>密码复杂度</label>
+          <label>密码复杂�?/label>
           <select id="pwd_complexity">
             <option value="simple">简单（仅数字）</option>
-            <option value="medium" selected>中等（字母+数字）</option>
-            <option value="complex">复杂（字母+数字+特殊字符）</option>
+            <option value="medium" selected>中等（字�?数字�?/option>
+            <option value="complex">复杂（字�?数字+特殊字符�?/option>
           </select>
         </div>
         <button type="button" class="btn btn-primary" onclick="savePwdConfig()">保存配置</button>
@@ -82,13 +82,13 @@
         <div class="form-group">
           <label>切分策略</label>
           <select id="chunk_strategy">
-            <option value="section" selected>按章节</option>
-            <option value="paragraph">按段落</option>
+            <option value="section" selected>按章�?/option>
+            <option value="paragraph">按段�?/option>
             <option value="fixed">固定大小</option>
           </select>
         </div>
         <div class="form-group">
-          <label>最大字数</label>
+          <label>最大字�?/label>
           <input type="number" id="chunk_max_tokens" min="100" max="2000" value="600">
         </div>
         <div class="form-group">
@@ -108,10 +108,10 @@
   <div id="prompt-templates" class="tab-content">
     <div class="card">
       <h3>提问模板管理</h3>
-      <p class="card-sub">为 AI 聊天配置快速提问模板，最多 10 条。可配置适用角色（全部/产品/测试/前端/客服）</p>
+      <p class="card-sub">�?AI 聊天配置快速提问模板，最�?10 条。可配置适用角色（全�?产品/测试/前端/客服�?/p>
       <div style="margin-bottom:16px;display:flex;gap:12px;align-items:center">
         <button class="btn btn-primary" onclick="showAddPromptTemplate()">新增模板</button>
-        <span class="muted" id="ptCount">已用 0 / 10 条</span>
+        <span class="muted" id="ptCount">已用 0 / 10 �?/span>
       </div>
 
       <div id="addPtForm" style="display:none;margin-bottom:16px;padding:12px;background:var(--bg-secondary);border-radius:4px">
@@ -119,7 +119,7 @@
         <form style="display:grid;gap:12px;max-width:600px">
           <div class="form-group">
             <label>模板名称</label>
-            <input type="text" id="pt_name" placeholder="如：编写产品需求文档">
+            <input type="text" id="pt_name" placeholder="如：编写产品需求文�?>
           </div>
           <div class="form-group">
             <label>模板内容</label>
@@ -146,16 +146,16 @@
         </form>
       </div>
 
-      <div id="ptList" class="table-container">加载中…</div>
+      <div id="ptList" class="table-container">加载中�?/div>
     </div>
   </div>
 </div>
 
-<script src="/js/vendor/bootstrap.bundle.min.js"></script>
-<script src="/js/vendor/sweetalert2.all.min.js"></script>
-<script src="/js/vendor/dompurify.min.js"></script>
-<script src="/js/app.js"></script>
-<script src="/js/sidebar.js"></script>
+<script src="js/vendor/bootstrap.bundle.min.js"></script>
+<script src="js/vendor/sweetalert2.all.min.js"></script>
+<script src="js/vendor/dompurify.min.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
 <script>
 if (App.guard()) {
   App.renderSidebar('admin', 'config');
@@ -200,9 +200,9 @@ if (App.guard()) {
       complexity: document.getElementById('pwd_complexity').value,
     };
     App.api('/api/admin/password-config', { method: 'PUT', body: data }).then(() => {
-      showNotice('密码配置已保存');
+      showNotice('密码配置已保�?);
       loadPwdConfig();
-    }).catch(err => showNotice('保存失败：' + err.message, 'error'));
+    }).catch(err => showNotice('保存失败�? + err.message, 'error'));
   }
 
   function generateTempPwd() {
@@ -211,14 +211,14 @@ if (App.guard()) {
       expiryMinutes: parseInt(document.getElementById('temp_pwd_expire').value),
     };
     if (!data.password) {
-      showNotice('请输入密码', 'error');
+      showNotice('请输入密�?, 'error');
       return;
     }
     App.api('/api/admin/temp-passwords', { method: 'POST', body: data }).then(() => {
-      showNotice('临时密码已生成');
+      showNotice('临时密码已生�?);
       document.getElementById('temp_pwd_value').value = '';
       loadTempPasswords();
-    }).catch(err => showNotice('生成失败：' + err.message, 'error'));
+    }).catch(err => showNotice('生成失败�? + err.message, 'error'));
   }
 
   function loadTempPasswords() {
@@ -226,12 +226,12 @@ if (App.guard()) {
       const pwds = d.tempPasswords || [];
       const html = `<h4 style="margin-top:20px">已生成的临时密码</h4>
         <table class="tbl">
-          <tr><th>密码</th><th>生成时间</th><th>过期时间</th><th>状态</th></tr>
+          <tr><th>密码</th><th>生成时间</th><th>过期时间</th><th>状�?/th></tr>
           ${pwds.map(p => {
             const now = new Date();
             const expireAt = new Date(p.expire_at);
             const isExpired = expireAt < now;
-            const status = isExpired ? '已过期' : p.used ? '已使用' : '有效';
+            const status = isExpired ? '已过�? : p.used ? '已使�? : '有效';
             const statusClass = isExpired ? 'danger' : p.used ? 'warning' : 'success';
             return `<tr>
               <td><code>${p.password}</code></td>
@@ -266,13 +266,13 @@ if (App.guard()) {
       header_level: parseInt(document.getElementById('chunk_header_level').value),
     };
     App.api('/api/admin/chunking-config', { method: 'PUT', body: data }).then(() => {
-      showNotice('Chunk 配置已保存');
+      showNotice('Chunk 配置已保�?);
       loadChunkConfig();
-    }).catch(err => showNotice('保存失败：' + err.message, 'error'));
+    }).catch(err => showNotice('保存失败�? + err.message, 'error'));
   }
 
   // ===== 提问模板 CRUD =====
-  // 全局暂存编辑中的模板 id（null = 新增）
+  // 全局暂存编辑中的模板 id（null = 新增�?
   let editingPtId = null;
 
   function showAddPromptTemplate() {
@@ -305,35 +305,35 @@ if (App.guard()) {
     const role = document.getElementById('pt_role').value;
     const priority = parseInt(document.getElementById('pt_priority').value, 10) || 1;
 
-    if (!name) { showNotice('请输入模板名称', 'error'); return; }
-    if (!content) { showNotice('请输入模板内容', 'error'); return; }
+    if (!name) { showNotice('请输入模板名�?, 'error'); return; }
+    if (!content) { showNotice('请输入模板内�?, 'error'); return; }
 
     const url = editingPtId ? `/api/admin/prompt-templates/${editingPtId}` : '/api/admin/prompt-templates';
     const method = editingPtId ? 'PUT' : 'POST';
     const body = { name, content, role, priority };
 
     App.api(url, { method, body }).then(() => {
-      showNotice(editingPtId ? '模板已更新' : '模板已新增');
+      showNotice(editingPtId ? '模板已更�? : '模板已新�?);
       hideAddPromptTemplate();
       loadPromptTemplates();
-    }).catch(err => showNotice('保存失败：' + err.message, 'error'));
+    }).catch(err => showNotice('保存失败�? + err.message, 'error'));
   }
 
   async function deletePromptTemplate(id) {
     if (!(await App.confirm('确定删除此提问模板？'))) return;
     App.api('/api/admin/prompt-templates/' + id, { method: 'DELETE' }).then(() => {
-      showNotice('模板已删除');
+      showNotice('模板已删�?);
       if (editingPtId === id) hideAddPromptTemplate();
       loadPromptTemplates();
-    }).catch(err => showNotice('删除失败：' + err.message, 'error'));
+    }).catch(err => showNotice('删除失败�? + err.message, 'error'));
   }
 
   async function togglePromptTemplate(tpl) {
     const body = { enabled: !tpl.enabled };
     App.api('/api/admin/prompt-templates/' + tpl.id, { method: 'PUT', body }).then(() => {
-      showNotice(tpl.enabled ? '模板已停用' : '模板已启用');
+      showNotice(tpl.enabled ? '模板已停�? : '模板已启�?);
       loadPromptTemplates();
-    }).catch(err => showNotice('操作失败：' + err.message, 'error'));
+    }).catch(err => showNotice('操作失败�? + err.message, 'error'));
   }
 
   const ROLE_LABELS = { all: '全部', product: '产品', test: '测试', frontend: '前端', cs: '客服' };
@@ -343,11 +343,11 @@ if (App.guard()) {
       const templates = d.templates || [];
       document.getElementById('ptCount').textContent = `已用 ${templates.length} / 10 条`;
       if (templates.length === 0) {
-        document.getElementById('ptList').innerHTML = '<div class="muted">暂无模板，点击"新增模板"开始配置</div>';
+        document.getElementById('ptList').innerHTML = '<div class="muted">暂无模板，点�?新增模板"开始配�?/div>';
         return;
       }
       const html = `<table class="tbl">
-        <tr><th>名称</th><th>内容</th><th>适用角色</th><th>优先级</th><th>状态</th><th>操作</th></tr>
+        <tr><th>名称</th><th>内容</th><th>适用角色</th><th>优先�?/th><th>状�?/th><th>操作</th></tr>
         ${templates.map(t => {
           const roleLabel = ROLE_LABELS[t.role] || t.role || '全部';
           const statusHtml = t.enabled
@@ -373,7 +373,7 @@ if (App.guard()) {
     });
   }
 
-  // 初始化（分层提示词与系统参数 Tab 已在 K3 移除，Prompt 配置移入能力中心 K4 维护）
+  // 初始化（分层提示词与系统参数 Tab 已在 K3 移除，Prompt 配置移入能力中心 K4 维护�?
   loadPwdConfig();
   loadChunkConfig();
   loadPromptTemplates();

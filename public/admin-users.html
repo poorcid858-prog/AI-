@@ -2,10 +2,10 @@
 <html lang="zh-CN" data-bs-theme="dark">
 <head>
 <meta charset="UTF-8"><title>用户管理</title>
-<link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
-<link rel="stylesheet" href="/css/custom-theme.css">
-<link rel="stylesheet" href="/css/style.css">
-<link rel="stylesheet" href="/css/sidebar.css">
+<link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+<link rel="stylesheet" href="css/custom-theme.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
 <style>
   .tbl { width: 100%; border-collapse: collapse; }
   .tbl th, .tbl td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); }
@@ -26,7 +26,7 @@
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>用户管理</h1>
-    <p>创建用户、管理权限、查看角色与业务线</p>
+    <p>创建用户、管理权限、查看角色与业务�?/p>
   </div>
 
   <div id="notice"></div>
@@ -39,12 +39,12 @@
     <table class="tbl">
       <thead>
         <tr>
-          <th>用户名</th>
+          <th>用户�?/th>
           <th>姓名</th>
           <th>角色</th>
-          <th>业务线</th>
+          <th>业务�?/th>
           <th>部门</th>
-          <th>状态</th>
+          <th>状�?/th>
           <th>操作</th>
         </tr>
       </thead>
@@ -60,7 +60,7 @@
     <form id="userForm">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
-          <label>用户名 *</label>
+          <label>用户�?*</label>
           <input type="text" id="u_username" placeholder="e.g. zhangsan">
         </div>
         <div class="form-group">
@@ -76,11 +76,11 @@
         <div class="form-group">
           <label>角色 *</label>
           <select id="u_role">
-            <option value="admin">系统管理员</option>
+            <option value="admin">系统管理�?/option>
             <option value="reviewer">审核专员</option>
             <option value="product">产品经理</option>
-            <option value="test">测试工程师</option>
-            <option value="frontend">前端工程师</option>
+            <option value="test">测试工程�?/option>
+            <option value="frontend">前端工程�?/option>
             <option value="cs">客服专员</option>
             <option value="guest">演示访客</option>
           </select>
@@ -88,16 +88,16 @@
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="form-group">
-          <label>业务线</label>
+          <label>业务�?/label>
           <select id="u_bizline">
             <option value="all">全业务线</option>
-            <option value="trade">交易线</option>
-            <option value="membership">会员线</option>
+            <option value="trade">交易�?/option>
+            <option value="membership">会员�?/option>
           </select>
         </div>
         <div class="form-group">
           <label>部门</label>
-          <input type="text" id="u_department" placeholder="如：产品组">
+          <input type="text" id="u_department" placeholder="如：产品�?>
         </div>
       </div>
       <div class="form-actions">
@@ -108,7 +108,7 @@
   </div>
 </div>
 
-<!-- 编辑用户弹窗（管理权限/重置密码） -->
+<!-- 编辑用户弹窗（管理权�?重置密码�?-->
 <div class="modal" id="editModal">
   <div class="modal-content">
     <h3>编辑权限</h3>
@@ -121,21 +121,21 @@
       <div class="form-group">
         <label>角色</label>
         <select id="e_role">
-          <option value="admin">系统管理员</option>
+          <option value="admin">系统管理�?/option>
           <option value="reviewer">审核专员</option>
           <option value="product">产品经理</option>
-          <option value="test">测试工程师</option>
-          <option value="frontend">前端工程师</option>
+          <option value="test">测试工程�?/option>
+          <option value="frontend">前端工程�?/option>
           <option value="cs">客服专员</option>
           <option value="guest">演示访客</option>
         </select>
       </div>
       <div class="form-group">
-        <label>业务线</label>
+        <label>业务�?/label>
         <select id="e_bizline">
           <option value="all">全业务线</option>
-          <option value="trade">交易线</option>
-          <option value="membership">会员线</option>
+          <option value="trade">交易�?/option>
+          <option value="membership">会员�?/option>
         </select>
       </div>
       <div class="form-group">
@@ -144,7 +144,7 @@
       </div>
       <div class="form-group">
         <label>重置密码（留空则不修改）</label>
-        <input type="password" id="e_password" placeholder="新密码">
+        <input type="password" id="e_password" placeholder="新密�?>
       </div>
       <div class="form-actions">
         <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
@@ -154,14 +154,14 @@
   </div>
 </div>
 
-<script src="/js/app.js"></script>
-<script src="/js/sidebar.js"></script>
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
 <script>
 if (App.guard()) {
   App.renderSidebar('admin', 'users');
   document.getElementById('page').style.display = 'block';
 
-  const ROLE_LABELS = { admin:'系统管理员', reviewer:'审核专员', product:'产品经理', test:'测试工程师', frontend:'前端工程师', cs:'客服专员', guest:'演示访客' };
+  const ROLE_LABELS = { admin:'系统管理�?, reviewer:'审核专员', product:'产品经理', test:'测试工程�?, frontend:'前端工程�?, cs:'客服专员', guest:'演示访客' };
 
   function showNotice(msg, type) {
     const el = document.getElementById('notice');
@@ -209,7 +209,7 @@ if (App.guard()) {
   function openEditModal(id) {
     App.api('/api/admin/users').then(d => {
       const u = (d.users || []).find(x => x.id === id);
-      if (!u) { showNotice('用户不存在', 'error'); return; }
+      if (!u) { showNotice('用户不存�?, 'error'); return; }
       document.getElementById('edit_id').value = u.id;
       document.getElementById('e_name').value = u.name || '';
       document.getElementById('e_role').value = u.role || '';
@@ -225,9 +225,9 @@ if (App.guard()) {
   }
 
   async function deleteUser(id, username) {
-    if (!(await App.confirm(`确认删除用户「${username}」？`))) return;
+    if (!(await App.confirm(`确认删除用户�?{username}」？`))) return;
     App.api('/api/admin/users/' + id, { method: 'DELETE' }).then(() => {
-      showNotice('用户已删除');
+      showNotice('用户已删�?);
       loadUsers();
     }).catch(err => showNotice('删除失败: ' + err.message, 'error'));
   }
@@ -243,11 +243,11 @@ if (App.guard()) {
       department: document.getElementById('u_department').value.trim(),
     };
     if (!data.username || !data.password || !data.name) {
-      showNotice('用户名、密码、姓名为必填项', 'error');
+      showNotice('用户名、密码、姓名为必填�?, 'error');
       return;
     }
     App.api('/api/admin/users', { method: 'POST', body: data }).then(() => {
-      showNotice('用户已创建');
+      showNotice('用户已创�?);
       closeModal();
       loadUsers();
     }).catch(err => showNotice('创建失败: ' + err.message, 'error'));
@@ -265,7 +265,7 @@ if (App.guard()) {
     const pwd = document.getElementById('e_password').value;
     if (pwd) data.password = pwd;
     App.api('/api/admin/users/' + id, { method: 'PUT', body: data }).then(() => {
-      showNotice('权限已更新');
+      showNotice('权限已更�?);
       closeEditModal();
       loadUsers();
     }).catch(err => showNotice('更新失败: ' + err.message, 'error'));

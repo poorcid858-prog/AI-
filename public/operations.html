@@ -4,12 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>运营中心 - 企业 AI 辅助工具</title>
-  <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/custom-theme.css">
-  <link rel="stylesheet" href="/css/style.css">
-  <link rel="stylesheet" href="/css/admin-ui.css">
-  <link rel="stylesheet" href="/css/operations.css">
-  <link rel="stylesheet" href="/css/sidebar.css">
+  <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
+  <link rel="stylesheet" href="css/custom-theme.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin-ui.css">
+  <link rel="stylesheet" href="css/operations.css">
+  <link rel="stylesheet" href="css/sidebar.css">
 </head>
 <body>
 <div class="operations-container">
@@ -38,17 +38,17 @@
       </li>
       <li>
         <button class="nav-btn" data-section="capability-analysis">
-          ⚡ 能力运营分析
+          �?能力运营分析
         </button>
       </li>
       <li>
         <button class="nav-btn" data-section="full-link">
-          🔗 问题定位全链路
+          🔗 问题定位全链�?
         </button>
       </li>
       <li>
         <button class="nav-btn" data-section="top-questions">
-          ❓ 高频问题
+          �?高频问题
         </button>
       </li>
     </ul>
@@ -70,9 +70,9 @@
       <div id="chat-records" class="ops-section active">
         <h2>聊天记录查询</h2>
         <div class="chat-records-filters">
-          <input type="date" id="startDate" placeholder="开始日期">
+          <input type="date" id="startDate" placeholder="开始日�?>
           <input type="date" id="endDate" placeholder="结束日期">
-          <input type="text" id="keyword" placeholder="搜索关键词">
+          <input type="text" id="keyword" placeholder="搜索关键�?>
           <select id="role">
             <option value="">全部角色</option>
             <option value="product">产品</option>
@@ -83,7 +83,7 @@
           <button id="queryBtn">查询</button>
         </div>
         <div id="chatRecordsContainer">
-          <div class="ops-loading">点击【查询】开始</div>
+          <div class="ops-loading">点击【查询】开�?/div>
         </div>
       </div>
 
@@ -92,11 +92,11 @@
         <h2>Chunk 追踪热度</h2>
         <div style="margin-bottom: 16px;">
           <label style="margin-right: 16px;">
-            排序方式：
+            排序方式�?
             <select id="sortBy" style="padding: 6px 8px;">
               <option value="usageCount">使用次数</option>
               <option value="avgScore">平均评分</option>
-              <option value="lastUsed">最近使用</option>
+              <option value="lastUsed">最近使�?/option>
             </select>
           </label>
           <button id="loadChunksBtn" class="btn btn-primary" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -104,7 +104,7 @@
           </button>
         </div>
         <div id="chunkTrackingContainer">
-          <div class="ops-loading">点击【加载数据】开始</div>
+          <div class="ops-loading">点击【加载数据】开�?/div>
         </div>
       </div>
 
@@ -121,19 +121,19 @@
         <h2>📈 效果分析</h2>
         <div class="stats-grid" id="effectStatsGrid">
           <div class="stat-card">
-            <div class="stat-card-label">满意度得分</div>
+            <div class="stat-card-label">满意度得�?/div>
             <div class="stat-card-value" id="satisfactionScore">-</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-label">点赞数</div>
+            <div class="stat-card-label">点赞�?/div>
             <div class="stat-card-value" id="upCount">-</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-label">点踩数</div>
+            <div class="stat-card-label">点踩�?/div>
             <div class="stat-card-value" id="downCount">-</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-label">采纳率</div>
+            <div class="stat-card-label">采纳�?/div>
             <div class="stat-card-value" id="adoptionRate">-</div>
           </div>
         </div>
@@ -143,14 +143,14 @@
 
       <!-- 能力运营分析 -->
       <div id="capability-analysis" class="ops-section">
-        <h2>⚡ 能力运营分析</h2>
+        <h2>�?能力运营分析</h2>
         <div class="stats-grid" id="capStatsGrid">
           <div class="stat-card">
-            <div class="stat-card-label">总调用次数</div>
+            <div class="stat-card-label">总调用次�?/div>
             <div class="stat-card-value" id="totalCalls">-</div>
           </div>
           <div class="stat-card">
-            <div class="stat-card-label">成功率</div>
+            <div class="stat-card-label">成功�?/div>
             <div class="stat-card-value" id="successRate">-</div>
           </div>
           <div class="stat-card">
@@ -166,14 +166,14 @@
         <div id="capDetailContainer"></div>
       </div>
 
-      <!-- 问题定位全链路 -->
+      <!-- 问题定位全链�?-->
       <div id="full-link" class="ops-section">
-        <h2>🔗 问题定位全链路</h2>
-        <div class="ops-loading" id="linkDefault">选择一个回答记录查看全链路。</div>
+        <h2>🔗 问题定位全链�?/h2>
+        <div class="ops-loading" id="linkDefault">选择一个回答记录查看全链路�?/div>
         <div id="linkContainer" style="display:none;">
           <div class="form-group" style="margin-bottom: 16px;">
-            <label>Session ID：</label>
-            <input type="text" id="linkSessionId" class="form-control" placeholder="输入 Session ID 查看全链路" style="width: 320px; display: inline-block;">
+            <label>Session ID�?/label>
+            <input type="text" id="linkSessionId" class="form-control" placeholder="输入 Session ID 查看全链�? style="width: 320px; display: inline-block;">
             <button id="linkQueryBtn" class="btn btn-primary" style="padding: 6px 12px; background: var(--accent); color: white; border: none; border-radius: 4px; cursor: pointer;">查询</button>
           </div>
           <div id="linkChain"></div>
@@ -189,27 +189,27 @@
           </button>
         </div>
         <div id="topQuestionsContainer">
-          <div class="ops-loading">点击【加载数据】开始</div>
+          <div class="ops-loading">点击【加载数据】开�?/div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script src="/js/vendor/bootstrap.bundle.min.js"></script>
-<script src="/js/vendor/sweetalert2.all.min.js"></script>
-<script src="/js/vendor/dompurify.min.js"></script>
-<script src="/js/vendor/toastify.js"></script>
-<link rel="stylesheet" href="/css/vendor/toastify.css">
-<script src="/js/app.js"></script>
-<script src="/js/sidebar.js"></script>
+<script src="js/vendor/bootstrap.bundle.min.js"></script>
+<script src="js/vendor/sweetalert2.all.min.js"></script>
+<script src="js/vendor/dompurify.min.js"></script>
+<script src="js/vendor/toastify.js"></script>
+<link rel="stylesheet" href="css/vendor/toastify.css">
+<script src="js/app.js"></script>
+<script src="js/sidebar.js"></script>
 <script>
 if (App.guard()) {
   App.renderSidebar('operations', 'usage');
   document.querySelector('.operations-container').style.display = 'flex';
 }
 </script>
-<script src="/js/operations-api-client.js"></script>
-<script src="/js/operations.js"></script>
+<script src="js/operations-api-client.js"></script>
+<script src="js/operations.js"></script>
 </body>
 </html>
