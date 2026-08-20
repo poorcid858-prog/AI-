@@ -132,7 +132,7 @@
   .modal .form-group input, .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 
-  /* 响应�?*/
+  /* 响应式 */
   @media (max-width: 768px) {
     .side-by-side { grid-template-columns: 1fr; }
     .summary-bar { flex-direction: column; }
@@ -143,14 +143,14 @@
 <body>
 <div class="container">
   <h1>🔍 回答对比调试工具</h1>
-  <p class="subtitle">维护测试问题 �?生成快照 A �?改动后生成快�?B �?并排对比差异</p>
+  <p class="subtitle">维护测试问题 → 生成快照 A → 改动后生成快照 B → 并排对比差异</p>
 
   <div id="msg" class="msg"></div>
 
-  <!-- 步骤 1：测试问�?-->
+  <!-- 步骤 1：测试问题 -->
   <div class="card" id="question-section">
-    <h2>📋 测试问题�?/h2>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">维护一组典型问题，用于对比改动前后的效果差异�?/p>
+    <h2>📋 测试问题集</h2>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">维护一组典型问题，用于对比改动前后的效果差异。</p>
     <div class="form-row">
       <input type="text" id="q-text" placeholder="问题文本" />
       <select id="q-role">
@@ -166,26 +166,26 @@
       <button class="btn btn-primary" onclick="addQuestion()">添加问题</button>
     </div>
     <div id="question-list">
-      <div class="empty-state"><p>暂无测试问题，请添加�?/p></div>
+      <div class="empty-state"><p>暂无测试问题，请添加。</p></div>
     </div>
   </div>
 
-  <!-- 步骤 2：生成快�?-->
+  <!-- 步骤 2：生成快照 -->
   <div class="card" id="snapshot-section">
     <h2>📸 快照管理</h2>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">先跑一遍生成快�?A，改动后跑第二遍生成快照 B�?/p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">先跑一遍生成快照 A，改动后跑第二遍生成快照 B。</p>
     <div class="snapshot-bar">
-      <button class="btn btn-primary" onclick="generateSnapshot('A')">�?跑一�?�?快照 A</button>
-      <button class="btn btn-success" onclick="generateSnapshot('B')">🔄 再跑一�?�?快照 B</button>
+      <button class="btn btn-primary" onclick="generateSnapshot('A')">⚡ 跑一遍 → 快照 A</button>
+      <button class="btn btn-success" onclick="generateSnapshot('B')">🔄 再跑一遍 → 快照 B</button>
       <span id="snapshot-status" style="font-size:13px;color:var(--text-secondary);"></span>
     </div>
     <div id="snapshot-list" style="margin-top:12px;"></div>
   </div>
 
-  <!-- 步骤 3：对�?-->
+  <!-- 步骤 3：对比 -->
   <div class="card" id="compare-section">
     <h2>📊 快照对比</h2>
-    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">选择快照 A �?B 进行并排对比，查看差异�?/p>
+    <p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">选择快照 A 和 B 进行并排对比，查看差异。</p>
     <div class="form-row">
       <select id="compare-labelA" style="min-width:150px;"><option value="">-- 选择快照 A --</option></select>
       <select id="compare-labelB" style="min-width:150px;"><option value="">-- 选择快照 B --</option></select>
@@ -252,7 +252,7 @@ async function loadQuestions() {
 function renderQuestions(questions) {
   const el = document.getElementById('question-list');
   if (!questions || questions.length === 0) {
-    el.innerHTML = '<div class="empty-state"><p>暂无测试问题，请添加�?/p></div>';
+    el.innerHTML = '<div class="empty-state"><p>暂无测试问题，请添加。</p></div>';
     return;
   }
   el.innerHTML = `
@@ -275,7 +275,7 @@ function renderQuestions(questions) {
 
 async function addQuestion() {
   const text = document.getElementById('q-text').value.trim();
-  if (!text) { showMsg('请输入问题文�?, 'error'); return; }
+  if (!text) { showMsg('请输入问题文本', 'error'); return; }
   const role = document.getElementById('q-role').value;
   const category = document.getElementById('q-category').value;
   const res = await fetch(App.base + '/api/compare/questions', {
@@ -286,7 +286,7 @@ async function addQuestion() {
   const data = await res.json();
   if (!data.ok) { showMsg(data.error || '添加失败', 'error'); return; }
   document.getElementById('q-text').value = '';
-  showMsg('问题已添�?, 'success');
+  showMsg('问题已添加', 'success');
   loadQuestions();
 }
 
@@ -296,15 +296,15 @@ async function deleteQuestion(id) {
   const res = await fetch(`/api/compare/questions/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (!data.ok) { showMsg('删除失败', 'error'); return; }
-  showMsg('问题已删�?, 'success');
+  showMsg('问题已删除', 'success');
   loadQuestions();
 }
 
 function openEditModal(id) {
   currentEditId = id;
-  // 从表格中找当前数�?
+  // 从表格中找当前数据
   document.getElementById('edit-modal').classList.add('open');
-  // 默认�?
+  // 默认值
   document.getElementById('edit-text').value = '';
   document.getElementById('edit-role').value = 'cs';
   document.getElementById('edit-category').value = '客服';
@@ -317,7 +317,7 @@ function closeEditModal() {
 
 async function saveEdit() {
   const text = document.getElementById('edit-text').value.trim();
-  if (!text) { showMsg('请输入问题文�?, 'error'); return; }
+  if (!text) { showMsg('请输入问题文本', 'error'); return; }
   const role = document.getElementById('edit-role').value;
   const category = document.getElementById('edit-category').value;
   const res = await fetch(`/api/compare/questions/${currentEditId}`, {
@@ -328,7 +328,7 @@ async function saveEdit() {
   const data = await res.json();
   if (!data.ok) { showMsg(data.error || '更新失败', 'error'); return; }
   closeEditModal();
-  showMsg('问题已更�?, 'success');
+  showMsg('问题已更新', 'success');
   loadQuestions();
 }
 
@@ -346,17 +346,17 @@ async function loadSnapshots() {
 function renderSnapshots(snapshots) {
   const el = document.getElementById('snapshot-list');
   if (!snapshots || snapshots.length === 0) {
-    el.innerHTML = '<div class="empty-state" style="padding:16px"><p>暂无快照，点击上方按钮生成�?/p></div>';
+    el.innerHTML = '<div class="empty-state" style="padding:16px"><p>暂无快照，点击上方按钮生成。</p></div>';
     return;
   }
   el.innerHTML = `
     <table>
-      <thead><tr><th>标签</th><th>时间</th><th>问题�?/th><th>操作</th></tr></thead>
+      <thead><tr><th>标签</th><th>时间</th><th>问题数</th><th>操作</th></tr></thead>
       <tbody>${snapshots.map(s => `
         <tr>
           <td><span class="snapshot-tag ${s.label}">快照 ${s.label}</span></td>
           <td>${new Date(s.timestamp).toLocaleString()}</td>
-          <td>${s.resultCount} 个问�?/td>
+          <td>${s.resultCount} 个问题</td>
           <td class="actions">
             <button class="btn btn-sm btn-danger" onclick="deleteSnapshot('${s.id}')">删除</button>
           </td>
@@ -381,7 +381,7 @@ async function generateSnapshot(label) {
     ? document.querySelector('#snapshot-section .btn-primary')
     : document.querySelector('#snapshot-section .btn-success');
   btn.disabled = true;
-  btn.textContent = label === 'A' ? '�?生成�?..' : '�?生成�?..';
+  btn.textContent = label === 'A' ? '⏳ 生成中...' : '⏳ 生成中...';
 
   try {
     const res = await fetch(App.base + '/api/compare/snapshots', {
@@ -393,14 +393,14 @@ async function generateSnapshot(label) {
     if (!data.ok) {
       showMsg(data.error || '生成快照失败', 'error');
     } else {
-      showMsg(`快照 ${label} 已生�?(${data.snapshot.results.length} 个问�?`, 'success');
+      showMsg(`快照 ${label} 已生成 (${data.snapshot.results.length} 个问题)`, 'success');
       loadSnapshots();
     }
   } catch (err) {
     showMsg('生成快照失败: ' + err.message, 'error');
   } finally {
     btn.disabled = false;
-    btn.textContent = label === 'A' ? '�?跑一�?�?快照 A' : '🔄 再跑一�?�?快照 B';
+    btn.textContent = label === 'A' ? '⚡ 跑一遍 → 快照 A' : '🔄 再跑一遍 → 快照 B';
   }
 }
 
@@ -410,7 +410,7 @@ async function deleteSnapshot(id) {
   const res = await fetch(`/api/compare/snapshots/${id}`, { method: 'DELETE' });
   const data = await res.json();
   if (!data.ok) { showMsg('删除失败', 'error'); return; }
-  showMsg('快照已删�?, 'success');
+  showMsg('快照已删除', 'success');
   loadSnapshots();
 }
 
@@ -420,11 +420,11 @@ async function deleteSnapshot(id) {
 async function runCompare() {
   const labelA = document.getElementById('compare-labelA').value;
   const labelB = document.getElementById('compare-labelB').value;
-  if (!labelA || !labelB) { showMsg('请选择快照 A �?B', 'error'); return; }
+  if (!labelA || !labelB) { showMsg('请选择快照 A 和 B', 'error'); return; }
 
   const btn = document.querySelector('#compare-section .btn-primary');
   btn.disabled = true;
-  btn.textContent = '�?对比�?..';
+  btn.textContent = '⏳ 对比中...';
 
   try {
     const res = await fetch(App.base + '/api/compare/compare', {
@@ -459,7 +459,7 @@ function renderCompareResult(data) {
       </div>
       <div class="summary-item" style="background:#f1f3f4;">
         <div style="font-size:28px;font-weight:700;color:var(--text-secondary);">${summary.unchanged}</div>
-        <div style="font-size:13px;color:var(--text-secondary);">无变�?/div>
+        <div style="font-size:13px;color:var(--text-secondary);">无变化</div>
       </div>
     </div>
 
@@ -474,7 +474,7 @@ function renderCompareResult(data) {
             <h3>#${d.questionIndex + 1}: ${escapeHtml(d.questionText)}</h3>
           </div>
           <div>
-            <span class="badge badge-${d.conclusion}">${d.conclusion === 'improved' ? '�?改善' : d.conclusion === 'worsened' ? '�?变差' : '�?无变�?}</span>
+            <span class="badge badge-${d.conclusion}">${d.conclusion === 'improved' ? '✅ 改善' : d.conclusion === 'worsened' ? '❌ 变差' : '➖ 无变化'}</span>
           </div>
         </div>
         <div class="compare-body" id="compare-body-${i}">
@@ -488,7 +488,7 @@ function renderCompareResult(data) {
 }
 
 function renderRetrievalDiff(d) {
-  if (!d.retrievalChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">📄 召回无变�?/p>';
+  if (!d.retrievalChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">📄 召回无变化</p>';
 
   const diff = d.retrievalDiff;
   let html = '<div class="side-by-side">';
@@ -497,7 +497,7 @@ function renderRetrievalDiff(d) {
   html += '</div>';
 
   if (diff && diff.removed.length > 0) {
-    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-removed-text);">移除的片�?/h4>';
+    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-removed-text);">移除的片段</h4>';
     diff.removed.forEach(c => {
       html += `<div class="chunk-item removed"><strong>${escapeHtml(c.id)}</strong> (score: ${c.score.toFixed(3)})<br>${escapeHtml(c.content)}</div>`;
     });
@@ -505,7 +505,7 @@ function renderRetrievalDiff(d) {
   }
 
   if (diff && diff.added.length > 0) {
-    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-added-text);">新增的片�?/h4>';
+    html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-added-text);">新增的片段</h4>';
     diff.added.forEach(c => {
       html += `<div class="chunk-item added"><strong>${escapeHtml(c.id)}</strong> (score: ${c.score.toFixed(3)})<br>${escapeHtml(c.content)}</div>`;
     });
@@ -516,7 +516,7 @@ function renderRetrievalDiff(d) {
     html += '<div style="margin-bottom:12px;"><h4 style="font-size:13px;color:var(--diff-changed-text);">分数变化</h4>';
     diff.scoreChanges.forEach(s => {
       const cls = s.delta > 0 ? 'score-up' : 'score-down';
-      html += `<div class="chunk-item"><strong>${escapeHtml(s.id)}</strong> <span class="${cls}">${s.oldScore.toFixed(3)} �?${s.newScore.toFixed(3)} (${s.delta > 0 ? '+' : ''}${s.delta.toFixed(3)})</span></div>`;
+      html += `<div class="chunk-item"><strong>${escapeHtml(s.id)}</strong> <span class="${cls}">${s.oldScore.toFixed(3)} → ${s.newScore.toFixed(3)} (${s.delta > 0 ? '+' : ''}${s.delta.toFixed(3)})</span></div>`;
     });
     html += '</div>';
   }
@@ -525,21 +525,21 @@ function renderRetrievalDiff(d) {
 }
 
 function renderAnswerDiff(d) {
-  if (!d.answerChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">💬 回答无变�?/p>';
+  if (!d.answerChanged) return '<p style="font-size:13px;color:var(--text-secondary);margin-bottom:12px;">💬 回答无变化</p>';
 
   const diff = d.answerDiff;
   if (!diff) return '';
 
   let html = '<div class="side-by-side">';
-  html += `<div class="side-panel"><span class="label A">快照 A</span><div class="answer-text">${escapeHtml(diff.oldAnswer || '(�?')}</div></div>`;
-  html += `<div class="side-panel"><span class="label B">快照 B</span><div class="answer-text">${escapeHtml(diff.newAnswer || '(�?')}</div></div>`;
+  html += `<div class="side-panel"><span class="label A">快照 A</span><div class="answer-text">${escapeHtml(diff.oldAnswer || '(空)')}</div></div>`;
+  html += `<div class="side-panel"><span class="label B">快照 B</span><div class="answer-text">${escapeHtml(diff.newAnswer || '(空)')}</div></div>`;
   html += '</div>';
 
   return html;
 }
 
 function renderMetricsDiff(d) {
-  if (!d.metricsChanged) return '<p style="font-size:13px;color:var(--text-secondary);">📊 指标无变�?/p>';
+  if (!d.metricsChanged) return '<p style="font-size:13px;color:var(--text-secondary);">📊 指标无变化</p>';
 
   const diff = d.metricsDiff;
   if (!diff) return '';
@@ -548,8 +548,8 @@ function renderMetricsDiff(d) {
   const transDelta = diff.transferRate.delta;
 
   let html = '<div class="metrics-grid">';
-  html += `<div class="metric-card"><div class="metric-value ${hitDelta > 0 ? 'up' : hitDelta < 0 ? 'down' : ''}">${diff.serviceHitRate.old} �?${diff.serviceHitRate.new}</div><div class="metric-label">客服命中�?(${hitDelta > 0 ? '+' : ''}${hitDelta})</div></div>`;
-  html += `<div class="metric-card"><div class="metric-value ${transDelta < 0 ? 'up' : transDelta > 0 ? 'down' : ''}">${diff.transferRate.old} �?${diff.transferRate.new}</div><div class="metric-label">转人工率 (${transDelta > 0 ? '+' : ''}${transDelta})</div></div>`;
+  html += `<div class="metric-card"><div class="metric-value ${hitDelta > 0 ? 'up' : hitDelta < 0 ? 'down' : ''}">${diff.serviceHitRate.old} → ${diff.serviceHitRate.new}</div><div class="metric-label">客服命中率 (${hitDelta > 0 ? '+' : ''}${hitDelta})</div></div>`;
+  html += `<div class="metric-card"><div class="metric-value ${transDelta < 0 ? 'up' : transDelta > 0 ? 'down' : ''}">${diff.transferRate.old} → ${diff.transferRate.new}</div><div class="metric-label">转人工率 (${transDelta > 0 ? '+' : ''}${transDelta})</div></div>`;
   html += `</div>`;
 
   return html;
@@ -568,7 +568,7 @@ function escapeHtml(text) {
 }
 
 // ============================================================
-// 初始�?
+// 初始化
 // ============================================================
 loadQuestions();
 loadSnapshots();

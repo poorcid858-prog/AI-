@@ -11,67 +11,67 @@
 <body>
 <div class="login-wrap">
 
-  <!-- 左侧：产品定�?-->
+  <!-- 左侧：产品定位 -->
   <section class="login-intro">
     <h1>企业 AI 辅助工具</h1>
-    <p class="tagline">RAG 知识�?· 提示词工�?· 工作流编�?/p>
+    <p class="tagline">RAG 知识库 · 提示词工程 · 工作流编排</p>
 
     <div class="pain">
-      企业研发的痛点不�?strong>「AI 不会写文档�?/strong>�?br>
-      而是<strong>通用大模型不知道企业自己的业务规�?/strong>�?br>
-      本系统先检索企业内部知识，再基于真实业务规则生成�?
+      企业研发的痛点不是<strong>「AI 不会写文档」</strong>，<br>
+      而是<strong>通用大模型不知道企业自己的业务规则</strong>。<br>
+      本系统先检索企业内部知识，再基于真实业务规则生成。
     </div>
 
     <ul class="cap-list">
-      <li><span class="idx">1</span><div><b>文档安全分级与审�?/b><br>上传 �?分级 �?审核 �?入库，四级密级管�?/div></li>
-      <li><span class="idx">2</span><div><b>RAG 知识�?/b><br>段落切分、清洗去噪、归一化、去�?�?向量�?�?检索重�?/div></li>
-      <li><span class="idx">3</span><div><b>提示词工�?/b><br>角色设定、Few-shot、格式约束、拒绝编造、输出校�?/div></li>
-      <li><span class="idx">4</span><div><b>业务线隔�?/b><br>交易线人员检索不到会员线文档，权限在后端过滤</div></li>
-      <li><span class="idx">5</span><div><b>工作流编�?/b><br>意图识别 �?路由 �?Skill �?检�?�?组装 �?生成 �?质检</div></li>
-      <li><span class="idx">6</span><div><b>双向反馈</b><br>优秀问答对沉淀实例库，优秀内容反哺知识�?/div></li>
-      <li><span class="idx">7</span><div><b>AI 客服分支</b><br>仅检索对外知识，含拒答规则与转人工兜�?/div></li>
+      <li><span class="idx">1</span><div><b>文档安全分级与审核</b><br>上传 → 分级 → 审核 → 入库，四级密级管控</div></li>
+      <li><span class="idx">2</span><div><b>RAG 知识库</b><br>段落切分、清洗去噪、归一化、去重 → 向量化 → 检索重排</div></li>
+      <li><span class="idx">3</span><div><b>提示词工程</b><br>角色设定、Few-shot、格式约束、拒绝编造、输出校验</div></li>
+      <li><span class="idx">4</span><div><b>业务线隔离</b><br>交易线人员检索不到会员线文档，权限在后端过滤</div></li>
+      <li><span class="idx">5</span><div><b>工作流编排</b><br>意图识别 → 路由 → Skill → 检索 → 组装 → 生成 → 质检</div></li>
+      <li><span class="idx">6</span><div><b>双向反馈</b><br>优秀问答对沉淀实例库，优秀内容反哺知识库</div></li>
+      <li><span class="idx">7</span><div><b>AI 客服分支</b><br>仅检索对外知识，含拒答规则与转人工兜底</div></li>
     </ul>
 
     <!-- 三步体验引导 -->
     <div class="guide-section">
       <h2 class="guide-title"><span class="guide-flag">NEW</span>三步体验项目核心能力</h2>
-      <p class="guide-sub">新访客按这个顺序走，3 分钟看懂这个项目在解决什么问�?/p>
+      <p class="guide-sub">新访客按这个顺序走，3 分钟看懂这个项目在解决什么问题</p>
 
       <div class="guide-steps">
         <div class="guide-step">
-          <div class="step-header"><span class="step-num">�?/span><span class="step-label">用产品经理身份生成一�?PRD</span></div>
-          <p class="step-desc">输入一个需求，�?AI 先检索企业知识再生成，并展示它引用了哪些企业文档�?/p>
-          <button class="btn-guide" onclick="quickStart('product', '我需要一个基于订单管理模块的退款需求的PRD')">以产品经理身份体�?�?/button>
+          <div class="step-header"><span class="step-num">①</span><span class="step-label">用产品经理身份生成一份 PRD</span></div>
+          <p class="step-desc">输入一个需求，看 AI 先检索企业知识再生成，并展示它引用了哪些企业文档。</p>
+          <button class="btn-guide" onclick="quickStart('product', '我需要一个基于订单管理模块的退款需求的PRD')">以产品经理身份体验 →</button>
         </div>
 
         <div class="guide-step">
-          <div class="step-header"><span class="step-num">�?/span><span class="step-label">切换成客服身份对比答�?/span></div>
-          <p class="step-desc">同一个问题，客服只能看到对外公开知识——密级隔离就在这里生效�?/p>
-          <button class="btn-guide" onclick="quickStart('cs', '退款的流程是什么？')">以客服身份体�?�?/button>
+          <div class="step-header"><span class="step-num">②</span><span class="step-label">切换成客服身份对比答案</span></div>
+          <p class="step-desc">同一个问题，客服只能看到对外公开知识——密级隔离就在这里生效。</p>
+          <button class="btn-guide" onclick="quickStart('cs', '退款的流程是什么？')">以客服身份体验 →</button>
         </div>
 
         <div class="guide-step">
-          <div class="step-header"><span class="step-num">�?/span><span class="step-label">查看召回详情与反向修�?/span></div>
-          <p class="step-desc">审计刚才那次回答召回了哪些知识片段，以及如何修正知识库�?/p>
-          <button class="btn-guide" onclick="quickStart('admin', '')">查看 QA 审计�?�?/button>
+          <div class="step-header"><span class="step-num">③</span><span class="step-label">查看召回详情与反向修复</span></div>
+          <p class="step-desc">审计刚才那次回答召回了哪些知识片段，以及如何修正知识库。</p>
+          <button class="btn-guide" onclick="quickStart('admin', '')">查看 QA 审计页 →</button>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- 右侧：登�?-->
+  <!-- 右侧：登录 -->
     <section class="login-panel">
     <h2>登录</h2>
-    <p class="sub">选择一个演示账号，或手动输入账号密�?/p>
+    <p class="sub">选择一个演示账号，或手动输入账号密码</p>
 
-    <!-- 双口令模式下的快捷入口（�?JS 检�?config 决定是否显示�?-->
+    <!-- 双口令模式下的快捷入口（由 JS 检测 config 决定是否显示） -->
     <div id="dualPwdBox" style="display:none;margin-bottom:16px">
-      <div style="font-size:12px;color:var(--text-faint);margin-bottom:8px">已启用双口令模式，选择体验级别�?/div>
+      <div style="font-size:12px;color:var(--text-faint);margin-bottom:8px">已启用双口令模式，选择体验级别：</div>
       <div style="display:flex;gap:8px">
         <button type="button" class="btn" id="guestPwdBtn" style="flex:1;background:var(--bg-panel-2)">👀 访客体验（只读）</button>
         <button type="button" class="btn" id="debugPwdBtn" style="flex:1;background:var(--accent-dim);border-color:var(--accent)">🔧 调试模式（可写）</button>
       </div>
-      <div style="font-size:11px;color:var(--text-faint);margin-top:8px">访客口令与调试口令由部署方在环境变量中配�?/div>
+      <div style="font-size:11px;color:var(--text-faint);margin-top:8px">访客口令与调试口令由部署方在环境变量中配置</div>
     </div>
 
     <div id="err" class="err" style="display:none"></div>
@@ -79,26 +79,34 @@
     <form id="loginForm">
       <div class="field">
         <label for="username">账号</label>
-        <input type="text" id="username" name="username" autocomplete="username" placeholder="�?zhangsan">
+        <input type="text" id="username" name="username" autocomplete="username" placeholder="如 zhangsan">
       </div>
       <div class="field">
         <label for="password">密码</label>
         <input type="password" id="password" name="password" autocomplete="current-password" placeholder="演示环境统一 123456">
       </div>
-      <button type="submit" class="btn btn-primary" id="submitBtn">�?�?/button>
+      <button type="submit" class="btn btn-primary" id="submitBtn">登 录</button>
     </form>
 
     <div class="accounts-head">
       <h3>演示账号</h3>
       <span>统一密码 123456</span>
     </div>
-    <div id="accounts" class="accounts"><div class="loading">加载中�?/div></div>
+    <div id="accounts" class="accounts"><div class="loading">加载中…</div></div>
     </section>
 
   </div>
 
   <script src="js/vendor/bootstrap.bundle.min.js"></script>
   <script>
+  // 自动检测 base path（适配 /ai/ 反代和根路径）
+  const BASE = (function() {
+    var p = location.pathname, i = p.indexOf('/', 1);
+    if (i === -1) return '';
+    var seg = p.substring(0, i);
+    return (seg === '/ai') ? '/ai' : '';
+  })();
+
   const $ = (s) => document.querySelector(s);
   const errBox = $('#err');
 
@@ -107,18 +115,18 @@
     errBox.style.display = msg ? 'block' : 'none';
   }
 
-  // 双口令模式：通过 /api/health 检�?
+  // 双口令模式：通过 /api/health 检测
   (async function initDualPassword() {
     try {
-      const r = await fetch(App.base + '/api/health');
+      const r = await fetch(BASE + '/api/health');
       const d = await r.json();
-      // health 未暴�?dualPassword，但可由后端返回
+      // health 未暴露 dualPassword，但可由后端返回
       showDualPasswordIfEnabled(d);
-    } catch (_) { /* 忽略，走普通登�?*/ }
+    } catch (_) { /* 忽略，走普通登录 */ }
   })();
 
   function showDualPasswordIfEnabled(healthData) {
-    // �?health �?config 提示双口令启用时，显示快捷按�?
+    // 当 health 或 config 提示双口令启用时，显示快捷按钮
     const enabled = healthData && healthData.dualPasswordEnabled;
     if (!enabled) return;
     const box = document.getElementById('dualPwdBox');
@@ -128,9 +136,9 @@
   }
 
   function loginByToken(mode) {
-    // 双口令登录：请求一个临�?token（后端把 mode 对应的密码作�?body 传入�?
-    // 简化：这里是演�?token 登录，实际生产应由后端发一次性令�?
-    const url = mode === 'guest' ? '/api/auth/demo-login?mode=guest' : '/api/auth/demo-login?mode=debug';
+    // 双口令登录：请求一个临时 token（后端把 mode 对应的密码作为 body 传入）
+    // 简化：这里是演示 token 登录，实际生产应由后端发一次性令牌
+    const url = BASE + (mode === 'guest' ? '/api/auth/demo-login?mode=guest' : '/api/auth/demo-login?mode=debug');
     fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' } })
       .then((r) => r.json())
       .then((d) => {
@@ -138,13 +146,13 @@
         localStorage.setItem('token', d.token);
         localStorage.setItem('user', JSON.stringify(d.user));
         localStorage.setItem('permissions', JSON.stringify(d.permissions));
-        location.href = '/dashboard.html';
+        location.href = BASE + '/dashboard.html';
       })
       .catch((e) => showErr(e.message));
   }
 
 // ---- 加载演示账号 ----
-fetch(App.base + '/api/auth/demo-accounts')
+fetch(BASE + '/api/auth/demo-accounts')
   .then((r) => r.json())
   .then((d) => {
     if (!d.ok) throw new Error(d.error || '加载失败');
@@ -179,23 +187,23 @@ fetch(App.base + '/api/auth/demo-accounts')
       box.appendChild(el);
     }
   })
-  .catch((e) => { $('#accounts').innerHTML = `<div class="loading">账号列表加载失败�?{e.message}</div>`; });
+  .catch((e) => { $('#accounts').innerHTML = `<div class="loading">账号列表加载失败：${e.message}</div>`; });
 
 // ---- 三步引导快捷入口 ----
-// 点击引导卡按钮：自动选中对应角色的演示账�?�?自动登录 �?跳转到对应功能页
+// 点击引导卡按钮：自动选中对应角色的演示账号 → 自动登录 → 跳转到对应功能页
 function quickStart(role, question) {
   // 已登录用户直接跳转对应页
   if (localStorage.getItem('token')) {
     location.href = (role === 'admin' && !question)
-      ? '/admin-qa.html'
-      : '/workspace.html?q=' + encodeURIComponent(question || '');
+      ? BASE + '/admin-qa.html'
+      : BASE + '/workspace.html?q=' + encodeURIComponent(question || '');
     return;
   }
-  // 通过账号�?data-role 属性找到该角色的演示账�?
+  // 通过账号的 data-role 属性找到该角色的演示账号
   const acct = document.querySelector(`.acct[data-role="${role}"]`);
   if (acct) {
-    acct.click(); // 选中账号（自动填 username + password�?
-    // 立即登录并跳�?
+    acct.click(); // 选中账号（自动填 username + password）
+    // 立即登录并跳转
     doQuickLogin((role === 'admin' && !question) ? '/admin-qa.html'
       : '/workspace.html?q=' + encodeURIComponent(question || ''));
   } else {
@@ -207,13 +215,13 @@ function quickStart(role, question) {
   }
 }
 
-/** 用当前表单的用户�?密码发起登录，成功后跳转�?redirect */
+/** 用当前表单的用户名/密码发起登录，成功后跳转到 redirect */
 async function doQuickLogin(redirect) {
   const btn = $('#submitBtn');
   btn.disabled = true;
-  btn.textContent = '登录中�?;
+  btn.textContent = '登录中…';
   try {
-    const res = await fetch(App.base + '/api/auth/login', {
+    const res = await fetch(BASE + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: $('#username').value.trim(), password: $('#password').value }),
@@ -223,13 +231,13 @@ async function doQuickLogin(redirect) {
     localStorage.setItem('token', d.token);
     localStorage.setItem('user', JSON.stringify(d.user));
     localStorage.setItem('permissions', JSON.stringify(d.permissions));
-    // 存角色到 sessionStorage，供工作台右栏岗位展�?
+    // 存角色到 sessionStorage，供工作台右栏岗位展示
     sessionStorage.setItem('userRole', d.user.role);
     location.href = redirect;
   } catch (e) {
     showErr(e.message);
     btn.disabled = false;
-    btn.textContent = '�?�?;
+    btn.textContent = '登 录';
   }
 }
 
@@ -239,9 +247,9 @@ $('#loginForm').addEventListener('submit', async (ev) => {
   showErr('');
   const btn = $('#submitBtn');
   btn.disabled = true;
-  btn.textContent = '登录中�?;
+  btn.textContent = '登录中…';
   try {
-    const res = await fetch(App.base + '/api/auth/login', {
+    const res = await fetch(BASE + '/api/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username: $('#username').value.trim(), password: $('#password').value }),
@@ -256,7 +264,7 @@ $('#loginForm').addEventListener('submit', async (ev) => {
     showErr(e.message);
   } finally {
     btn.disabled = false;
-    btn.textContent = '�?�?;
+    btn.textContent = '登 录';
   }
 });
 </script>

@@ -15,7 +15,7 @@
       key: 'workbench',
       label: 'AI 工作台',
       icon: '🤖',
-      href: '/workspace.html',
+      href: '/index.html',
     },
     {
       key: 'knowledge',

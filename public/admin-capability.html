@@ -11,21 +11,21 @@
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>AI 能力编辑</h1>
-    <p><a href="/admin.html">&larr; 返回管理后台</a> &nbsp; 编辑 Skill / Prompt 的角色设定、输出格式、试跑验�?/p>
+    <p><a href="/admin.html">&larr; 返回管理后台</a> &nbsp; 编辑 Skill / Prompt 的角色设定、输出格式、试跑验证</p>
   </div>
 
   <div id="notices"></div>
 
   <div class="cap-layout">
-    <!-- 左栏：能力列�?-->
+    <!-- 左栏：能力列表 -->
     <div class="cap-sidebar">
       <h3>能力列表</h3>
-      <div id="capList" class="muted">加载中�?/div>
+      <div id="capList" class="muted">加载中…</div>
     </div>
 
     <!-- 右栏：编辑区 -->
     <div class="cap-main">
-      <div id="noSelection" class="card muted" style="text-align:center;padding:60px 20px">请在左侧选择一个能力进行编�?/div>
+      <div id="noSelection" class="card muted" style="text-align:center;padding:60px 20px">请在左侧选择一个能力进行编辑</div>
 
       <!-- 编辑器（选中后显示） -->
       <div id="editorArea" style="display:none">
@@ -39,27 +39,27 @@
           <p id="capDesc" style="font-size:13px;color:var(--text-dim);margin-top:6px"></p>
         </div>
 
-        <!-- 生效版（只读�?-->
+        <!-- 生效版（只读） -->
         <div class="card" style="margin-bottom:14px">
-          <h3>生效�?<span class="mono" style="color:var(--text-faint);font-size:12px" id="publishedVersionLabel">v1</span></h3>
+          <h3>生效版 <span class="mono" style="color:var(--text-faint);font-size:12px" id="publishedVersionLabel">v1</span></h3>
           <pre id="publishedContent" class="cap-pre" style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12.5px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)"></pre>
         </div>
 
-        <!-- 草稿编辑�?-->
+        <!-- 草稿编辑区 -->
         <div class="card" style="margin-bottom:14px">
           <h3>草稿编辑 <span id="draftVersionLabel" class="mono" style="color:var(--text-faint);font-size:12px"></span></h3>
-          <p class="card-sub">修改角色的设定、输出格式等。保存草稿后可通过试跑对比效果�?/p>
+          <p class="card-sub">修改角色的设定、输出格式等。保存草稿后可通过试跑对比效果。</p>
           <div class="draft-fields" id="draftFields">
             <div class="field">
-              <label>角色名称（title�?/label>
+              <label>角色名称（title）</label>
               <input id="draftTitle" placeholder="如：产品经理">
             </div>
             <div class="field">
-              <label>角色设定（description�?/label>
-              <textarea id="draftDesc" rows="4" placeholder="描述该角色的职责、行为方式�?></textarea>
+              <label>角色设定（description）</label>
+              <textarea id="draftDesc" rows="4" placeholder="描述该角色的职责、行为方式…"></textarea>
             </div>
             <div class="field">
-              <label>输出格式要求（outputFormat�?/label>
+              <label>输出格式要求（outputFormat）</label>
               <textarea id="draftFormat" rows="3" placeholder="如：使用 Markdown 格式输出，包含需求分析、详细方案、注意事项三部分"></textarea>
             </div>
             <div class="field">
@@ -74,10 +74,10 @@
           </div>
         </div>
 
-        <!-- 试跑�?-->
+        <!-- 试跑区 -->
         <div class="card" style="margin-bottom:14px">
           <h3>试跑对比</h3>
-          <p class="card-sub">输入测试问题，预览草稿版与生效版的输出效果差�?/p>
+          <p class="card-sub">输入测试问题，预览草稿版与生效版的输出效果差异</p>
           <div class="trial-inputs" style="display:grid;gap:10px;grid-template-columns:1fr 160px 160px auto;align-items:end">
             <div class="field" style="margin-bottom:0">
               <label>测试问题</label>
@@ -87,16 +87,16 @@
               <label>角色</label>
               <select id="trialRole">
                 <option value="product">产品经理</option>
-                <option value="test">测试工程�?/option>
-                <option value="frontend">前端工程�?/option>
+                <option value="test">测试工程师</option>
+                <option value="frontend">前端工程师</option>
                 <option value="cs">客服代表</option>
               </select>
             </div>
             <div class="field" style="margin-bottom:0">
-              <label>业务�?/label>
+              <label>业务线</label>
               <select id="trialBizLine">
-                <option value="trade">交易�?/option>
-                <option value="membership">会员�?/option>
+                <option value="trade">交易线</option>
+                <option value="membership">会员线</option>
                 <option value="all">全业务线</option>
               </select>
             </div>
@@ -105,14 +105,14 @@
           <div id="trialResult" style="display:none;margin-top:14px">
             <div class="trial-compare">
               <div class="trial-col">
-                <div class="trial-col-head">生效版输�?/div>
+                <div class="trial-col-head">生效版输出</div>
                 <div class="trial-col-body" id="trialPublished">
                   <div class="trial-prompt" id="trialPublishedPrompt"></div>
                   <div class="trial-output" id="trialPublishedOutput"></div>
                 </div>
               </div>
               <div class="trial-col">
-                <div class="trial-col-head">草稿版输�?/div>
+                <div class="trial-col-head">草稿版输出</div>
                 <div class="trial-col-body" id="trialDraft">
                   <div class="trial-prompt" id="trialDraftPrompt"></div>
                   <div class="trial-output" id="trialDraftOutput"></div>
@@ -123,11 +123,11 @@
               <h4 style="font-size:13px;font-weight:500;margin-bottom:8px">输出差异</h4>
               <div class="diff-boxes">
                 <div class="diff-box diff-removed">
-                  <div class="diff-label">移除�?/div>
+                  <div class="diff-label">移除了</div>
                   <pre id="diffRemoved" class="diff-pre"></pre>
                 </div>
                 <div class="diff-box diff-added">
-                  <div class="diff-label">新增�?/div>
+                  <div class="diff-label">新增了</div>
                   <pre id="diffAdded" class="diff-pre"></pre>
                 </div>
               </div>
@@ -138,13 +138,13 @@
         <!-- 版本历史 -->
         <div class="card" style="margin-bottom:14px">
           <h3>版本历史 <button class="btn btn-sm" id="refreshVersionsBtn" style="margin-left:8px">刷新</button></h3>
-          <div id="versionList" class="muted">加载中�?/div>
+          <div id="versionList" class="muted">加载中…</div>
         </div>
 
         <!-- 审计日志 -->
         <div class="card">
           <h3>审计日志 <button class="btn btn-sm" id="refreshAuditBtn" style="margin-left:8px">刷新</button></h3>
-          <div id="auditList" class="muted">加载中�?/div>
+          <div id="auditList" class="muted">加载中…</div>
         </div>
       </div>
     </div>
@@ -159,10 +159,10 @@ if (App.guard()) {
   document.getElementById('page').style.display = 'block';
 
   if (App.user.readonly) {
-    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，写操作会被后端拦截�?/div>';
+    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，写操作会被后端拦截。</div>';
   }
 
-  // ============ 状�?============
+  // ============ 状态 ============
   let currentCapId = null;
   let currentCap = null;
   let currentDraft = null;
@@ -178,7 +178,7 @@ if (App.guard()) {
     }
     box.innerHTML = d.capabilities.map((c) => {
       const statusClass = c.hasDraft ? 'status-draft' : 'status-published';
-      const statusText = c.hasDraft ? '草稿' : '已发�?;
+      const statusText = c.hasDraft ? '草稿' : '已发布';
       const activeClass = c.id === currentCapId ? 'cap-item-active' : '';
       return `<div class="cap-item ${activeClass}" data-id="${App.esc(c.id)}">
         <div class="cap-item-name">${App.esc(c.name)}</div>
@@ -222,33 +222,33 @@ if (App.guard()) {
     document.getElementById('capIdLabel').textContent = currentCap.id;
     document.getElementById('capDesc').textContent = currentCap.description;
 
-    // 状�?
+    // 状态
     const badge = document.getElementById('capStatusBadge');
     if (currentCap.draft) {
-      badge.textContent = '有草�?;
+      badge.textContent = '有草稿';
       badge.style.borderColor = 'rgba(245,158,11,.4)';
       badge.style.color = 'var(--warning)';
     } else {
-      badge.textContent = '已发�?;
+      badge.textContent = '已发布';
       badge.style.borderColor = 'rgba(16,185,129,.4)';
       badge.style.color = 'var(--success)';
     }
 
-    // 生效�?
+    // 生效版
     document.getElementById('publishedVersionLabel').textContent = 'v' + (currentPublished ? currentPublished.version : '-');
     const pubContent = currentPublished ? currentPublished.content : null;
     document.getElementById('publishedContent').textContent = pubContent ? JSON.stringify(pubContent, null, 2) : '(暂无)';
 
     // 草稿
     if (currentDraft) {
-      document.getElementById('draftVersionLabel').textContent = 'v' + currentDraft.version + '（未发布�?;
+      document.getElementById('draftVersionLabel').textContent = 'v' + currentDraft.version + '（未发布）';
       const dc = currentDraft.content || {};
       document.getElementById('draftTitle').value = dc.title || '';
       document.getElementById('draftDesc').value = dc.description || '';
       document.getElementById('draftFormat').value = dc.outputFormat || '';
       document.getElementById('draftRaw').value = JSON.stringify(dc, null, 2);
     } else {
-      document.getElementById('draftVersionLabel').textContent = '（无草稿，基于生效版新建�?;
+      document.getElementById('draftVersionLabel').textContent = '（无草稿，基于生效版新建）';
       const pc = pubContent || {};
       document.getElementById('draftTitle').value = pc.title || '';
       document.getElementById('draftDesc').value = pc.description || '';
@@ -269,7 +269,7 @@ if (App.guard()) {
       try {
         content = JSON.parse(raw);
       } catch (e) {
-        App.toast('JSON 格式错误�? + e.message, 'error');
+        App.toast('JSON 格式错误：' + e.message, 'error');
         return;
       }
     } else {
@@ -287,7 +287,7 @@ if (App.guard()) {
       currentCap = d.capability;
       currentDraft = currentCap.draft;
       currentPublished = currentCap.published;
-      App.toast('草稿已保�?, 'success');
+      App.toast('草稿已保存', 'success');
       renderCapability();
       loadCapList();
       loadVersions();
@@ -300,7 +300,7 @@ if (App.guard()) {
   // ============ 发布 ============
   document.getElementById('publishBtn').onclick = async () => {
     if (!currentCapId) return;
-    if (!(await App.confirm('确认发布草稿？生效版将被替换为草稿内容，旧版进入历史�?))) return;
+    if (!(await App.confirm('确认发布草稿？生效版将被替换为草稿内容，旧版进入历史。'))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/publish`, { method: 'POST' });
       currentCap = d.capability;
@@ -319,13 +319,13 @@ if (App.guard()) {
   // ============ 弃稿 ============
   document.getElementById('discardBtn').onclick = async () => {
     if (!currentCapId) return;
-    if (!(await App.confirm('确认丢弃草稿？未保存的修改将丢失�?))) return;
+    if (!(await App.confirm('确认丢弃草稿？未保存的修改将丢失。'))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/draft`, { method: 'DELETE' });
       currentCap = d.capability;
       currentDraft = null;
       currentPublished = currentCap.published;
-      App.toast('已弃�?, 'success');
+      App.toast('已弃稿', 'success');
       renderCapability();
       loadCapList();
       loadVersions();
@@ -340,14 +340,14 @@ if (App.guard()) {
     if (!currentCapId) return;
     const question = document.getElementById('trialQuestion').value.trim();
     if (!question) {
-      App.toast('请输入测试问�?, 'error');
+      App.toast('请输入测试问题', 'error');
       return;
     }
     const role = document.getElementById('trialRole').value;
     const bizLine = document.getElementById('trialBizLine').value;
     const btn = document.getElementById('trialBtn');
     btn.disabled = true;
-    btn.textContent = '试跑中�?;
+    btn.textContent = '试跑中…';
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/trial`, {
         method: 'POST',
@@ -365,7 +365,7 @@ if (App.guard()) {
   function showTrialResult(data, question) {
     document.getElementById('trialResult').style.display = 'block';
 
-    // 生效�?
+    // 生效版
     const pubEl = document.getElementById('trialPublished');
     if (data.published) {
       document.getElementById('trialPublishedPrompt').innerHTML = '<div class="trial-label">Prompt</div><pre class="trial-pre">' + App.esc(data.published.prompt) + '</pre>';
@@ -374,7 +374,7 @@ if (App.guard()) {
       pubEl.innerHTML = '<div class="muted" style="padding:20px;text-align:center">无生效版</div>';
     }
 
-    // 草稿�?
+    // 草稿版
     document.getElementById('trialDraftPrompt').innerHTML = '<div class="trial-label">Prompt</div><pre class="trial-pre">' + App.esc(data.draft.prompt) + '</pre>';
     document.getElementById('trialDraftOutput').innerHTML = '<div class="trial-label">输出</div><pre class="trial-pre">' + App.esc(data.draft.result.content) + '</pre>';
 
@@ -384,8 +384,8 @@ if (App.guard()) {
         method: 'POST',
         body: JSON.stringify({ a: data.published.result.content, b: data.draft.result.content }),
       }).then((diffData) => {
-        document.getElementById('diffRemoved').textContent = diffData.diff.removed || '(�?';
-        document.getElementById('diffAdded').textContent = diffData.diff.added || '(�?';
+        document.getElementById('diffRemoved').textContent = diffData.diff.removed || '(无)';
+        document.getElementById('diffAdded').textContent = diffData.diff.added || '(无)';
         document.getElementById('trialDiff').style.display = 'block';
       }).catch(() => {
         document.getElementById('trialDiff').style.display = 'none';
@@ -405,9 +405,9 @@ if (App.guard()) {
         box.innerHTML = '<div class="muted">暂无版本历史</div>';
         return;
       }
-      const statusMap = { published: '已发�?, draft: '草稿', history: '历史' };
+      const statusMap = { published: '已发布', draft: '草稿', history: '历史' };
       const statusColor = { published: 'var(--success)', draft: 'var(--warning)', history: 'var(--text-faint)' };
-      box.innerHTML = '<table class="tbl"><tr><th>版本</th><th>状�?/th><th>发布�?/th><th>时间</th><th>操作</th></tr>' +
+      box.innerHTML = '<table class="tbl"><tr><th>版本</th><th>状态</th><th>发布人</th><th>时间</th><th>操作</th></tr>' +
         d.versions.map((v) => {
           const isCurrent = v.status === 'published';
           return `<tr>
@@ -431,7 +431,7 @@ if (App.guard()) {
 
   async function rollbackTo(version) {
     if (!currentCapId) return;
-    if (!(await App.confirm(`确认回滚�?v${version}？这将创建一个基�?v${version} 的新草稿，需手动发布。`))) return;
+    if (!(await App.confirm(`确认回滚到 v${version}？这将创建一个基于 v${version} 的新草稿，需手动发布。`))) return;
     try {
       const d = await App.api(`/api/capabilities/${currentCapId}/rollback`, {
         method: 'POST',
@@ -466,7 +466,7 @@ if (App.guard()) {
         discard_draft: '弃稿',
         rollback: '回滚',
       };
-      box.innerHTML = '<table class="tbl"><tr><th>操作</th><th>操作�?/th><th>版本</th><th>详情</th><th>时间</th></tr>' +
+      box.innerHTML = '<table class="tbl"><tr><th>操作</th><th>操作人</th><th>版本</th><th>详情</th><th>时间</th></tr>' +
         d.logs.map((l) => `<tr>
           <td>${actionMap[l.action] || l.action}</td>
           <td class="mono">${App.esc(l.editedBy || l.publishedBy || '-')}</td>
@@ -481,7 +481,7 @@ if (App.guard()) {
 
   document.getElementById('refreshAuditBtn').onclick = loadAudit;
 
-  // ============ 初始�?============
+  // ============ 初始化 ============
   loadCapList();
 }
 </script>

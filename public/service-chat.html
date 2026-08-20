@@ -169,7 +169,7 @@
         placeholder="输入你的问题..."
         autocomplete="off"
       />
-      <button id="sendBtn">发�?/button>
+      <button id="sendBtn">发送</button>
     </div>
   </div>
 
@@ -190,10 +190,10 @@
 
       questionInput.value = '';
 
-      // 显示加载�?
+      // 显示加载中
       const loadingMsg = document.createElement('div');
       loadingMsg.className = 'message assistant';
-      loadingMsg.innerHTML = '<div class="loading"><span class="spinner"></span> 搜索�?..</div>';
+      loadingMsg.innerHTML = '<div class="loading"><span class="spinner"></span> 搜索中...</div>';
       chatArea.appendChild(loadingMsg);
       chatArea.scrollTop = chatArea.scrollHeight;
 
@@ -214,24 +214,24 @@
         const { matches } = data;
 
         if (matches && matches.length > 0) {
-          // 显示匹配的话�?
+          // 显示匹配的话术
           for (const match of matches) {
             const assistantMsg = document.createElement('div');
             assistantMsg.className = 'message assistant';
             const matchHTML = `
               <div class="match-item">
                 <div class="match-keyword">关键词：${match.keyword}</div>
-                <div class="match-reply">${match.reply || '无回�?}</div>
+                <div class="match-reply">${match.reply || '无回复'}</div>
               </div>
             `;
             assistantMsg.innerHTML = matchHTML;
             chatArea.appendChild(assistantMsg);
           }
         } else {
-          // 无匹�?
+          // 无匹配
           const noMatchMsg = document.createElement('div');
           noMatchMsg.className = 'message assistant';
-          noMatchMsg.innerHTML = '<div class="no-match">未找到相关话术，将为你转接人工客�?..</div>';
+          noMatchMsg.innerHTML = '<div class="no-match">未找到相关话术，将为你转接人工客服...</div>';
           chatArea.appendChild(noMatchMsg);
         }
 
@@ -240,7 +240,7 @@
         loadingMsg.remove();
         const errorMsg = document.createElement('div');
         errorMsg.className = 'message assistant';
-        errorMsg.textContent = `�?${error.message}`;
+        errorMsg.textContent = `❌ ${error.message}`;
         chatArea.appendChild(errorMsg);
       }
     }

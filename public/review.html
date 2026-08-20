@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN" data-bs-theme="dark">
 <head>
-<meta charset="UTF-8"><title>文档审核</title>
+<meta charset="UTF-8"><title>知识审核</title>
 <link rel="stylesheet" href="css/vendor/bootstrap.min.css">
 <link rel="stylesheet" href="css/custom-theme.css">
 <link rel="stylesheet" href="css/style.css">
@@ -12,16 +12,10 @@
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>审核中心</h1>
-    <p>安全分级、是否含敏感字段、是否纳�?RAG 库——你（审核员）说了算�?/p>
+    <p>安全分级、是否含敏感字段、是否纳入 RAG 库——你（审核员）说了算。</p>
   </div>
 
-  <!-- Tab 导航 -->
-  <div class="tab-nav">
-    <button class="tab-btn active" id="tabDocs">文档审核</button>
-    <button class="tab-btn" id="tabCapability">能力审核</button>
-  </div>
-
-  <!-- 搜索和筛选区�?-->
+  <!-- 搜索和筛选区域 -->
   <div id="filterArea" style="margin-bottom: 20px; display: none;">
     <div class="input-group" style="display:flex;gap:8px;max-width:420px">
       <input type="text" id="searchInput" class="form-control" placeholder="搜索文件名或 ID..." onkeypress="handleSearch(event)">
@@ -43,26 +37,6 @@ if (App.guard()) {
   const idParam = params.get('id');
   let currentPage = 1;
   let currentSearch = '';
-  let currentTab = 'docs'; // 'docs' | 'capability'
-
-  // Tab 切换
-  function switchTab(tab) {
-    currentTab = tab;
-    document.querySelectorAll('.tab-btn').forEach((el) => {
-      el.style.color = el.id === 'tab' + (tab === 'docs' ? 'Docs' : 'Capability') ? 'var(--text)' : 'var(--text-dim)';
-      el.style.borderBottomColor = el.id === 'tab' + (tab === 'docs' ? 'Docs' : 'Capability') ? 'var(--accent)' : 'transparent';
-    });
-    if (tab === 'docs') {
-      document.getElementById('filterArea').style.display = 'block';
-      loadList();
-    } else {
-      document.getElementById('filterArea').style.display = 'none';
-      loadCapabilityReview();
-    }
-  }
-
-  document.getElementById('tabDocs').onclick = () => switchTab('docs');
-  document.getElementById('tabCapability').onclick = () => switchTab('capability');
 
   function formatDate(dateStr) {
     const d = new Date(dateStr);
@@ -78,11 +52,11 @@ if (App.guard()) {
     const search = document.getElementById('searchInput')?.value?.trim() || '';
     const box = document.getElementById('content');
 
-    // 使用新的待审核版本列�?API（需求第 8 �?- 审核联动�?
+    // 使用新的待审核版本列表 API（需求第 8 节 - 审核联动）
     App.api('/api/knowledge/pending-review').then((d) => {
       let versions = d.versions || [];
 
-      // 客户端搜索过�?
+      // 客户端搜索过滤
       if (search) {
         const lowerSearch = search.toLowerCase();
         versions = versions.filter((v) =>
@@ -96,18 +70,18 @@ if (App.guard()) {
         box.innerHTML = `
           <div class="card" style="padding:40px;text-align:center;margin-top:10px">
             <div style="font-size:48px;margin-bottom:16px;opacity:0.5">${search ? '🔍' : '📄'}</div>
-            <h4 style="margin-bottom:12px">${search ? '搜索无结�? : '暂无待审核文�?}</h4>
+            <h4 style="margin-bottom:12px">${search ? '搜索无结果' : '暂无待审核文档'}</h4>
             <p class="text-muted" style="margin-bottom:0">
               ${search
-                ? '没有找到匹配的文档，请尝试其他关键词�?
-                : '当前没有需要审核的文档版本。可前往知识中心上传新文档，等待提交审核�?}
+                ? '没有找到匹配的文档，请尝试其他关键词。'
+                : '当前没有需要审核的文档版本。可前往知识中心上传新文档，等待提交审核。'}
             </p>
           </div>
         `;
         return;
       }
 
-      // 表格�?HTML
+      // 表格行 HTML
       const tableRows = versions.map((v) => `
         <tr>
           <td><strong>${App.esc(v.document_name)}</strong><br><span class="text-muted small">${v.version_id}</span></td>
@@ -131,7 +105,7 @@ if (App.guard()) {
                 <th>文档ID</th>
                 <th>创建时间</th>
                 <th>版本</th>
-                <th>审核状�?/th>
+                <th>审核状态</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -141,7 +115,7 @@ if (App.guard()) {
           </table>
           </div>
           <div class="pagination-wrapper">
-            <div class="text-muted small">�?${versions.length} 份待审核文档版本</div>
+            <div class="text-muted small">共 ${versions.length} 份待审核文档版本</div>
           </div>
         </div>
       `;
@@ -185,9 +159,9 @@ if (App.guard()) {
             <a href="/review.html" class="btn btn-sm">返回列表</a>
           </div>
           <div style="margin:10px 0">
-            <span class="tag">审核状�? ${version.review_status}</span>
-            <span class="tag">处理状�? ${version.processing_status}</span>
-            <span class="tag">上线状�? ${version.online_status}</span>
+            <span class="tag">审核状态: ${version.review_status}</span>
+            <span class="tag">处理状态: ${version.processing_status}</span>
+            <span class="tag">上线状态: ${version.online_status}</span>
           </div>
         </div>
 
@@ -195,7 +169,7 @@ if (App.guard()) {
           <h3>原始文档内容预览</h3>
           ${raw ? `
             <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:13px;line-height:1.7;max-height:300px;overflow:auto">
-              ${App.esc((raw.filename || raw.name || '未命�?) + (raw.uploader ? ' - 上传�? ' + raw.uploader : ''))}
+              ${App.esc((raw.filename || raw.name || '未命名') + (raw.uploader ? ' - 上传者: ' + raw.uploader : ''))}
             </div>
           ` : '<div class="muted">无法加载原始文档</div>'}
         </div>
@@ -208,7 +182,7 @@ if (App.guard()) {
               <button class="btn btn-success" id="approveBtn">通过</button>
               <button class="btn btn-danger" id="rejectBtn">驳回</button>
             </div>
-          ` : (isPending ? `<div class="muted">${App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权�?}</div>` : '')}
+          ` : (isPending ? `<div class="muted">${App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>` : '')}
           ${version.review_status === 'approved' && version.processing_status === 'not_processed' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
             <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
               <p class="text-muted small">文档已审核通过，可生成向量数据</p>
@@ -221,8 +195,8 @@ if (App.guard()) {
               <button class="btn btn-warning" id="reReviewBtn">重新发起审核</button>
             </div>
           ` : ''}
-          ${version.processing_status === 'success' ? '<div class="alert alert-success" style="margin-top:8px">已处理完�?/div>' : ''}
-          ${version.online_status === 'online' ? '<div class="alert alert-info" style="margin-top:8px">已上�?/div>' : ''}
+          ${version.processing_status === 'success' ? '<div class="alert alert-success" style="margin-top:8px">已处理完成</div>' : ''}
+          ${version.online_status === 'online' ? '<div class="alert alert-info" style="margin-top:8px">已上线</div>' : ''}
         </div>
       `;
 
@@ -239,7 +213,7 @@ if (App.guard()) {
             method: 'POST',
             body: JSON.stringify({ versionId: version.version_id }),
           }).then(() => {
-            App.toast('已开始生成向量数�?, 'success');
+            App.toast('已开始生成向量数据', 'success');
             setTimeout(() => location.reload(), 800);
           }).catch((e) => App.toast(e.message, 'error'));
         };
@@ -250,7 +224,7 @@ if (App.guard()) {
       if (reReviewBtn) {
         reReviewBtn.onclick = () => {
           App.api('/api/knowledge/' + version.version_id + '/re-review', { method: 'POST' }).then(() => {
-            App.toast('已重新发起审�?, 'success');
+            App.toast('已重新发起审核', 'success');
             setTimeout(() => location.href = '/review.html', 800);
           }).catch((e) => App.toast(e.message, 'error'));
         };
@@ -261,22 +235,22 @@ if (App.guard()) {
   }
 
   /**
-   * 版本审核决定（需求第 8 �?- 审核联动�?
-   * 审核通过 �?原始文档页面显示"生成向量数据"
-   * 审核失败 �?显示"重新发起审核"
+   * 版本审核决定（需求第 8 节 - 审核联动）
+   * 审核通过 → 原始文档页面显示"生成向量数据"
+   * 审核失败 → 显示"重新发起审核"
    */
   function decideVersionReview(decision) {
     App.api('/api/knowledge/' + idParam + '/review', {
       method: 'POST',
       body: JSON.stringify({ decision, note: document.getElementById('note')?.value || '' }),
     }).then(() => {
-      App.toast(decision === 'approved' ? '审核通过，可生成向量数据' : '已驳�?, 'success');
+      App.toast(decision === 'approved' ? '审核通过，可生成向量数据' : '已驳回', 'success');
       setTimeout(() => location.href = '/review.html', 800);
     }).catch((e) => App.toast(e.message, 'error'));
   }
 
   /**
-   * 显示版本审核详情（需求第 8 �?- 审核联动�?
+   * 显示版本审核详情（需求第 8 节 - 审核联动）
    */
   function showVersionReviewDetail(versionId) {
     location.href = '/review.html?id=' + versionId;
@@ -293,118 +267,7 @@ if (App.guard()) {
     loadDetail();
   } else {
     document.getElementById('filterArea').style.display = 'block';
-    // 激活文档审核Tab
-    switchTab('docs');
-  }
-
-  // ============ 能力审核 ============
-
-  function loadCapabilityReview() {
-    const box = document.getElementById('content');
-    box.innerHTML = '<div class="muted">加载待审核能力列表�?/div>';
-
-    App.api('/api/capabilities/pending-review').then((d) => {
-      const list = d.capabilities || [];
-      if (list.length === 0) {
-        box.innerHTML = `
-          <div class="card" style="padding:40px;text-align:center;margin-top:10px">
-            <div style="font-size:48px;margin-bottom:16px;opacity:0.5">🧠</div>
-            <h4 style="margin-bottom:12px">暂无待审核能�?/h4>
-            <p class="text-muted" style="margin-bottom:0">
-              当前没有待审核的 AI 能力。编辑能力后会进入草稿状态，提交审核后才会出现在这里�?
-            </p>
-          </div>
-        `;
-        return;
-      }
-      const rows = list.map((c) => {
-        const content = c.draft ? JSON.stringify(c.draft.content).slice(0, 200) : '';
-        return `<tr>
-          <td><strong>${App.esc(c.name)}</strong><br><span class="text-muted small">${App.esc(c.id)}</span></td>
-          <td><span class="badge bg-secondary">${App.esc(c.type)}</span></td>
-          <td>${App.esc(c.review?.submittedBy || '-')}</td>
-          <td class="mono">${c.review?.submittedAt ? new Date(c.review.submittedAt).toLocaleString('zh-CN') : '-'}</td>
-          <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="showCapabilityReviewDetail('${c.id}')">审核</button>
-          </td>
-        </tr>`;
-      }).join('');
-      box.innerHTML = `
-        <div class="table-responsive">
-          <table class="table table-hover">
-            <thead><tr>
-              <th>能力名称</th><th>类型</th><th>提交�?/th><th>提交时间</th><th>操作</th>
-            </tr></thead>
-            <tbody>${rows}</tbody>
-          </table>
-        </div>
-        <div class="text-muted small">�?${list.length} 项待审核</div>`;
-    }).catch((e) => {
-      box.innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
-    });
-  }
-
-  function showCapabilityReviewDetail(capId) {
-    const box = document.getElementById('content');
-    box.innerHTML = '<div class="muted">加载能力详情�?/div>';
-
-    Promise.all([
-      App.api('/api/capabilities/' + capId),
-      App.api('/api/capabilities/' + capId + '/versions'),
-    ]).then(([capData, versionData]) => {
-      const c = capData.capability;
-      const versions = versionData.versions || [];
-      const draftContent = c.draft ? JSON.stringify(c.draft.content, null, 2) : '(无草�?';
-      const pubContent = c.published ? JSON.stringify(c.published.content, null, 2) : '(无生效版)';
-
-      box.innerHTML = `
-        <div class="card" style="margin-bottom:14px">
-          <div style="display:flex;justify-content:space-between;align-items:start">
-            <div>
-              <div style="font-size:18px;font-weight:500">${App.esc(c.name)}</div>
-              <div class="muted">
-                <span class="mono">${c.id}</span> · ${App.esc(c.type)} · ${App.esc(c.description || '')}
-              </div>
-            </div>
-            <button class="btn btn-sm" onclick="switchTab('capability')">返回列表</button>
-          </div>
-        </div>
-
-        <div class="card" style="margin-bottom:14px">
-          <h3>草稿内容</h3>
-          <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word">${App.esc(draftContent)}</pre>
-        </div>
-
-        <div class="card" style="margin-bottom:14px">
-          <h3>生效版（当前�?/h3>
-          <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)">${App.esc(pubContent)}</pre>
-        </div>
-
-        <div class="card">
-          <h3>审核决定</h3>
-          <textarea id="capReviewNote" placeholder="审核备注（可选）" rows="3"></textarea>
-          <div style="display:flex;gap:8px;margin-top:10px">
-            <button class="btn" id="capApproveBtn" style="background:var(--success);border-color:var(--success);color:#fff">通过</button>
-            <button class="btn" id="capRejectBtn" style="background:var(--danger);border-color:var(--danger);color:#fff">驳回</button>
-          </div>
-        </div>
-      `;
-      document.getElementById('capApproveBtn').onclick = () => decideCapabilityReview(capId, 'approved');
-      document.getElementById('capRejectBtn').onclick = () => decideCapabilityReview(capId, 'rejected');
-    }).catch((e) => {
-      box.innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
-    });
-  }
-
-  function decideCapabilityReview(capId, decision) {
-    const note = document.getElementById('capReviewNote')?.value || '';
-    App.api('/api/capabilities/' + capId + '/review-capability', {
-      method: 'POST',
-      body: JSON.stringify({ decision, note }),
-    }).then(() => {
-      App.toast(decision === 'approved' ? '能力审核通过' : '能力已驳�?, 'success');
-      setTimeout(() => switchTab('capability'), 800);
-    }).catch((e) => App.toast(e.message, 'error'));
+    loadList();
   }
 }
 </script>

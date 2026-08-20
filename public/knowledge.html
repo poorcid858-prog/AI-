@@ -15,75 +15,79 @@
   <div class="page-container">
     <div class="page-head">
       <h1>知识中心</h1>
-      <p class="subtitle">原始文档 �?标准化文�?�?Chunk �?向量化数�?/p>
+      <p class="subtitle">原始文档 → 标准化文档 → Chunk → 向量化数据</p>
     </div>
 
     <main class="knowledge-container">
-      <!-- 上传文档区域（仅 admin/reviewer�?-->
-      <div id="uploadArea" class="cap-group-card" style="margin-bottom:16px;display:none">
-        <div class="cap-group-head"><span class="cap-group-title">📤 上传新文�?/span></div>
-        <div class="card-body" style="padding:16px">
-          <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后点�?生成向量数据"开始知识处理�?/p>
-          <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
-            <div><label class="form-label fw-500" style="margin-bottom:5px">文档标题</label><input id="uploadTitle" class="form-control" placeholder="如：售后政策 v1.0"></div>
-            <div><label class="form-label fw-500" style="margin-bottom:5px">选择文件 (.md, .txt)</label>
-              <input type="file" id="uploadFile" accept=".md,.txt" class="form-control" style="padding:8px">
-              <div class="text-muted small" style="margin-top:4px">选择文件后，内容将自动填入下方编辑框。支�?.md �?.txt 格式�?/div>
-            </div>
-            <div><label class="form-label fw-500" style="margin-bottom:5px">Markdown 内容</label>
-              <textarea id="uploadContent" class="form-control" rows="8" placeholder="选文件后自动填入，也可手动编�?.." style="font-family:monospace;font-size:12px"></textarea>
-            </div>
-            <div class="grid grid-3" style="gap:10px;display:grid;grid-template-columns:1fr 1fr 1fr">
-              <div><label class="form-label fw-500" style="margin-bottom:5px">业务�?/label>
-                <select id="uploadBizLine" class="form-select">
-                  <option value="trade">交易�?/option>
-                  <option value="membership">会员�?/option>
-                  <option value="all">全业务线</option>
-                </select>
-              </div>
-              <div><label class="form-label fw-500" style="margin-bottom:5px">安全分级</label>
-                <select id="uploadSec" class="form-select">
-                  <option value="public">public 对外</option>
-                  <option value="internal" selected>internal 内部</option>
-                  <option value="confidential">confidential 机密</option>
-                  <option value="secret">secret 绝密</option>
-                </select>
-              </div>
-              <div><label class="form-label fw-500" style="margin-bottom:5px">标签（逗号分隔�?/label><input id="uploadTags" class="form-control" placeholder="退�?售后"></div>
-            </div>
-            <div><button class="btn btn-primary" id="uploadBtn">上传并预处理</button></div>
-          </form>
-        </div>
-      </div>
-
-      <!-- 追踪面包�?-->
+      <!-- 追踪面包屑 -->
       <div id="breadcrumb" class="breadcrumb" style="display: none;">
-        <span>追踪路径�?/span>
+        <span>追踪路径：</span>
         <span id="breadcrumb-content"></span>
       </div>
 
-      <!-- 批量操作�?-->
+      <!-- 批量操作栏 -->
       <div id="batchActions" class="batch-actions" style="display: none;">
-        <span class="batch-count">已选择 <strong id="selectedCount">0</strong> �?/span>
+        <span class="batch-count">已选择 <strong id="selectedCount">0</strong> 项</span>
         <button class="btn btn-primary" id="batchGenerate" style="display:none">批量生成向量数据</button>
         <button class="btn btn-success" id="batchOnline" style="display:none">批量上线</button>
         <button class="btn btn-warning" id="batchOffline" style="display:none">批量下线</button>
         <button class="btn btn-secondary" id="clearSelection">取消选择</button>
       </div>
 
-      <!-- 标签页导�?-->
+      <!-- 标签页导航 -->
       <nav class="tabs" role="tablist">
         <button class="tab-btn active" data-layer="documents" role="tab" aria-selected="true">
           原始文档
         </button>
         <button class="tab-btn" data-layer="standardized" role="tab" aria-selected="false">
-          标准化文�?        </button>
+          标准化文档
+        </button>
         <button class="tab-btn" data-layer="chunks" role="tab" aria-selected="false">
           Chunk
         </button>
         <button class="tab-btn" data-layer="vectors" role="tab" aria-selected="false">
-          向量化数�?        </button>
+          向量化数据
+        </button>
       </nav>
+
+      <!-- 上传文档区域（仅 admin/reviewer，仅"原始文档"Tab可见） -->
+      <div id="documents-layer" data-layer="documents" style="display:none">
+        <div id="uploadArea" class="cap-group-card" style="margin-bottom:16px;display:none">
+          <div class="cap-group-head"><span class="cap-group-title">📤 上传新文档</span></div>
+          <div class="card-body" style="padding:16px">
+            <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后点击"生成向量数据"开始知识处理。</p>
+            <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
+              <div><label class="form-label fw-500" style="margin-bottom:5px">文档标题</label><input id="uploadTitle" class="form-control" placeholder="如：售后政策 v1.0"></div>
+              <div><label class="form-label fw-500" style="margin-bottom:5px">选择文件 (.md, .txt)</label>
+                <input type="file" id="uploadFile" accept=".md,.txt" class="form-control" style="padding:8px">
+                <div class="text-muted small" style="margin-top:4px">选择文件后，内容将自动填入下方编辑框。支持 .md 和 .txt 格式。</div>
+              </div>
+              <div><label class="form-label fw-500" style="margin-bottom:5px">Markdown 内容</label>
+                <textarea id="uploadContent" class="form-control" rows="8" placeholder="选文件后自动填入，也可手动编辑..." style="font-family:monospace;font-size:12px"></textarea>
+              </div>
+              <div class="grid grid-3" style="gap:10px;display:grid;grid-template-columns:1fr 1fr 1fr">
+                <div><label class="form-label fw-500" style="margin-bottom:5px">业务线</label>
+                  <select id="uploadBizLine" class="form-select">
+                    <option value="trade">交易线</option>
+                    <option value="membership">会员线</option>
+                    <option value="all">全业务线</option>
+                  </select>
+                </div>
+                <div><label class="form-label fw-500" style="margin-bottom:5px">安全分级</label>
+                  <select id="uploadSec" class="form-select">
+                    <option value="public">public 对外</option>
+                    <option value="internal" selected>internal 内部</option>
+                    <option value="confidential">confidential 机密</option>
+                    <option value="secret">secret 绝密</option>
+                  </select>
+                </div>
+                <div><label class="form-label fw-500" style="margin-bottom:5px">标签（逗号分隔）</label><input id="uploadTags" class="form-control" placeholder="退款,售后"></div>
+              </div>
+              <div><button class="btn btn-primary" id="uploadBtn">上传并预处理</button></div>
+            </form>
+          </div>
+        </div>
+      </div>
 
       <!-- 搜索和筛选控制区 -->
       <div class="controls">
@@ -91,14 +95,14 @@
           type="text"
           id="search"
           class="search-input"
-          placeholder="搜索关键�?.."
+          placeholder="搜索关键词..."
           aria-label="搜索"
         >
         <button id="btn-search" class="btn btn-primary" title="搜索">
           🔍 搜索
         </button>
         <button id="btn-clear" class="btn btn-secondary" title="清空">
-          �?清空
+          ✕ 清空
         </button>
       </div>
 
@@ -106,7 +110,7 @@
       <div id="content-area" class="content-area" role="tabpanel">
         <div class="loading" id="loading" style="display: none;">
           <span class="spinner"></span>
-          <p>加载�?..</p>
+          <p>加载中...</p>
         </div>
         <div class="empty-state" id="empty-state" style="display: none;">
           <p>📭 暂无数据</p>
@@ -170,19 +174,37 @@
   <script src="js/knowledge.js"></script>
   <script>
   if (App.guard()) App.renderSidebar('knowledge', 'kb');
-  // 管理员在上传区显�?  if (App.user && (App.user.role === 'admin' || App.user.role === 'reviewer') && !App.user.readonly) {
-    document.getElementById('uploadArea').style.display = 'block';
+  // 管理员上传区可见性控制
+  const isAdmin = App.user && (App.user.role === 'admin' || App.user.role === 'reviewer') && !App.user.readonly;
+  const documentsLayer = document.getElementById('documents-layer');
+  const uploadArea = document.getElementById('uploadArea');
+
+  // 初始状态：仅在"原始文档"Tab且是管理员时显示上传区域
+  if (isAdmin && pageState.currentLayer === 'documents') {
+    documentsLayer.style.display = 'block';
+    uploadArea.style.display = 'block';
   }
+
+  // 监听Tab切换，控制上传区域显示
+  const originalSwitchLayer = tabManager.switchLayer.bind(tabManager);
+  tabManager.switchLayer = function(layer) {
+    originalSwitchLayer(layer);
+    if (isAdmin) {
+      documentsLayer.style.display = layer === 'documents' ? 'block' : 'none';
+      uploadArea.style.display = layer === 'documents' ? 'block' : 'none';
+    }
+  };
 
   // 上传表单提交
   document.getElementById('uploadFile').addEventListener('change', (ev) => {
     const file = ev.target.files && ev.target.files[0];
     if (!file) return;
-    // 若标题为空，用文件名（去扩展名）当标�?    const titleInput = document.getElementById('uploadTitle');
+    // 若标题为空，用文件名（去扩展名）当标题
+    const titleInput = document.getElementById('uploadTitle');
     if (!titleInput.value.trim()) {
       titleInput.value = file.name.replace(/\.[^.]+$/, '');
     }
-    // �?FileReader �?.md/.txt 文本
+    // 用 FileReader 读 .md/.txt 文本
     const reader = new FileReader();
     reader.onload = (e) => {
       document.getElementById('uploadContent').value = e.target.result || '';
@@ -195,11 +217,11 @@
   document.getElementById('uploadForm').addEventListener('submit', async (ev) => {
     ev.preventDefault();
     if (!document.getElementById('uploadContent').value.trim()) {
-      App.toast('请先选择文件或填写内�?, 'error');
+      App.toast('请先选择文件或填写内容', 'error');
       return;
     }
     const btn = document.getElementById('uploadBtn');
-    btn.disabled = true; btn.textContent = '预处理中�?;
+    btn.disabled = true; btn.textContent = '预处理中…';
     try {
       const body = {
         title: document.getElementById('uploadTitle').value,

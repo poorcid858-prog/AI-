@@ -12,13 +12,13 @@
 <link rel="stylesheet" href="css/capability-ui.css">
 </head>
 <body>
-<div class="page" id="page" style="display:none">
+<div class="page" id="page">
   <div class="page-head">
     <h1>能力中心</h1>
-    <p>�?AI 能力为单位的聚合视图，每条能力关联一�?Workflow 及其全部要素</p>
+    <p>以 AI 能力为单位的聚合视图，每条能力关联一个 Workflow 及其全部要素</p>
   </div>
 
-  <!-- 能力子类型横向菜�?-->
+  <!-- 能力子类型横向菜单 -->
   <div class="cap-tabs" id="capTypeTabs">
     <button class="cap-tab active" data-cap-type="aggregate">AI 能力</button>
     <button class="cap-tab" data-cap-type="workflow">Workflow</button>
@@ -28,10 +28,10 @@
     <button class="cap-tab" data-cap-type="tool">Tool / Script</button>
   </div>
 
-  <!-- 操作�?-->
+  <!-- 操作栏 -->
   <div class="action-bar">
     <div class="action-bar-left">
-      <span class="muted" id="capCount">加载中�?/span>
+      <span class="muted" id="capCount">加载中…</span>
     </div>
     <div class="action-bar-right">
       <button class="btn btn-primary" id="newCapBtn">+ 新建能力</button>
@@ -40,7 +40,7 @@
 
   <!-- 能力列表区域 -->
   <div id="capabilityListArea">
-    <div class="muted" id="loadingMsg">加载中�?/div>
+    <div class="muted" id="loadingMsg">加载中…</div>
   </div>
 
   <!-- 详情面板 -->
@@ -55,10 +55,10 @@
       </div>
       <div class="card-body">
         <p class="card-sub">
-          �?全局 �?角色 �?Workflow �?Skill �?用户输入 的分层顺序组装提示词。层级越高越优先覆盖下层默认值�?
+          按 全局 → 角色 → Workflow → Skill → 用户输入 的分层顺序组装提示词。层级越高越优先覆盖下层默认值。
         </p>
         <div id="promLayerList">
-          <div class="text-muted">加载中�?/div>
+          <div class="text-muted">加载中…</div>
         </div>
       </div>
     </div>
@@ -77,15 +77,15 @@
         <div class="mb-3">
           <label class="form-label">层级 (level) *</label>
           <select class="form-select" id="promLayerLevel">
-            <option value="global">global（全局�?/option>
+            <option value="global">global（全局）</option>
             <option value="role">role（角色）</option>
-            <option value="workflow">workflow（工作流�?/option>
+            <option value="workflow">workflow（工作流）</option>
             <option value="skill">skill（技能）</option>
             <option value="user">user（用户输入）</option>
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">角色�?(role_name)</label>
+          <label class="form-label">角色名 (role_name)</label>
           <select class="form-select" id="promLayerRole">
             <option value="">（不限）</option>
             <option value="product">product（产品）</option>
@@ -95,17 +95,17 @@
           </select>
         </div>
         <div class="mb-3">
-          <label class="form-label">业务�?(business_line)</label>
+          <label class="form-label">业务线 (business_line)</label>
           <select class="form-select" id="promLayerBiz">
             <option value="">（不限）</option>
-            <option value="trade">trade（交易线�?/option>
-            <option value="membership">membership（会员线�?/option>
+            <option value="trade">trade（交易线）</option>
+            <option value="membership">membership（会员线）</option>
             <option value="all">all（全业务线）</option>
           </select>
         </div>
         <div class="mb-3">
           <label class="form-label">Prompt 内容 *</label>
-          <textarea class="form-control" id="promLayerText" rows="6" placeholder="输入该层级的提示词内容�?></textarea>
+          <textarea class="form-control" id="promLayerText" rows="6" placeholder="输入该层级的提示词内容…"></textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -125,7 +125,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
       </div>
       <div class="modal-body">
-        <!-- 步骤指示�?-->
+        <!-- 步骤指示器 -->
         <div class="d-flex justify-content-center mb-4 gap-2">
           <span class="badge" id="step1Badge" style="background:var(--accent);padding:8px 16px">1. 基本信息</span>
           <span class="badge" id="step2Badge" style="background:var(--text-faint);padding:8px 16px">2. 能力内容</span>
@@ -137,36 +137,36 @@
           <div class="mb-3">
             <label class="form-label">能力类型</label>
             <select id="newCapType" class="form-select">
-              <option value="workflow">Workflow（工作流�?/option>
+              <option value="workflow">Workflow（工作流）</option>
               <option value="skill">Skill（技能）</option>
               <option value="reference">Reference（参考）</option>
               <option value="script">Script（脚本）</option>
               <option value="tool">Tool（工具）</option>
             </select>
             <div class="form-text text-muted mt-1">
-              <span id="typeHint">Workflow 已包�?Skill/Reference/Prompt/Tool/Script 等要�?/span>
+              <span id="typeHint">Workflow 已包含 Skill/Reference/Prompt/Tool/Script 等要素</span>
             </div>
           </div>
           <div class="mb-3">
             <label class="form-label">能力名称</label>
-            <input type="text" class="form-control" id="newCapName" placeholder="如：需求分析助�?>
+            <input type="text" class="form-control" id="newCapName" placeholder="如：需求分析助手">
           </div>
           <div class="mb-3">
             <label class="form-label">能力描述</label>
-            <textarea class="form-control" id="newCapDesc" rows="2" placeholder="描述该能力的用�?></textarea>
+            <textarea class="form-control" id="newCapDesc" rows="2" placeholder="描述该能力的用途"></textarea>
           </div>
         </div>
 
         <!-- Step 2: 能力内容 -->
         <div id="step2" style="display:none">
           <div class="mb-3">
-            <label class="form-label">能力内容（JSON�?/label>
+            <label class="form-label">能力内容（JSON）</label>
             <textarea class="form-control" id="newCapContent" rows="10" style="font-family:var(--mono);font-size:12px" placeholder='{"title":"...","description":"...","outputFormat":"..."}'></textarea>
           </div>
           <div class="mb-3">
             <label class="form-label">或从已有能力复制内容</label>
             <select class="form-select" id="copyFromCap">
-              <option value="">不复�?/option>
+              <option value="">不复制</option>
             </select>
           </div>
         </div>
@@ -187,8 +187,8 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn" id="prevStepBtn" style="display:none">上一�?/button>
-        <button class="btn btn-primary" id="nextStepBtn" style="background:var(--accent);border-color:var(--accent);color:#fff">下一�?/button>
+        <button class="btn" id="prevStepBtn" style="display:none">上一步</button>
+        <button class="btn btn-primary" id="nextStepBtn" style="background:var(--accent);border-color:var(--accent);color:#fff">下一步</button>
         <button class="btn btn-success" id="createBtn" style="display:none;background:var(--success);border-color:var(--success);color:#fff">创建能力</button>
       </div>
     </div>
@@ -203,17 +203,16 @@
 <script>
 if (App.guard()) {
   App.renderSidebar('capability', 'aggregate');
-  document.getElementById('page').style.display = 'block';
 
   let capabilities = [];
   let currentStep = 1;
   let editingPromLayerId = null;
   const promLayerModal = new bootstrap.Modal(document.getElementById('promLayerModal'));
 
-  // ============ 二级子菜单切�?============
+  // ============ 二级子菜单切换 ============
   const capTypeTabs = document.getElementById('capTypeTabs');
 
-  // �?URL hash 恢复当前 tab（如 #prompt�?
+  // 从 URL hash 恢复当前 tab（如 #prompt）
   const initialType = (location.hash || '#aggregate').replace('#', '');
 
   function switchCapType(type) {
@@ -225,15 +224,15 @@ if (App.guard()) {
     document.getElementById('capabilityListArea').style.display = showPrompt ? 'none' : 'block';
     document.getElementById('detailPanel').style.display = 'none';
     document.getElementById('promptPanel').style.display = showPrompt ? 'block' : 'none';
-    // 更新侧边栏激活子�?
+    // 更新侧边栏激活子项
     App.renderSidebar('capability', showPrompt ? 'prompt' : (type === 'aggregate' ? 'aggregate' : type === 'workflow' ? 'workflow' : type === 'skill' ? 'skill' : type === 'reference' ? 'reference' : 'tool'));
-    // 更新 hash（不影响页面重载�?
+    // 更新 hash（不影响页面重载）
     history.replaceState(null, '', '#/' + type);
 
     if (showPrompt) {
-      // �?admin 可配�?Prompt
+      // 仅 admin 可配置 Prompt
       if (App.user && App.user.role !== 'admin') {
-        document.getElementById('promptPanel').innerHTML = '<div class="alert alert-info">仅管理员可配置分�?Prompt</div>';
+        document.getElementById('promptPanel').innerHTML = '<div class="alert alert-info">仅管理员可配置分层 Prompt</div>';
         return;
       }
       loadPromLayers();
@@ -248,12 +247,12 @@ if (App.guard()) {
 
   // ============ 分层 Prompt 配置 ============
   function loadPromLayers() {
-    document.getElementById('promLayerList').innerHTML = '<div class="text-muted">加载中�?/div>';
+    document.getElementById('promLayerList').innerHTML = '<div class="text-muted">加载中…</div>';
     App.api('/api/admin/prompt-layers').then((d) => {
       const layers = d.layers || [];
       if (layers.length === 0) {
         document.getElementById('promLayerList').innerHTML =
-          '<div class="prompt-empty"><div class="prompt-empty-icon">📝</div>暂无分层 Prompt 配置，点击�? 新增 Prompt」添加�?/div>';
+          '<div class="prompt-empty"><div class="prompt-empty-icon">📝</div>暂无分层 Prompt 配置，点击「+ 新增 Prompt」添加。</div>';
         return;
       }
       const levelLabels = { global: '全局', role: '角色', workflow: 'Workflow', skill: 'Skill', user: '用户' };
@@ -262,8 +261,8 @@ if (App.guard()) {
           <thead>
             <tr>
               <th style="width:100px">层级</th>
-              <th style="width:120px">角色�?/th>
-              <th style="width:110px">业务�?/th>
+              <th style="width:120px">角色名</th>
+              <th style="width:110px">业务线</th>
               <th>Prompt 内容</th>
               <th style="width:130px">操作</th>
             </tr>
@@ -285,13 +284,13 @@ if (App.guard()) {
       </div>`;
       document.getElementById('promLayerList').innerHTML = html;
 
-      // �?DataTables 可用则升级表�?
+      // 若 DataTables 可用则升级表格
       if (typeof $ !== 'undefined' && $.fn && $.fn.DataTable) {
         $('#promLayerTable').DataTable({
           ordering: true,
           pageLength: 10,
           lengthChange: false,
-          language: { search: '搜索:', lengthMenu: '显示 _MENU_ �?, info: '�?_TOTAL_ �?, paginate: { next: '下一�?, previous: '上一�? } },
+          language: { search: '搜索:', lengthMenu: '显示 _MENU_ 条', info: '共 _TOTAL_ 条', paginate: { next: '下一页', previous: '上一页' } },
         });
       }
     }).catch((e) => {
@@ -315,9 +314,9 @@ if (App.guard()) {
   };
 
   window.deletePromLayer = async function (id) {
-    if (!(await App.confirm('确定删除该分�?Prompt 配置�?))) return;
+    if (!(await App.confirm('确定删除该分层 Prompt 配置？'))) return;
     App.api('/api/admin/prompt-layers/' + id, { method: 'DELETE' }).then(() => {
-      App.toast('已删�?, 'success');
+      App.toast('已删除', 'success');
       loadPromLayers();
     }).catch((e) => App.toast(e.message, 'error'));
   };
@@ -338,13 +337,13 @@ if (App.guard()) {
     const business_line = document.getElementById('promLayerBiz').value;
     const prompt_text = document.getElementById('promLayerText').value.trim();
     if (!level) { App.toast('请选择层级', 'error'); return; }
-    if (!prompt_text) { App.toast('请输�?Prompt 内容', 'error'); return; }
+    if (!prompt_text) { App.toast('请输入 Prompt 内容', 'error'); return; }
 
     const body = { level, role_name, business_line, prompt_text };
     const url = editingPromLayerId ? '/api/admin/prompt-layers/' + editingPromLayerId : '/api/admin/prompt-layers';
     const method = editingPromLayerId ? 'PUT' : 'POST';
     App.api(url, { method, body }).then(() => {
-      App.toast(editingPromLayerId ? '已更�? : '已新�?, 'success');
+      App.toast(editingPromLayerId ? '已更新' : '已新增', 'success');
       promLayerModal.hide();
       loadPromLayers();
     }).catch((e) => App.toast(e.message, 'error'));
@@ -352,11 +351,11 @@ if (App.guard()) {
 
   // ============ 加载能力列表 ============
   function loadCapabilities() {
-    document.getElementById('capabilityListArea').innerHTML = '<div class="muted">加载中�?/div>';
+    document.getElementById('capabilityListArea').innerHTML = '<div class="muted">加载中…</div>';
 
     App.api('/api/capabilities').then((d) => {
       capabilities = d.capabilities || [];
-      document.getElementById('capCount').textContent = '�?' + capabilities.length + ' 项能�?;
+      document.getElementById('capCount').textContent = '共 ' + capabilities.length + ' 项能力';
       renderCapabilityList(capabilities);
     }).catch((e) => {
       document.getElementById('capabilityListArea').innerHTML = '<div class="alert alert-danger">加载失败: ' + App.esc(e.message) + '</div>';
@@ -370,14 +369,14 @@ if (App.guard()) {
           <div style="font-size:48px;margin-bottom:16px;opacity:0.5">🧠</div>
           <h4 style="margin-bottom:12px">暂无能力</h4>
           <p class="text-muted" style="margin-bottom:20px;max-width:400px;margin-left:auto;margin-right:auto">
-            还未创建任何 AI 能力。点击下方按钮创建您的第一条能力，定义角色的工作方式与输出规范�?
+            还未创建任何 AI 能力。点击下方按钮创建您的第一条能力，定义角色的工作方式与输出规范。
           </p>
           <button class="btn btn-primary" style="font-size:16px;padding:10px 28px" onclick="document.getElementById('newCapBtn').click()">+ 新建能力</button>
         </div>`;
       return;
     }
 
-    // 按类型分组排�?
+    // 按类型分组排序
     const typeOrder = ['workflow', 'skill', 'reference', 'script', 'tool'];
     const grouped = {};
     for (const c of list) {
@@ -390,12 +389,12 @@ if (App.guard()) {
     for (const type of typeOrder) {
       const items = grouped[type] || [];
       if (items.length === 0) continue;
-      const typeLabels = { workflow: '工作�?, skill: '技�?, reference: '参�?, script: '脚本', tool: '工具' };
+      const typeLabels = { workflow: '工作流', skill: '技能', reference: '参考', script: '脚本', tool: '工具' };
       const icons = { workflow: '⚙️', skill: '🧠', reference: '📚', script: '🔧', tool: '🔌' };
       html += `<div class="cap-group-card">
         <div class="cap-group-head">
           <span class="cap-group-title">${icons[type] || ''} ${typeLabels[type] || type}</span>
-          <span class="cap-group-count">${items.length} �?/span>
+          <span class="cap-group-count">${items.length} 项</span>
         </div>
         <div class="table-responsive">
           <table class="table table-hover" style="margin:0">
@@ -403,7 +402,7 @@ if (App.guard()) {
               <tr>
                 <th>名称</th>
                 <th style="width:80px">版本</th>
-                <th style="width:100px">状�?/th>
+                <th style="width:100px">状态</th>
                 <th style="width:130px">更新时间</th>
                 <th style="width:90px">操作</th>
               </tr>
@@ -412,7 +411,7 @@ if (App.guard()) {
               ${items.map((c) => {
                 const hasReview = c.review && c.review.status === 'pending_review';
                 const reviewApproved = c.review && c.review.status === 'approved';
-                const statusText = hasReview ? '待审�? : reviewApproved ? '审核通过' : c.hasDraft ? '有草�? : '已发�?;
+                const statusText = hasReview ? '待审核' : reviewApproved ? '审核通过' : c.hasDraft ? '有草稿' : '已发布';
                 const statusClass = hasReview ? 'badge-warning' : reviewApproved ? 'badge-success' : c.hasDraft ? 'badge-warning' : 'badge-secondary';
                 return `<tr onclick="showCapabilityDetail('${c.id}')" style="cursor:pointer">
                   <td><strong>${App.esc(c.name)}</strong><br><span class="text-muted small">${c.id}</span></td>
@@ -435,23 +434,23 @@ if (App.guard()) {
   function showCapabilityDetail(id) {
     const panel = document.getElementById('detailPanel');
     panel.style.display = 'block';
-    panel.innerHTML = '<div class="muted">加载详情�?/div>';
+    panel.innerHTML = '<div class="muted">加载详情…</div>';
 
     App.api('/api/capabilities/' + id).then((d) => {
       const c = d.capability;
       const pubContent = c.published ? JSON.stringify(c.published.content, null, 2) : '(暂无)';
-      const draftContent = c.draft ? JSON.stringify(c.draft.content, null, 2) : '(无草�?';
+      const draftContent = c.draft ? JSON.stringify(c.draft.content, null, 2) : '(无草稿)';
       const hasReview = c.review && c.review.status === 'pending_review';
       const reviewApproved = c.review && c.review.status === 'approved';
       const reviewRejected = c.review && c.review.status === 'rejected';
 
       let reviewStatusHtml = '';
       if (hasReview) {
-        reviewStatusHtml = `<span class="badge bg-warning text-dark">待审核（${c.review.submittedBy} 提交�?/span>`;
+        reviewStatusHtml = `<span class="badge bg-warning text-dark">待审核（${c.review.submittedBy} 提交）</span>`;
       } else if (reviewApproved) {
         reviewStatusHtml = `<span class="badge bg-success">审核通过</span>`;
       } else if (reviewRejected) {
-        reviewStatusHtml = `<span class="badge bg-danger">已驳�?/span>`;
+        reviewStatusHtml = `<span class="badge bg-danger">已驳回</span>`;
       }
 
       // 判断是否可提交审核：有草稿且未有审核流程或审核已驳回
@@ -476,13 +475,13 @@ if (App.guard()) {
         <div class="row">
           <div class="col-md-6">
             <div class="card" style="margin-bottom:14px">
-              <h3>生效�?<span class="mono" style="color:var(--text-faint);font-size:12px">v${c.publishedVersion || '-'}</span></h3>
+              <h3>生效版 <span class="mono" style="color:var(--text-faint);font-size:12px">v${c.publishedVersion || '-'}</span></h3>
               <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word;color:var(--text-dim)">${App.esc(pubContent)}</pre>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card" style="margin-bottom:14px">
-              <h3>草稿�?<span class="mono" style="color:var(--text-faint);font-size:12px">${c.draft ? 'v' + c.draft.version : '(�?'}</span></h3>
+              <h3>草稿版 <span class="mono" style="color:var(--text-faint);font-size:12px">${c.draft ? 'v' + c.draft.version : '(无)'}</span></h3>
               <pre style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:12px;line-height:1.7;overflow:auto;max-height:360px;white-space:pre-wrap;word-break:break-word">${App.esc(draftContent)}</pre>
             </div>
           </div>
@@ -494,7 +493,7 @@ if (App.guard()) {
             <a href="/admin-capability.html" class="btn btn-outline-primary btn-sm">前往编辑</a>
             ${canSubmitReview ? `<button class="btn btn-warning btn-sm" id="submitReviewBtn">提交审核</button>` : ''}
             ${reviewApproved ? `<button class="btn btn-success btn-sm" id="publishCapBtn">发布生效</button>` : ''}
-            ${hasReview ? '<span class="text-muted small" style="display:flex;align-items:center">�?已提交审核，等待审核员处�?/span>' : ''}
+            ${hasReview ? '<span class="text-muted small" style="display:flex;align-items:center">⏳ 已提交审核，等待审核员处理</span>' : ''}
           </div>
         </div>
       `;
@@ -502,9 +501,9 @@ if (App.guard()) {
       const submitBtn = document.getElementById('submitReviewBtn');
       if (submitBtn) {
         submitBtn.onclick = () => {
-          if (!(await App.confirm('确认提交审核？提交后能力将进入待审核状态�?))) return;
+          if (!(await App.confirm('确认提交审核？提交后能力将进入待审核状态。'))) return;
           App.api('/api/capabilities/' + id + '/submit-review', { method: 'POST' }).then(() => {
-            App.toast('已提交审�?, 'success');
+            App.toast('已提交审核', 'success');
             showCapabilityDetail(id);
           }).catch((e) => App.toast(e.message, 'error'));
         };
@@ -513,9 +512,9 @@ if (App.guard()) {
       const publishBtn = document.getElementById('publishCapBtn');
       if (publishBtn) {
         publishBtn.onclick = () => {
-          if (!(await App.confirm('确认发布？草稿将替换为生效版�?))) return;
+          if (!(await App.confirm('确认发布？草稿将替换为生效版。'))) return;
           App.api('/api/capabilities/' + id + '/publish', { method: 'POST' }).then(() => {
-            App.toast('能力已发�?, 'success');
+            App.toast('能力已发布', 'success');
             showCapabilityDetail(id);
             loadCapabilities();
           }).catch((e) => App.toast(e.message, 'error'));
@@ -538,12 +537,12 @@ if (App.guard()) {
     newCapModal.show();
   };
 
-  // 类型切换时提�?
+  // 类型切换时提示
   document.getElementById('newCapType').onchange = function() {
     const hints = {
-      workflow: 'Workflow 已包�?Skill/Reference/Prompt/Tool/Script 等要素，选择 Workflow 即确定能力包含什�?,
+      workflow: 'Workflow 已包含 Skill/Reference/Prompt/Tool/Script 等要素，选择 Workflow 即确定能力包含什么',
       skill: 'Skill 定义角色设定与任务指令，用于组装 Prompt',
-      reference: 'Reference 提供企业标准、模板、案例等参考信�?,
+      reference: 'Reference 提供企业标准、模板、案例等参考信息',
       script: 'Script 执行固定逻辑，如数据转换、格式化',
       tool: 'Tool 调用外部 API，如查询订单、发送通知',
     };
@@ -560,7 +559,7 @@ if (App.guard()) {
     document.getElementById('nextStepBtn').style.display = step < 3 ? 'inline-block' : 'none';
     document.getElementById('createBtn').style.display = step === 3 ? 'inline-block' : 'none';
 
-    // 更新步骤指示�?
+    // 更新步骤指示器
     for (let i = 1; i <= 3; i++) {
       const badge = document.getElementById('step' + i + 'Badge');
       badge.style.background = i <= step ? 'var(--accent)' : 'var(--text-faint)';
@@ -568,15 +567,15 @@ if (App.guard()) {
 
     if (step === 2) {
       const sel = document.getElementById('copyFromCap');
-      sel.innerHTML = '<option value="">不复�?/option>' + capabilities.map((c) =>
+      sel.innerHTML = '<option value="">不复制</option>' + capabilities.map((c) =>
         `<option value="${c.id}">${App.esc(c.name)} (${c.type})</option>`
       ).join('');
     }
 
     if (step === 3) {
       document.getElementById('confirmType').textContent = document.getElementById('newCapType').value;
-      document.getElementById('confirmName').textContent = document.getElementById('newCapName').value || '(未填�?';
-      document.getElementById('confirmDesc').textContent = document.getElementById('newCapDesc').value || '(未填�?';
+      document.getElementById('confirmName').textContent = document.getElementById('newCapName').value || '(未填写)';
+      document.getElementById('confirmDesc').textContent = document.getElementById('newCapDesc').value || '(未填写)';
       document.getElementById('confirmContent').textContent = document.getElementById('newCapContent').value || '{}';
     }
 
@@ -586,7 +585,7 @@ if (App.guard()) {
   document.getElementById('nextStepBtn').onclick = () => {
     if (currentStep === 1) {
       if (!document.getElementById('newCapName').value.trim()) {
-        App.toast('请填写能力名�?, 'error');
+        App.toast('请填写能力名称', 'error');
         return;
       }
       const type = document.getElementById('newCapType').value;
@@ -639,8 +638,8 @@ if (App.guard()) {
     }).catch(() => {});
   };
 
-  // ============ 初始�?============
-  // 根据 URL hash 选择初始 tab�?prompt 等）
+  // ============ 初始化 ============
+  // 根据 URL hash 选择初始 tab（#prompt 等）
   const validTypes = ['aggregate', 'workflow', 'skill', 'reference', 'prompt', 'tool'];
   const initType = validTypes.includes(location.hash.replace('#', '')) ? location.hash.replace('#', '') : 'aggregate';
   switchCapType(initType);

@@ -11,7 +11,7 @@
 <div class="page" id="page" style="display:none">
   <div class="page-head">
     <h1>管理后台</h1>
-    <p>上传文档、管理用户。所有写操作在后端校验，guest 账号会被拦截�?/p>
+    <p>上传文档、管理用户。所有写操作在后端校验，guest 账号会被拦截。</p>
   </div>
 
   <div id="notices"></div>
@@ -19,11 +19,11 @@
   <div class="grid grid-4" id="stats" style="margin-bottom:18px"></div>
 
   <div class="card" style="margin-bottom:18px">
-    <h3>上传新文�?/h3>
-    <p class="card-sub">上传后立即进入待审核状态。审核通过后知识片段正式进�?RAG 库�?/p>
+    <h3>上传新文档</h3>
+    <p class="card-sub">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
     <form id="upForm" style="display:grid;gap:12px;max-width:760px">
       <div><label>文档标题</label><input id="title" placeholder="如：售后政策 v1.0" style="width:100%"></div>
-      <div><label>Markdown 内容（含 frontmatter�?/label>
+      <div><label>Markdown 内容（含 frontmatter）</label>
         <textarea id="content" rows="10" placeholder="---
 docId: CS-POLICY-002
 bizLine: all
@@ -34,8 +34,8 @@ tags: [售后, 退换]
 # 售后政策 ..."></textarea>
       </div>
       <div class="grid grid-3" style="gap:10px">
-        <div><label>业务�?/label>
-          <select id="bizLine"><option value="trade">交易�?/option><option value="membership">会员�?/option><option value="all">全业务线</option></select>
+        <div><label>业务线</label>
+          <select id="bizLine"><option value="trade">交易线</option><option value="membership">会员线</option><option value="all">全业务线</option></select>
         </div>
         <div><label>安全分级</label>
           <select id="sec">
@@ -45,22 +45,22 @@ tags: [售后, 退换]
             <option value="secret">secret 绝密</option>
           </select>
         </div>
-        <div><label>标签（逗号分隔�?/label><input id="tags" placeholder="退�?售后"></div>
+        <div><label>标签（逗号分隔）</label><input id="tags" placeholder="退款,售后"></div>
       </div>
       <div><button class="btn btn-primary" style="background:var(--accent);border-color:var(--accent);color:#fff" id="upBtn">上传并预处理</button></div>
     </form>
   </div>
 
   <div class="card">
-    <h3>文档库（全部�?/h3>
-    <p class="card-sub">按状态过滤；状态切换会同步影响 RAG 检索可见�?/p>
+    <h3>文档库（全部）</h3>
+    <p class="card-sub">按状态过滤；状态切换会同步影响 RAG 检索可见性</p>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="btn btn-sm on" data-status="">全部</button>
-      <button class="btn btn-sm" data-status="pending">待审�?/button>
+      <button class="btn btn-sm" data-status="pending">待审核</button>
       <button class="btn btn-sm" data-status="approved">已通过</button>
-      <button class="btn btn-sm" data-status="rejected">已驳�?/button>
+      <button class="btn btn-sm" data-status="rejected">已驳回</button>
     </div>
-    <div id="docList" class="muted">加载中�?/div>
+    <div id="docList" class="muted">加载中…</div>
   </div>
 </div>
 
@@ -72,7 +72,7 @@ if (App.guard()) {
   document.getElementById('page').style.display = 'block';
 
   if (App.user.readonly) {
-    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，上传、删除等写操作会被后端拦截�?/div>';
+    document.getElementById('notices').innerHTML = '<div class="notice warn">你是<b>只读演示账号</b>，上传、删除等写操作会被后端拦截。</div>';
     document.getElementById('upForm').style.opacity = '0.4';
     document.getElementById('upBtn').disabled = true;
   }
@@ -83,7 +83,7 @@ if (App.guard()) {
     document.getElementById('stats').innerHTML = `
       <div class="card stat"><div class="stat-num">${s.users}</div><div class="stat-label">账号</div></div>
       <div class="card stat"><div class="stat-num">${s.documents}</div><div class="stat-label">文档</div></div>
-      <div class="card stat"><div class="stat-num" style="color:var(--warning)">${s.documentsPending}</div><div class="stat-label">待审�?/div></div>
+      <div class="card stat"><div class="stat-num" style="color:var(--warning)">${s.documentsPending}</div><div class="stat-label">待审核</div></div>
       <div class="card stat"><div class="stat-num">${s.totalChunks}</div><div class="stat-label">知识切片</div></div>`;
   });
 
@@ -97,7 +97,7 @@ if (App.guard()) {
         return;
       }
       box.innerHTML = '<table class="tbl">' +
-        '<tr><th>ID</th><th>标题</th><th>业务�?/th><th>密级</th><th>切片</th><th>状�?/th><th>上传�?/th><th>操作</th></tr>' +
+        '<tr><th>ID</th><th>标题</th><th>业务线</th><th>密级</th><th>切片</th><th>状态</th><th>上传者</th><th>操作</th></tr>' +
         d.documents.map((x) => {
           const statusColor = x.status === 'approved' ? 'var(--success)' : x.status === 'rejected' ? 'var(--danger)' : 'var(--warning)';
           return `<tr>
@@ -128,7 +128,7 @@ if (App.guard()) {
   document.getElementById('upForm').onsubmit = async (ev) => {
     ev.preventDefault();
     const btn = document.getElementById('upBtn');
-    btn.disabled = true; btn.textContent = '预处理中�?;
+    btn.disabled = true; btn.textContent = '预处理中…';
     try {
       const body = {
         title: document.getElementById('title').value,
