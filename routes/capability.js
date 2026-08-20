@@ -67,6 +67,19 @@ router.post('/', requireWrite, (req, res) => {
 });
 
 // ============================================================
+// 待审核能力列表（必须在 GET /:id 之前，避免 pending-review 被当 :id 匹配）
+// ============================================================
+
+router.get('/pending-review', auth.requireAuth, auth.requireReview, (req, res) => {
+  try {
+    const list = cap.getPendingReviewCapabilities();
+    res.json({ ok: true, capabilities: list, total: list.length });
+  } catch (e) {
+    sendError(res, e);
+  }
+});
+
+// ============================================================
 // 审计日志（必须注册在 /:id 之前，否则 audit 会被当 :id 匹配）
 // ============================================================
 
@@ -240,16 +253,6 @@ router.post('/:id/submit-review', requireWrite, (req, res) => {
   try {
     const result = cap.submitForReview(req.params.id, req.user.username);
     res.json({ ok: true, capability: result });
-  } catch (e) {
-    sendError(res, e);
-  }
-});
-
-// 待审核能力列表
-router.get('/pending-review', auth.requireAuth, auth.requireReview, (req, res) => {
-  try {
-    const list = cap.getPendingReviewCapabilities();
-    res.json({ ok: true, capabilities: list, total: list.length });
   } catch (e) {
     sendError(res, e);
   }

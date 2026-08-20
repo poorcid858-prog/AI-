@@ -364,3 +364,119 @@ test('内部文档的密级不得是 public —— 防止内部规则泄漏给�
     }
   }
 });
+
+// ============================================================
+// 9. [M4] 按 Markdown 标题切分 Chunk（需求第 13 节）
+//    一个 Chunk = 一个完整标题章节，含标题+内容+表格
+//    表格跟随所属标题进入对应 Chunk，不允许跨章节切分
+// ============================================================
+
+test('M4-1: splitToChunksByHeading 简单文档按 # 标题分块', () => {
+  const text = `# CRM系统
+
+## 订单管理
+
+订单创建、修改、取消流程。
+
+## 会员管理
+
+会员注册、会员等级。`;
+  const chunks = dp.splitToChunksByHeading(text);
+  assert.strictEqual(chunks.length, 3, `应分 3 个 Chunk（# / ## / ##），实际 ${chunks.length}`);
+  assert.strictEqual(chunks[0].heading, 'CRM系统');
+  assert.strictEqual(chunks[0].level, 1);
+  assert.ok(chunks[0].content.includes('CRM系统'), 'chunk 0 应包含 # 标题');
+  assert.strictEqual(chunks[1].heading, '订单管理');
+  assert.strictEqual(chunks[1].level, 2);
+  assert.ok(chunks[1].content.includes('订单创建'), 'chunk 1 应包含订单管理正文');
+  assert.strictEqual(chunks[2].heading, '会员管理');
+  assert.ok(chunks[2].content.includes('会员注册'), 'chunk 2 应包含会员管理正文');
+});
+
+test('M4-2: splitToChunksByHeading 表格跟随所属标题进入同一 Chunk', () => {
+  const text = `## 订单权限
+
+|角色|权限|
+|---|---|
+|产品经理|编辑|
+|管理员|管理|
+
+## 退款规则
+
+退款三日内到账。`;
+  const chunks = dp.splitToChunksByHeading(text);
+  // 应该 2 个 Chunk：订单权限（含表格）+ 退款规则
+  assert.strictEqual(chunks.length, 2, `应分 2 个 Chunk，实际 ${chunks.length}`);
+  assert.strictEqual(chunks[0].heading, '订单权限');
+  assert.ok(chunks[0].content.includes('|角色|权限|'), '表格应随订单权限进入同一 Chunk');
+  assert.ok(chunks[0].content.includes('|产品经理|编辑|'), '表格行应完整保留');
+  assert.ok(chunks[0].content.includes('|管理员|管理|'));
+  assert.ok(!chunks[1].content.includes('|角色|权限|'), '表格不应跨章节切到下一个 Chunk');
+});
+
+test('M4-3: splitToChunksByHeading 不允许跨章节切分（按 # 与 ## 分层归属）', () => {
+  // # 一级标题作为顶级 Chunk，## 归属到 # 之下
+  // 这里要求：即使 ## 之间是同级，# 也作为一个 Chunk 存在
+  const text = `# 顶层 A
+
+## A.1
+A.1 内容
+
+## A.2
+A.2 内容
+
+# 顶层 B
+
+## B.1
+B.1 内容`;
+  const chunks = dp.splitToChunksByHeading(text);
+  // 期望：# 顶层 A、# 顶层 B 各自是 Chunk，## 是 Chunk
+  // 实现策略：每个 # / ## / ### 都成为一个 Chunk，按出现顺序
+  const headings = chunks.map((c) => c.heading);
+  assert.ok(headings.includes('顶层 A'), '应含 顶层 A');
+  assert.ok(headings.includes('A.1'), '应含 A.1');
+  assert.ok(headings.includes('A.2'), '应含 A.2');
+  assert.ok(headings.includes('顶层 B'), '应含 顶层 B');
+  assert.ok(headings.includes('B.1'), '应含 B.1');
+  // 跨章节检查：A.1 内容不应出现在 A.2 chunk 中
+  const a2 = chunks.find((c) => c.heading === 'A.2');
+  assert.ok(!a2.content.includes('A.1 内容'), 'A.2 不应包含 A.1 的正文');
+});
+
+test('M4-4: splitToChunksByHeading 无标题时整个文档为一个 Chunk', () => {
+  const text = `这是没有标题的纯文本内容，长度足够被识别为一个完整 Chunk。`;
+  const chunks = dp.splitToChunksByHeading(text);
+  assert.strictEqual(chunks.length, 1, '无标题应分 1 个 Chunk');
+  assert.strictEqual(chunks[0].heading, null, '无标题 heading 为 null');
+  assert.strictEqual(chunks[0].level, 0, '无标题 level 为 0');
+  assert.ok(chunks[0].content.includes('这是没有标题的纯文本内容'));
+});
+
+test('M4-5: splitToChunksByHeading 代码块在 Chunk 内保持完整', () => {
+  const text = `## 接口示例
+
+调用示例代码：
+
+\`\`\`json
+{ "id": 1, "name": "test" }
+\`\`\`
+
+返回示例代码。`;
+  const chunks = dp.splitToChunksByHeading(text);
+  assert.strictEqual(chunks.length, 1);
+  assert.ok(chunks[0].content.includes('"id": 1'), '代码块内容应完整保留在 Chunk 中');
+  assert.ok(chunks[0].content.includes('```json'));
+});
+
+test('M4-6: splitToChunksByHeading 不处理 frontmatter（切分入口不剥离 frontmatter）', () => {
+  // splitToChunksByHeading 是低级切分函数，frontmatter 由 process/processDocument 上层处理
+  const text = `# 标题一
+
+内容一
+
+# 标题二
+
+内容二`;
+  const chunks = dp.splitToChunksByHeading(text);
+  assert.strictEqual(chunks.length, 2);
+});

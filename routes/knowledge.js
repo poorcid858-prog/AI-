@@ -411,6 +411,409 @@ router.post('/replace/:rawId', (req, res) => {
 });
 
 // ============================================================
+// 路由：版本详情
+// ============================================================
+
+/**
+ * GET /api/knowledge/:versionId
+ * 获取版本详情
+ */
+router.get('/:versionId', (req, res) => {
+  try {
+    const versionId = req.params.versionId;
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    const document = kl.getDocument(version.document_id);
+    const raw = kl.getRawByVersionId(versionId);
+    const std = kl.getStdByVersionId(versionId);
+
+    res.json({
+      ok: true,
+      data: {
+        version,
+        document,
+        raw: raw ? mapDocument(docs.getDocumentView(raw.id)) : null,
+        standardized: std ? mapStdDocument(std, raw) : null,
+      }
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
+// 路由：重新发起审核
+// ============================================================
+
+/**
+ * POST /api/knowledge/:versionId/re-review
+ * 重新发起审核
+ */
+router.post('/:versionId/re-review', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const versionId = req.params.versionId;
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    // 检查状态：只有审核失败的状态才能重新发起审核
+    if (version.review_status !== 'rejected') {
+      return res.status(400).json({ ok: false, error: '只有审核失败的状态才能重新发起审核' });
+    }
+
+    // 更新审核状态为待审核
+    const updated = kl.updateDocumentVersion(versionId, {
+      review_status: 'pending',
+    });
+
+    res.json({ ok: true, data: updated, message: '已重新发起审核' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
+// 路由：上线/下线
+// ============================================================
+
+/**
+ * POST /api/knowledge/:versionId/online
+ * 上线文档
+ */
+router.post('/:versionId/online', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const versionId = req.params.versionId;
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    // 检查状态：只有未上线或已下线的状态才能上线
+    if (version.online_status !== 'not_online' && version.online_status !== 'offline') {
+      return res.status(400).json({ ok: false, error: '当前状态不允许上线' });
+    }
+
+    // 检查处理状态：必须处理成功才能上线
+    if (version.processing_status !== 'success') {
+      return res.status(400).json({ ok: false, error: '只有处理成功的文档才能上线' });
+    }
+
+    // 更新生效状态为已上线
+    const updated = kl.updateDocumentVersion(versionId, {
+      online_status: 'online',
+    });
+
+    res.json({ ok: true, data: updated, message: '已上线' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/knowledge/:versionId/offline
+ * 下线文档
+ */
+router.post('/:versionId/offline', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const versionId = req.params.versionId;
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    // 检查状态：只有已上线的状态才能下线
+    if (version.online_status !== 'online') {
+      return res.status(400).json({ ok: false, error: '只有已上线的文档才能下线' });
+    }
+
+    // 更新生效状态为已下线
+    const updated = kl.updateDocumentVersion(versionId, {
+      online_status: 'offline',
+    });
+
+    res.json({ ok: true, data: updated, message: '已下线' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
+// 路由：发布新版本
+// ============================================================
+
+/**
+ * POST /api/knowledge/:documentId/new-version
+ * 发布新版本
+ */
+router.post('/:documentId/new-version', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const documentId = req.params.documentId;
+    const document = kl.getDocument(documentId);
+    if (!document) {
+      return res.status(404).json({ ok: false, error: '文档不存在' });
+    }
+
+    // 创建新版本
+    const newVersion = kl.createDocumentVersion(documentId, {
+      sourceFileId: document.current_version_id,
+      metadata: {},
+    });
+
+    res.json({ ok: true, data: newVersion, message: '新版本已创建' });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
+// 路由：删除
+// ============================================================
+
+/**
+ * DELETE /api/knowledge/:versionId
+ * 删除文档版本
+ */
+router.delete('/:versionId', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const versionId = req.params.versionId;
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    // 检查是否允许删除：只有未完成向量化处理时才能删除
+    if (version.processing_status === 'success') {
+      return res.status(400).json({ ok: false, error: '已完成向量化处理的文档不能删除，只能下线' });
+    }
+
+    // 删除原始文档及其所有子数据
+    const raw = kl.getRawByVersionId(versionId);
+    if (raw) {
+      const counts = kl.deleteRawCascade(raw.id);
+      res.json({ ok: true, data: counts, message: '已删除' });
+    } else {
+      // 如果没有原始文档，只删除版本记录
+      res.json({ ok: true, data: { versionId }, message: '已删除版本记录' });
+    }
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
+// 路由：待审核版本列表（需求第 8 节 - 审核联动）
+// ============================================================
+
+/**
+ * GET /api/knowledge/pending-review
+ * 获取待审核的文档版本列表（审核状态=待审核）
+ */
+router.get('/pending-review', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可访问' });
+    }
+
+    const versions = kl.listVersionsByReviewStatus('pending');
+
+    // 为每个版本附加文档信息
+    const result = versions.map((version) => {
+      const document = kl.getDocument(version.document_id);
+      return {
+        ...version,
+        document_name: document ? document.document_name : '未知文档',
+      };
+    });
+
+    res.json({ ok: true, versions: result, total: result.length });
+  } catch (err) {
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
+  }
+});
+
+// ============================================================
+// 路由：审核通过/驳回（需求第 8 节 - 审核联动）
+// ============================================================
+
+/**
+ * POST /api/knowledge/:versionId/review
+ * 审核通过或驳回文档版本
+ *
+ * Body: { decision: 'approved' | 'rejected', note?: string }
+ */
+router.post('/:versionId/review', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const versionId = req.params.versionId;
+    const { decision, note } = req.body;
+
+    // 校验 decision 参数
+    if (!decision || !['approved', 'rejected'].includes(decision)) {
+      return res.status(400).json({ ok: false, error: '审核决定非法，必须为 approved 或 rejected' });
+    }
+
+    const version = kl.getDocumentVersion(versionId);
+    if (!version) {
+      return res.status(404).json({ ok: false, error: '版本不存在' });
+    }
+
+    // 检查状态：只有待审核的状态才能审核
+    if (version.review_status !== 'pending') {
+      return res.status(400).json({ ok: false, error: `当前审核状态为 ${version.review_status}，只有待审核版本才能审核` });
+    }
+
+    // 更新审核状态
+    const updated = kl.updateDocumentVersion(versionId, {
+      review_status: decision,
+    });
+
+    res.json({
+      ok: true,
+      data: updated,
+      message: decision === 'approved' ? '审核通过' : '已驳回',
+    });
+  } catch (err) {
+    console.error('[KNOWLEDGE ERROR]', err.message);
+    res.status(500).json({ ok: false, error: err.message || '服务器错误' });
+  }
+});
+
+// ============================================================
+// 路由：批量操作
+// ============================================================
+
+/**
+ * POST /api/knowledge/batch-online
+ * 批量上线
+ */
+router.post('/batch-online', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const { versionIds } = req.body;
+    if (!Array.isArray(versionIds) || versionIds.length === 0) {
+      return res.status(400).json({ ok: false, error: '请提供 versionIds 数组' });
+    }
+
+    const results = [];
+    for (const versionId of versionIds) {
+      try {
+        const version = kl.getDocumentVersion(versionId);
+        if (!version) {
+          results.push({ versionId, ok: false, error: '版本不存在' });
+          continue;
+        }
+
+        if (version.online_status !== 'not_online' && version.online_status !== 'offline') {
+          results.push({ versionId, ok: false, error: '当前状态不允许上线' });
+          continue;
+        }
+
+        if (version.processing_status !== 'success') {
+          results.push({ versionId, ok: false, error: '只有处理成功的文档才能上线' });
+          continue;
+        }
+
+        kl.updateDocumentVersion(versionId, { online_status: 'online' });
+        results.push({ versionId, ok: true });
+      } catch (e) {
+        results.push({ versionId, ok: false, error: e.message });
+      }
+    }
+
+    const successCount = results.filter(r => r.ok).length;
+    const failCount = results.length - successCount;
+
+    res.json({
+      ok: true,
+      data: { results, successCount, failCount },
+      message: `批量上线完成：成功 ${successCount} 个，失败 ${failCount} 个`
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/knowledge/batch-offline
+ * 批量下线
+ */
+router.post('/batch-offline', (req, res) => {
+  try {
+    if (req.user.role !== 'admin' && req.user.role !== 'reviewer') {
+      return res.status(403).json({ ok: false, error: '仅管理员和审核员可操作' });
+    }
+
+    const { versionIds } = req.body;
+    if (!Array.isArray(versionIds) || versionIds.length === 0) {
+      return res.status(400).json({ ok: false, error: '请提供 versionIds 数组' });
+    }
+
+    const results = [];
+    for (const versionId of versionIds) {
+      try {
+        const version = kl.getDocumentVersion(versionId);
+        if (!version) {
+          results.push({ versionId, ok: false, error: '版本不存在' });
+          continue;
+        }
+
+        if (version.online_status !== 'online') {
+          results.push({ versionId, ok: false, error: '只有已上线的文档才能下线' });
+          continue;
+        }
+
+        kl.updateDocumentVersion(versionId, { online_status: 'offline' });
+        results.push({ versionId, ok: true });
+      } catch (e) {
+        results.push({ versionId, ok: false, error: e.message });
+      }
+    }
+
+    const successCount = results.filter(r => r.ok).length;
+    const failCount = results.length - successCount;
+
+    res.json({
+      ok: true,
+      data: { results, successCount, failCount },
+      message: `批量下线完成：成功 ${successCount} 个，失败 ${failCount} 个`
+    });
+  } catch (err) {
+    res.status(err.status || 500).json({ ok: false, error: err.message });
+  }
+});
+
+// ============================================================
 // 错误处理
 // ============================================================
 

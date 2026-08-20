@@ -57,6 +57,7 @@ const routeModules = [
   ['/api/capabilities', './routes/capability'],
   ['/api/operations', './routes/operations'],
   ['/api/knowledge', './routes/knowledge'],
+  ['/api/processing', './routes/processing'], // M4: 异步处理引擎路由
 ];
 
 for (const [mountPath, modulePath] of routeModules) {
@@ -85,6 +86,63 @@ app.use((err, req, res, next) => {
 
 // ---------- 启动 ----------
 if (require.main === module) {
+  // 启动时数据完整性自检（任务包 M2）：
+  //   - 检查 raw_documents.json / std_documents.json 主文件是否为空
+  //   - 若为空但存在 .bak 备份，则自动从备份恢复
+  //   - 校验 chunks/vectors 存在
+  //   - 校验 capabilities.json 可解析且含审核状态
+  // 自检失败不阻断启动，仅打印诊断信息。
+  (function dataIntegrityCheck() {
+    try {
+      const fs = require('fs');
+      const store = require('./lib/store');
+      const dp = config.paths.data;
+
+      const FILES = ['raw_documents', 'std_documents', 'chunks', 'vectors', 'capabilities'];
+      FILES.forEach((name) => {
+        const fp = path.join(dp, `${name}.json`);
+        if (!fs.existsSync(fp)) {
+          console.warn(`  · [数据完整性] ${name}.json 不存在，将按默认初始化`);
+          store.read(name, []);
+        } else {
+          const raw = fs.readFileSync(fp, 'utf8');
+          let arr = null;
+          try { arr = JSON.parse(raw.replace(/^﻿/, '')); } catch (e) { arr = null; }
+          const isEmpty = Array.isArray(arr) && arr.length === 0;
+          if (isEmpty) {
+            const bak = `${fp}.bak`;
+            if (fs.existsSync(bak)) {
+              try {
+                store.read(name, []);
+                const bakRaw = fs.readFileSync(bak, 'utf8');
+                fs.writeFileSync(fp, bakRaw, 'utf8');
+                store.clearCache();
+                console.warn(`  · [数据完整性] ${name}.json 为空，已从 ${name}.json.bak 恢复`);
+              } catch (eb) {
+                console.warn(`  · [数据完整性] ${name}.json.bak 恢复失败: ${eb.message}`);
+              }
+            } else {
+              console.warn(`  · [数据完整性] ${name}.json 为空，且无备份（${name}.json.bak 不存在）`);
+            }
+          }
+        }
+      });
+
+      // 校验能力审核种子
+      try {
+        const cap = require('./lib/capability-engine');
+        const pending = cap.getPendingReviewCapabilities();
+        if (pending.length > 0) {
+          console.log(`  · [数据完整性] 能力审核种子就绪，${pending.length} 项待审核`);
+        } else {
+          console.warn(`  · [数据完整性] 能力无待审核种子（pending-review 为空）`);
+        }
+      } catch (_) { /* 能力引擎校验失败不阻断 */ }
+    } catch (e) {
+      console.warn(`  · [数据完整性] 自检异常（不阻断）: ${e.message}`);
+    }
+  })();
+
   // 启动时预置常用问题种子（30 条，4 角色），已有数据时不写入
   // 兜底 try/catch：即使 seedIfEmpty 内部 writeFrequency 抛错，也不阻断服务启动
   try { require('./lib/qa-store').seedIfEmpty(); } catch (_) { /* 种子失败不阻断 */ }

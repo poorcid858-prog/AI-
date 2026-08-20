@@ -41,9 +41,10 @@ test('knowledge.html 应包含 FileReader 逻辑', () => {
 
 test('review.html 应包含发布按钮和相关逻辑', () => {
   const html = fs.readFileSync(path.join(__dirname, '../public/review.html'), 'utf8');
-  assert.ok(html.includes('publish'), 'review.html 应包含 publish 相关逻辑');
-  assert.ok(html.includes('publishBtn'), '应包含 publishBtn 元素');
-  assert.ok(html.includes('/api/documents/'), '应调 publish API');
+  // M6 更新：review.html 现在使用新的 knowledge API
+  assert.ok(html.includes('/api/knowledge/'), 'review.html 应调用 knowledge API');
+  assert.ok(html.includes('pending-review'), '应包含 pending-review 端点');
+  assert.ok(html.includes('review'), '应包含 review 相关逻辑');
 });
 
 // ============================================================

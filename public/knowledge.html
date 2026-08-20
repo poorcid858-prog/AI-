@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>知识库 - 四层管理</title>
+  <title>知识中心 - 四层管理</title>
   <link rel="stylesheet" href="/css/vendor/bootstrap.min.css">
   <link rel="stylesheet" href="/css/custom-theme.css">
   <link rel="stylesheet" href="/css/style.css">
@@ -14,16 +14,16 @@
 <body>
   <div class="page-container">
     <div class="page-head">
-      <h1>知识库管理</h1>
+      <h1>知识中心</h1>
       <p class="subtitle">原始文档 → 标准化文档 → Chunk → 向量化数据</p>
     </div>
 
     <main class="knowledge-container">
-      <!-- 上传文档区域（仅 admin） -->
+      <!-- 上传文档区域（仅 admin/reviewer） -->
       <div id="uploadArea" class="cap-group-card" style="margin-bottom:16px;display:none">
         <div class="cap-group-head"><span class="cap-group-title">📤 上传新文档</span></div>
         <div class="card-body" style="padding:16px">
-          <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后知识片段正式进入 RAG 库。</p>
+          <p class="card-sub" style="margin-bottom:12px">上传后立即进入待审核状态。审核通过后点击"生成向量数据"开始知识处理。</p>
           <form id="uploadForm" style="display:grid;gap:12px;max-width:760px">
             <div><label class="form-label fw-500" style="margin-bottom:5px">文档标题</label><input id="uploadTitle" class="form-control" placeholder="如：售后政策 v1.0"></div>
             <div><label class="form-label fw-500" style="margin-bottom:5px">选择文件 (.md, .txt)</label>
@@ -55,10 +55,20 @@
           </form>
         </div>
       </div>
+
       <!-- 追踪面包屑 -->
       <div id="breadcrumb" class="breadcrumb" style="display: none;">
         <span>追踪路径：</span>
         <span id="breadcrumb-content"></span>
+      </div>
+
+      <!-- 批量操作栏 -->
+      <div id="batchActions" class="batch-actions" style="display: none;">
+        <span class="batch-count">已选择 <strong id="selectedCount">0</strong> 项</span>
+        <button class="btn btn-primary" id="batchGenerate" style="display:none">批量生成向量数据</button>
+        <button class="btn btn-success" id="batchOnline" style="display:none">批量上线</button>
+        <button class="btn btn-warning" id="batchOffline" style="display:none">批量下线</button>
+        <button class="btn btn-secondary" id="clearSelection">取消选择</button>
       </div>
 
       <!-- 标签页导航 -->
@@ -72,7 +82,7 @@
         <button class="tab-btn" data-layer="chunks" role="tab" aria-selected="false">
           Chunk
         </button>
-        <button class="tab-btn" data-layer="embeddings" role="tab" aria-selected="false">
+        <button class="tab-btn" data-layer="vectors" role="tab" aria-selected="false">
           向量化数据
         </button>
       </nav>
@@ -128,6 +138,29 @@
             <button class="modal-close" aria-label="关闭">&times;</button>
           </div>
           <div id="trace-content" class="modal-body"></div>
+        </div>
+      </div>
+
+      <!-- 进度弹窗 -->
+      <div id="progress-modal" class="modal" role="dialog" aria-labelledby="progress-title">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 id="progress-title">处理进度</h2>
+            <button class="modal-close" aria-label="关闭">&times;</button>
+          </div>
+          <div id="progress-content" class="modal-body">
+            <div class="progress-container">
+              <div class="progress-bar-container">
+                <div class="progress-bar" id="progressBar" style="width: 0%"></div>
+              </div>
+              <div class="progress-text" id="progressText">0%</div>
+            </div>
+            <div class="phase-list" id="phaseList"></div>
+            <div class="progress-error" id="progressError" style="display:none"></div>
+            <div class="progress-actions" id="progressActions" style="display:none">
+              <button class="btn btn-primary" id="retryBtn">重新处理</button>
+            </div>
+          </div>
         </div>
       </div>
     </main>

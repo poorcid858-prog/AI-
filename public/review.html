@@ -76,57 +76,50 @@ if (App.guard()) {
 
   function loadList() {
     const search = document.getElementById('searchInput')?.value?.trim() || '';
-    const queryParams = new URLSearchParams({
-      page: currentPage,
-      pageSize: 20,
-      ...(search && { search })
-    });
+    const box = document.getElementById('content');
 
-    App.api(`/api/documents/pending?${queryParams}`).then((d) => {
-      const box = document.getElementById('content');
-      const { documents, total, page, pageSize, totalPages } = d;
+    // 使用新的待审核版本列表 API（需求第 8 节 - 审核联动）
+    App.api('/api/knowledge/pending-review').then((d) => {
+      let versions = d.versions || [];
 
-      if (documents.length === 0) {
+      // 客户端搜索过滤
+      if (search) {
+        const lowerSearch = search.toLowerCase();
+        versions = versions.filter((v) =>
+          (v.document_name && v.document_name.toLowerCase().includes(lowerSearch)) ||
+          (v.version_id && v.version_id.toLowerCase().includes(lowerSearch)) ||
+          (v.document_id && v.document_id.toLowerCase().includes(lowerSearch))
+        );
+      }
+
+      if (versions.length === 0) {
         box.innerHTML = `
-          <div class="alert alert-info" role="alert">
-            ${total === 0 ? '当前无待审核文档' : '搜索无结果，请尝试其他关键词'}
+          <div class="card" style="padding:40px;text-align:center;margin-top:10px">
+            <div style="font-size:48px;margin-bottom:16px;opacity:0.5">${search ? '🔍' : '📄'}</div>
+            <h4 style="margin-bottom:12px">${search ? '搜索无结果' : '暂无待审核文档'}</h4>
+            <p class="text-muted" style="margin-bottom:0">
+              ${search
+                ? '没有找到匹配的文档，请尝试其他关键词。'
+                : '当前没有需要审核的文档版本。可前往知识中心上传新文档，等待提交审核。'}
+            </p>
           </div>
         `;
         return;
       }
 
       // 表格行 HTML
-      const tableRows = documents.map((x) => `
+      const tableRows = versions.map((v) => `
         <tr>
-          <td><strong>${App.esc(x.title)}</strong><br><span class="text-muted small">${x.id}</span></td>
-          <td>${App.esc(x.uploadedBy)}</td>
-          <td>${formatDate(x.createdAt)}</td>
-          <td><span class="badge bg-secondary">${getFileType(x.title)}</span></td>
+          <td><strong>${App.esc(v.document_name)}</strong><br><span class="text-muted small">${v.version_id}</span></td>
+          <td>${App.esc(v.document_id)}</td>
+          <td>${formatDate(v.created_at)}</td>
+          <td><span class="badge bg-secondary">v${v.version_number || 0}</span></td>
           <td><span class="badge bg-warning text-dark">待审</span></td>
           <td>
-            <button class="btn btn-sm btn-outline-primary" onclick="location.href='?id=${x.id}'">查看详情</button>
+            <button class="btn btn-sm btn-outline-primary" onclick="showVersionReviewDetail('${v.version_id}')">审核</button>
           </td>
         </tr>
       `).join('');
-
-      // 分页按钮 HTML
-      const paginationHTML = totalPages > 1 ? `
-        <nav aria-label="Table pagination" style="margin-top: 20px;">
-          <ul class="pagination justify-content-center">
-            <li class="page-item ${page === 1 ? 'disabled' : ''}">
-              <button class="page-link" onclick="changePage(${page - 1})">上一页</button>
-            </li>
-            ${Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => `
-              <li class="page-item ${p === page ? 'active' : ''}">
-                <button class="page-link" onclick="changePage(${p})">${p}</button>
-              </li>
-            `).join('')}
-            <li class="page-item ${page === totalPages ? 'disabled' : ''}">
-              <button class="page-link" onclick="changePage(${page + 1})">下一页</button>
-            </li>
-          </ul>
-        </nav>
-      ` : '';
 
       box.innerHTML = `
         <div class="card">
@@ -134,11 +127,11 @@ if (App.guard()) {
           <table class="table table-hover">
             <thead>
               <tr>
-                <th>文件名</th>
-                <th>上传者</th>
-                <th>上传时间</th>
-                <th>类型</th>
-                <th>状态</th>
+                <th>文档名称</th>
+                <th>文档ID</th>
+                <th>创建时间</th>
+                <th>版本</th>
+                <th>审核状态</th>
                 <th>操作</th>
               </tr>
             </thead>
@@ -148,16 +141,12 @@ if (App.guard()) {
           </table>
           </div>
           <div class="pagination-wrapper">
-            <div class="text-muted small">共 ${total} 份待审核文档，第 ${page}/${totalPages} 页</div>
-            ${paginationHTML}
+            <div class="text-muted small">共 ${versions.length} 份待审核文档版本</div>
           </div>
         </div>
       `;
-
-      currentPage = page;
-      currentSearch = search;
     }).catch((e) => {
-      document.getElementById('content').innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
+      box.innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
     });
   }
 
@@ -174,43 +163,41 @@ if (App.guard()) {
   }
 
   function loadDetail() {
-    App.api('/api/documents/' + idParam).then((d) => {
-      const doc = d.document;
+    // 使用新的版本详情 API
+    App.api('/api/knowledge/' + idParam).then((d) => {
+      const { version, document, raw, standardized } = d.data;
       const box = document.getElementById('content');
-      const isPending = doc.status === 'pending';
+      const isPending = version.review_status === 'pending';
       const canReview = (App.user.role === 'reviewer' || App.user.role === 'admin') && isPending;
-      const samples = (doc.chunks || []).slice(0, 3);
+
       box.innerHTML = `
         <div class="card mb-3">
           <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
             <div>
-              <div class="detail-title">${App.esc(doc.title)}</div>
+              <div class="detail-title">${App.esc(document ? document.document_name : '未知文档')}</div>
               <div class="detail-meta">
-                <span class="mono">${doc.id}</span> ·
-                上传者 <span class="mono">${doc.uploadedBy}</span> · ${new Date(doc.createdAt).toLocaleString()}
+                <span class="mono">${version.version_id}</span> ·
+                文档 <span class="mono">${version.document_id}</span> ·
+                ${version.version_number ? `V${version.version_number}` : '未定版本'} ·
+                ${new Date(version.created_at).toLocaleString()}
               </div>
             </div>
             <a href="/review.html" class="btn btn-sm">返回列表</a>
           </div>
           <div style="margin:10px 0">
-            <span class="tag ${doc.bizLine}">${doc.bizLine}</span>
-            <span class="tag">${doc.securityLevel}</span>
-            <span class="tag">${doc.chunkCount||0} 切片</span>
-            <span class="tag" style="border-color:${doc.status==='approved'?'var(--success)':doc.status==='rejected'?'var(--danger)':'var(--warning)'};color:${doc.status==='approved'?'var(--success)':doc.status==='rejected'?'var(--danger)':'var(--warning)'}">${doc.status}</span>
+            <span class="tag">审核状态: ${version.review_status}</span>
+            <span class="tag">处理状态: ${version.processing_status}</span>
+            <span class="tag">上线状态: ${version.online_status}</span>
           </div>
-          ${doc.tags && doc.tags.length ? '<div style="margin-bottom:8px">' + doc.tags.map((t) => `<span class="tag">${App.esc(t)}</span>`).join('') + '</div>' : ''}
         </div>
 
         <div class="card mb-3">
-          <h3>知识片段（预处理结果预览）</h3>
-          ${samples.length === 0 ? '<div class="muted">该文档没有产生可用的知识片段（可能全部内容被识别为噪音）</div>' : samples.map((c, i) => `
-            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
-              <div class="muted" style="font-size:11px;margin-bottom:4px">
-                <span class="mono">#${i+1}</span> ${c.heading ? '· ' + App.esc(c.heading) : ''} · 关键词 ${c.keywords.slice(0,5).map((k)=>'#'+App.esc(k)).join(' ')}
-              </div>
-              <div style="font-size:13px;line-height:1.6">${App.esc(c.content)}</div>
+          <h3>原始文档内容预览</h3>
+          ${raw ? `
+            <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:6px;padding:14px;font-size:13px;line-height:1.7;max-height:300px;overflow:auto">
+              ${App.esc((raw.filename || raw.name || '未命名') + (raw.uploader ? ' - 上传者: ' + raw.uploader : ''))}
             </div>
-          `).join('')}
+          ` : '<div class="muted">无法加载原始文档</div>'}
         </div>
 
         <div class="card">
@@ -222,43 +209,82 @@ if (App.guard()) {
               <button class="btn btn-danger" id="rejectBtn">驳回</button>
             </div>
           ` : (isPending ? `<div class="muted">${App.user.readonly ? '你是只读账号，无审核权限' : '当前角色无审核权限'}</div>` : '')}
-          ${doc.status === 'approved' && doc.lifecycleStatus !== 'published' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
+          ${version.review_status === 'approved' && version.processing_status === 'not_processed' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
             <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
-              <p class="text-muted small">文档已审核通过，需发布后才可被 AI 检索使用</p>
-              <button class="btn btn-primary" id="publishBtn">发布到 RAG 库</button>
+              <p class="text-muted small">文档已审核通过，可生成向量数据</p>
+              <button class="btn btn-primary" id="generateBtn">生成向量数据</button>
             </div>
           ` : ''}
-          ${doc.lifecycleStatus === 'published' ? '<div class="alert alert-success" style="margin-top:8px">✅ 已发布，可被 AI 检索使用</div>' : ''}
+          ${version.review_status === 'rejected' && (App.user.role === 'reviewer' || App.user.role === 'admin') ? `
+            <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--border)">
+              <p class="text-muted small">文档审核未通过，可重新发起审核</p>
+              <button class="btn btn-warning" id="reReviewBtn">重新发起审核</button>
+            </div>
+          ` : ''}
+          ${version.processing_status === 'success' ? '<div class="alert alert-success" style="margin-top:8px">已处理完成</div>' : ''}
+          ${version.online_status === 'online' ? '<div class="alert alert-info" style="margin-top:8px">已上线</div>' : ''}
         </div>
       `;
 
       if (canReview) {
-        document.getElementById('approveBtn').onclick = () => decide('approved');
-        document.getElementById('rejectBtn').onclick = () => decide('rejected');
+        document.getElementById('approveBtn').onclick = () => decideVersionReview('approved');
+        document.getElementById('rejectBtn').onclick = () => decideVersionReview('rejected');
       }
 
-      // 发布按钮
-      const publishBtn = document.getElementById('publishBtn');
-      if (publishBtn) {
-        publishBtn.onclick = () => {
-          App.api('/api/documents/' + idParam + '/publish', { method: 'POST' }).then(() => {
-            App.toast('文档已发布到 RAG 库', 'success');
+      // 生成向量数据按钮
+      const generateBtn = document.getElementById('generateBtn');
+      if (generateBtn) {
+        generateBtn.onclick = () => {
+          App.api('/api/processing/knowledge/generate-vectors', {
+            method: 'POST',
+            body: JSON.stringify({ versionId: version.version_id }),
+          }).then(() => {
+            App.toast('已开始生成向量数据', 'success');
             setTimeout(() => location.reload(), 800);
           }).catch((e) => App.toast(e.message, 'error'));
         };
       }
-    });
+
+      // 重新发起审核按钮
+      const reReviewBtn = document.getElementById('reReviewBtn');
+      if (reReviewBtn) {
+        reReviewBtn.onclick = () => {
+          App.api('/api/knowledge/' + version.version_id + '/re-review', { method: 'POST' }).then(() => {
+            App.toast('已重新发起审核', 'success');
+            setTimeout(() => location.href = '/review.html', 800);
+          }).catch((e) => App.toast(e.message, 'error'));
+        };
+      }
+    }).catch((e) => {
+      document.getElementById('content').innerHTML = `<div class="alert alert-danger">加载失败: ${e.message}</div>`;
     });
   }
 
-  function decide(decision) {
-    App.api('/api/documents/' + idParam + '/review', {
+  /**
+   * 版本审核决定（需求第 8 节 - 审核联动）
+   * 审核通过 → 原始文档页面显示"生成向量数据"
+   * 审核失败 → 显示"重新发起审核"
+   */
+  function decideVersionReview(decision) {
+    App.api('/api/knowledge/' + idParam + '/review', {
       method: 'POST',
-      body: JSON.stringify({ decision, note: document.getElementById('note').value }),
+      body: JSON.stringify({ decision, note: document.getElementById('note')?.value || '' }),
     }).then(() => {
-      App.toast(decision === 'approved' ? '已通过，文档进入 RAG 库' : '已驳回', 'success');
+      App.toast(decision === 'approved' ? '审核通过，可生成向量数据' : '已驳回', 'success');
       setTimeout(() => location.href = '/review.html', 800);
     }).catch((e) => App.toast(e.message, 'error'));
+  }
+
+  /**
+   * 显示版本审核详情（需求第 8 节 - 审核联动）
+   */
+  function showVersionReviewDetail(versionId) {
+    location.href = '/review.html?id=' + versionId;
+  }
+
+  // 兼容旧的 decide 函数（备用）
+  function decide(decision) {
+    decideVersionReview(decision);
   }
 
   // 根据参数决定显示列表还是详情
@@ -280,7 +306,15 @@ if (App.guard()) {
     App.api('/api/capabilities/pending-review').then((d) => {
       const list = d.capabilities || [];
       if (list.length === 0) {
-        box.innerHTML = '<div class="alert alert-info">暂无待审核能力</div>';
+        box.innerHTML = `
+          <div class="card" style="padding:40px;text-align:center;margin-top:10px">
+            <div style="font-size:48px;margin-bottom:16px;opacity:0.5">🧠</div>
+            <h4 style="margin-bottom:12px">暂无待审核能力</h4>
+            <p class="text-muted" style="margin-bottom:0">
+              当前没有待审核的 AI 能力。编辑能力后会进入草稿状态，提交审核后才会出现在这里。
+            </p>
+          </div>
+        `;
         return;
       }
       const rows = list.map((c) => {

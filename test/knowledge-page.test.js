@@ -14,7 +14,7 @@ test('知识库页面包含基本结构', () => {
   const content = fs.readFileSync(knowledgePath, 'utf8');
 
   assert.ok(content.includes('<!DOCTYPE html>'), '应该是有效的 HTML');
-  assert.ok(content.includes('<title>知识库'), '应该有正确的标题');
+  assert.ok(content.includes('<title>知识中心'), '应该有正确的标题');
   assert.ok(content.includes('css/style.css'), '应该链接 CSS');
   assert.ok(content.includes('css/knowledge.css'), '应该链接知识库专用 CSS');
   assert.ok(content.includes('script'), '应该加载 JS');

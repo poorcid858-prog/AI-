@@ -50,6 +50,33 @@ test('sidebar.js 应包含高亮当前激活项逻辑', () => {
   assert.ok(content.includes('active') || content.includes('highlight'), 'sidebar.js 应包含高亮逻辑');
 });
 
+test('AI 工作台模块不应有二级子菜单', () => {
+  const content = fs.readFileSync(path.join(__dirname, '../public/js/sidebar.js'), 'utf-8');
+  // workbench 模块应直接包含 href 而非 children 数组
+  assert.ok(content.includes("'workbench'"), 'workbench 模块应存在');
+  assert.ok(content.includes('/workspace.html'), 'workbench 应指向 workspace.html');
+  // 不应包含旧的二级子菜单关键词
+  assert.ok(!content.includes('产品助手'), 'AI 工作台不应有产品助手子菜单');
+  assert.ok(!content.includes('测试助手'), 'AI 工作台不应有测试助手子菜单');
+  assert.ok(!content.includes('AI 对话'), 'AI 工作台不应有 AI 对话子菜单');
+  assert.ok(!content.includes('历史记录'), 'AI 工作台不应有历史记录子菜单');
+});
+
+test('无子菜单的模块应渲染为链接而非可折叠标题', () => {
+  const content = fs.readFileSync(path.join(__dirname, '../public/js/sidebar.js'), 'utf-8');
+  // 渲染逻辑中应能处理无 children 的模块
+  assert.ok(content.includes('module.children') || content.includes('children'), '渲染逻辑应检查 children 属性');
+  // 应包含 href 直接跳转逻辑
+  assert.ok(content.includes('href'), '渲染应包含链接');
+});
+
+test('chunk 子项 href 应指向 knowledge-quality.html', () => {
+  const content = fs.readFileSync(path.join(__dirname, '../public/js/sidebar.js'), 'utf-8');
+  // chunk 应指向 knowledge-quality.html 而非 knowledge.html?tab=chunks
+  assert.ok(content.includes('knowledge-quality'), 'chunk 子项 href 应包含 knowledge-quality');
+  assert.ok(!content.includes('knowledge.html?tab=chunks'), '不应再有旧的 chunk 路径');
+});
+
 test('dashboard.html 应调用 renderSidebar 而不是 renderHeader', () => {
   const html = fs.readFileSync(path.join(__dirname, '../public/dashboard.html'), 'utf-8');
   assert.ok(!html.includes("renderHeader('dashboard')"), 'dashboard.html 不应调用 renderHeader');
@@ -85,6 +112,12 @@ test('admin-config.html 应调用 renderSidebar', () => {
 test('workspace.html 应调用 renderSidebar', () => {
   const html = fs.readFileSync(path.join(__dirname, '../public/workspace.html'), 'utf-8');
   assert.ok(html.includes('renderSidebar'), 'workspace.html 应调用 renderSidebar');
+});
+
+test('admin.html 应调用 renderSidebar 参数为 knowledge 和 doc', () => {
+  const html = fs.readFileSync(path.join(__dirname, '../public/admin.html'), 'utf-8');
+  // doc 是 knowledge 模块的子项，所以 renderSidebar 的第一个参数应为 'knowledge'
+  assert.ok(html.includes("renderSidebar('knowledge', 'doc')"), 'admin.html 应调用 renderSidebar(\'knowledge\', \'doc\')');
 });
 
 test('所有登录后页面都不应调用旧的 renderHeader 方法', () => {

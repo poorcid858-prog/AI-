@@ -15,13 +15,7 @@
       key: 'workbench',
       label: 'AI 工作台',
       icon: '🤖',
-      children: [
-        { key: 'product', label: '产品助手', href: '/workspace.html?role=product', roles: ['product', 'admin', 'reviewer', 'guest'] },
-        { key: 'test', label: '测试助手', href: '/workspace.html?role=test', roles: ['test', 'admin', 'reviewer', 'guest'] },
-        { key: 'frontend', label: '前端助手', href: '/workspace.html?role=frontend', roles: ['frontend', 'admin', 'reviewer', 'guest'] },
-        { key: 'chat', label: 'AI 对话', href: '/workspace.html', roles: ['product', 'test', 'frontend', 'cs', 'admin', 'reviewer', 'guest'] },
-        { key: 'history', label: '历史记录', href: '/operations.html', roles: ['admin', 'reviewer', 'guest'] },
-      ],
+      href: '/workspace.html',
     },
     {
       key: 'knowledge',
@@ -30,7 +24,7 @@
       children: [
         { key: 'kb', label: '知识库', href: '/knowledge.html', roles: ['product', 'test', 'frontend', 'cs', 'admin', 'reviewer', 'guest'] },
         { key: 'doc', label: '文档管理', href: '/admin.html', roles: ['admin', 'guest'] },
-        { key: 'chunk', label: 'Chunk 管理', href: '/knowledge.html?tab=chunks', roles: ['admin', 'reviewer'] },
+        { key: 'chunk', label: 'Chunk 管理', href: '/knowledge-quality.html', roles: ['admin', 'reviewer'] },
         { key: 'search', label: '知识检索', href: '/knowledge.html?tab=search', roles: ['product', 'test', 'frontend', 'cs', 'admin', 'reviewer', 'guest'] },
       ],
     },
@@ -91,9 +85,12 @@
     const u = App.user;
     const role = u ? u.role : 'guest';
 
-    // 计算某一模块当前是否应该展示（二级菜单中至少一个子项对当前角色可见）
+    // 计算某一模块当前是否应该展示（有 children 则至少一个子项对当前角色可见，无 children 则总是可见）
     function moduleVisible(mod) {
-      return mod.children.some((c) => c.roles.includes(role));
+      if (mod.children) {
+        return mod.children.some((c) => c.roles.includes(role));
+      }
+      return true;
     }
 
     // 过滤后的可见模块
@@ -111,24 +108,37 @@
         </button>
         <nav class="sidebar-nav">
           ${visibleModules.map((m) => {
-            const isOpen = m.key === moduleKey;
-            const childrenHtml = m.children
-              .filter((c) => c.roles.includes(role))
-              .map((c) => {
-                const active = c.key === itemKey;
-                return `<a class="sidebar-item ${active ? 'active' : ''}" href="${c.href}" data-item-key="${c.key}">
-                  <span class="sidebar-item-dot"></span>${c.label}
-                </a>`;
-              }).join('');
-            return `
-              <div class="sidebar-module ${isOpen ? 'open' : ''} ${m.key === moduleKey ? 'active' : ''}" data-module-key="${m.key}">
-                <div class="sidebar-module-head" data-toggle="module">
-                  <span class="sidebar-module-icon">${m.icon}</span>
-                  <span class="sidebar-module-label">${m.label}</span>
-                  <span class="sidebar-module-arrow">▾</span>
-                </div>
-                <div class="sidebar-children">${childrenHtml}</div>
-              </div>`;
+            if (m.children) {
+              // 有子菜单的模块：渲染为可折叠标题
+              const isOpen = m.key === moduleKey;
+              const childrenHtml = m.children
+                .filter((c) => c.roles.includes(role))
+                .map((c) => {
+                  const active = c.key === itemKey;
+                  return `<a class="sidebar-item ${active ? 'active' : ''}" href="${c.href}" data-item-key="${c.key}">
+                    <span class="sidebar-item-dot"></span>${c.label}
+                  </a>`;
+                }).join('');
+              return `
+                <div class="sidebar-module ${isOpen ? 'open' : ''} ${m.key === moduleKey ? 'active' : ''}" data-module-key="${m.key}">
+                  <div class="sidebar-module-head" data-toggle="module">
+                    <span class="sidebar-module-icon">${m.icon}</span>
+                    <span class="sidebar-module-label">${m.label}</span>
+                    <span class="sidebar-module-arrow">▾</span>
+                  </div>
+                  <div class="sidebar-children">${childrenHtml}</div>
+                </div>`;
+            } else {
+              // 无子菜单的模块：渲染为直接链接
+              const active = m.key === moduleKey;
+              return `
+                <div class="sidebar-module ${active ? 'active' : ''}" data-module-key="${m.key}">
+                  <a class="sidebar-module-head sidebar-module-link" href="${m.href}" data-toggle="module">
+                    <span class="sidebar-module-icon">${m.icon}</span>
+                    <span class="sidebar-module-label">${m.label}</span>
+                  </a>
+                </div>`;
+            }
           }).join('')}
         </nav>
       </aside>`;
